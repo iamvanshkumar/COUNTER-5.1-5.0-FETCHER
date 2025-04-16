@@ -1,10 +1,14 @@
 import React from "react";
-import NavBar from "../components/navbar";
+
+import SideNav from "../components/SideNav";
 
 export default function Home() {
   return (
     <>
-      <NavBar />
+      <SideNav />
+      <main className="">
+
+      </main>
     </>
   );
 }
