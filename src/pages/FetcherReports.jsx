@@ -178,167 +178,168 @@ export default function FetcherReports() {
     }
   };
 
-  return (
+return (
     <>
-      <SideNav />
-      <main className="col-span-4 h-full overflow-y-scroll p-2">
-        <section className="w-full flex flex-col gap-2 h-full">
-          <section className="grid grid-cols-2 gap-2">
-            <div className="bg-white p-3 flex flex-col gap-4 rounded-md shadow-md border border-gray-100">
-              <h4 className="text-xs text-gray-600 font-semibold flex items-center gap-1">
-                <i className="bx bx-cog text-red-500"></i>
-                Input Settings
-              </h4>
+        <SideNav />
+        <main className="col-span-4 h-full overflow-y-scroll p-2">
+            <section className="w-full flex flex-col gap-2 h-full">
+                <section className="grid grid-cols-2 gap-2">
+                    <div className="bg-white p-3 flex flex-col gap-4 rounded-md shadow-md border border-gray-100">
+                        <h4 className="text-xs text-gray-600 font-semibold flex items-center gap-1">
+                            <i className="bx bx-cog text-red-500"></i>
+                            Input Settings
+                        </h4>
 
-              <div className="flex flex-col gap-4">
-                <div>
-                  <label className="block mb-2 text-xs text-gray-600 font-semibold">
-                    Select date range
-                  </label>
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="date"
-                      value={startDate}
-                      onChange={(e) => setStartDate(e.target.value)}
-                      className="bg-gray-50 border border-gray-300 text-gray-900 placeholder:text-xs text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
-                    />
-                    <span className="text-sm text-gray-500 font-medium">to</span>
-                    <input
-                      type="date"
-                      value={endDate}
-                      onChange={(e) => setEndDate(e.target.value)}
-                      className="bg-gray-50 border border-gray-300 text-gray-900 placeholder:text-xs text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
-                    />
-                  </div>
-                </div>
-                <div className="flex flex-col gap-2">
-                    <label className="text-xs text-gray-600 font-semibold flex items-center gap-1">
-                      Upload CSV file
-                    </label>
-                    <input
-                      type="file"
-                      accept=".csv"
-                      onChange={handleFileChange}
-                      className="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50"
-                    />
-                  </div>
+                        <div className="flex flex-col gap-4">
+                            <div>
+                                <label className="block mb-2 text-xs text-gray-600 font-semibold">
+                                    Select date range
+                                </label>
+                                <div className="flex items-center gap-2">
+                                    <input
+                                        type="date"
+                                        value={startDate}
+                                        onChange={(e) => setStartDate(e.target.value)}
+                                        className="bg-gray-50 border border-gray-300 text-gray-900 placeholder:text-xs text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+                                    />
+                                    <span className="text-sm text-gray-500 font-medium">to</span>
+                                    <input
+                                        type="date"
+                                        value={endDate}
+                                        onChange={(e) => setEndDate(e.target.value)}
+                                        className="bg-gray-50 border border-gray-300 text-gray-900 placeholder:text-xs text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+                                    />
+                                </div>
+                            </div>
+                            <div className="flex flex-col gap-2">
+                                    <label className="text-xs text-gray-600 font-semibold flex items-center gap-1">
+                                        Upload CSV file
+                                    </label>
+                                    <input
+                                        type="file"
+                                        accept=".csv"
+                                        onChange={handleFileChange}
+                                        className="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50"
+                                    />
+                                </div>
 
-                <button
-                  onClick={handleDownload}
-                  className="
-                  bg-green-400 p-2 rounded-md text-white font-semibold text-sm
-                  hover:bg-green-500 transition-all duration-200 cursor-pointer"
-                >
-                  Download Reports
-                </button>
-              </div>
-            </div>
+                            <button
+                                onClick={handleDownload}
+                                className="
+                                bg-red-500 p-2 rounded-md text-white font-semibold text-sm
+                                hover:bg-red-600 transition-all duration-200 cursor-pointer"
+                            >
+                                Download Reports
+                            </button>
+                        </div>
+                    </div>
 
-            {/* Report Types */}
-            <div className="bg-white p-3 flex flex-col gap-4 rounded-md shadow-md border border-gray-100">
-              <div className="flex items-center justify-between">
-                <h4 className="text-xs text-gray-600 font-semibold flex items-center gap-1">
-                  <i className="bx bxs-report text-red-500"></i>
-                  Report Type
-                </h4>
-                <div className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    checked={allReportsSelected}
-                    onChange={toggleAllReports}
-                    id="selectAllCheckboxReport"
-                    className="bg-gray-100 cursor-pointer"
-                  />
-                  <label for="selectAllCheckboxReport" className="text-xs font-medium cursor-pointer">Select All</label>
-                </div>
-              </div>
+                    {/* Report Types */}
+                    <div className="bg-white p-3 flex flex-col gap-4 rounded-md shadow-md border border-gray-100">
+                        <div className="flex items-center justify-between">
+                            <h4 className="text-xs text-gray-600 font-semibold flex items-center gap-1">
+                                <i className="bx bxs-report text-red-500"></i>
+                                Report Type
+                            </h4>
+                            <div className="flex items-center gap-2">
+                                <input
+                                    type="checkbox"
+                                    checked={allReportsSelected}
+                                    onChange={toggleAllReports}
+                                    id="selectAllCheckboxReport"
+                                    className="bg-gray-100 cursor-pointer"
+                                />
+                                <label htmlFor="selectAllCheckboxReport" className="text-xs font-medium cursor-pointer">Select All</label>
+                            </div>
+                        </div>
 
-              <div className="grid grid-cols-6 gap-2">
-                {reportOptions.map((report) => (
-                  <div
-                    key={report}
-                    onClick={() => toggleReport(report)}
-                    className={` p-2 rounded-md flex items-center gap-1 hover:bg-green-200 transition-all duration-200 cursor-pointer ${
-                      selectedReports.includes(report)
-                        ? "bg-green-200"
-                        : "bg-gray-100"
-                    }`}
-                  >
-                    <input
-                      type="checkbox"
-                      checked={selectedReports.includes(report)}
-                      readOnly
-                    />
-                    <label className="text-sm font-semibold">{report}</label>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </section>
+                        <div className="grid grid-cols-6 gap-2">
+                            {reportOptions.map((report) => (
+                                <div
+                                    key={report}
+                                    onClick={() => toggleReport(report)}
+                                    className={` p-2 rounded-md flex items-center gap-1 hover:bg-green-200 transition-all duration-200 cursor-pointer ${
+                                        selectedReports.includes(report)
+                                            ? "bg-green-200"
+                                            : "bg-gray-100"
+                                    }`}
+                                >
+                                    <input
+                                        type="checkbox"
+                                        checked={selectedReports.includes(report)}
+                                        readOnly
+                                    />
+                                    <label className="text-sm font-semibold">{report}</label>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </section>
 
-          {/* Libraries */}
-          <section className="h-screen bg-white p-3 flex flex-col col-span-2 gap-4 rounded-md shadow-md border border-gray-200">
-            <div className="flex items-center justify-between">
-              <h4 className="text-xs text-gray-600 font-semibold flex items-center gap-1">
-                <i className="bx bx-library text-red-500"></i>
-                Libraries
-              </h4>
-              <div className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  checked={allLibrariesSelected}
-                  id="selectAllCheckboxLibrary"
-                  className="bg-gray-100 cursor-pointer"
-                  onChange={() => {
-                    if (allLibrariesSelected) {
-                      setSelectedLibraries([]);
-                    } else {
-                      setSelectedLibraries(
-                        libraryDetails.map((lib) => lib.customerId)
-                      );
-                    }
-                  }}
-                />
-                <label for="selectAllCheckboxLibrary" className="text-xs font-medium cursor-pointer">Select All</label>
-              </div>
-            </div>
+                {/* Libraries */}
+                <section className="h-screen bg-white p-3 flex flex-col col-span-2 gap-4 rounded-md shadow-md border border-gray-200">
+                    <div className="flex items-center justify-between">
+                        <h4 className="text-xs text-gray-600 font-semibold flex items-center gap-1">
+                            <i className="bx bx-library text-red-500"></i>
+                            Libraries
+                        </h4>
+                        <div className="flex items-center gap-2">
+                            <input
+                                type="checkbox"
+                                checked={allLibrariesSelected}
+                                id="selectAllCheckboxLibrary"
+                                className="bg-gray-100 cursor-pointer"
+                                onChange={() => {
+                                    if (allLibrariesSelected) {
+                                        setSelectedLibraries([]);
+                                    } else {
+                                        setSelectedLibraries(
+                                            libraryDetails.map((lib) => lib.customerId)
+                                        );
+                                    }
+                                }}
+                            />
+                            <label htmlFor="selectAllCheckboxLibrary" className="text-xs font-medium cursor-pointer">Select All</label>
+                        </div>
+                    </div>
 
-            {!file ? (
-              <div className="w-full h-full flex flex-col items-center justify-center gap-2">
-                <img
-                  src="https://cdn-icons-png.flaticon.com/512/8242/8242984.png"
-                  className="w-36"
-                  draggable="false"
-                  alt="icon"
-                />
-                <h4 className="text-gray-400 text-4xl font-bold">
-                  No File Uploaded
-                </h4>
-              </div>
-            ) : (
-              <div className="grid grid-cols-8 gap-2 overflow-y-scroll">
-                {libraryDetails.map((lib) => (
-                  <div
-                    key={lib.customerId}
-                    className={` p-2 rounded-md flex items-center gap-1 hover:bg-green-200 transition-all duration-200 cursor-pointer ${
-                        selectedLibraries.includes(lib.customerId)
-                          ? "bg-green-200"
-                          : "bg-gray-100"
-                      }`}
-                  >
-                    <input
-                      type="checkbox"
-                      checked={selectedLibraries.includes(lib.customerId)}
-                      onChange={() => toggleLibrary(lib.customerId)}
-                    />
-                    <label className="text-sm font-semibold">{lib.libraryCode || lib.customerId}</label>
-                  </div>
-                ))}
-              </div>
-            )}
-          </section>
-        </section>
-      </main>
+                    {!file ? (
+                        <div className="w-full h-full flex flex-col items-center justify-center gap-2">
+                            <img
+                                src="https://cdn-icons-png.flaticon.com/512/8242/8242984.png"
+                                className="w-36"
+                                draggable="false"
+                                alt="icon"
+                            />
+                            <h4 className="text-gray-400 text-4xl font-bold">
+                                No File Uploaded
+                            </h4>
+                        </div>
+                    ) : (
+                        <div className="grid grid-cols-8 gap-2 overflow-y-scroll">
+                            {libraryDetails.map((lib) => (
+                                <div
+                                    key={lib.customerId}
+                                    onClick={() => toggleLibrary(lib.customerId)}
+                                    className={` p-2 rounded-md flex items-center gap-1 hover:bg-green-200 transition-all duration-200 cursor-pointer ${
+                                            selectedLibraries.includes(lib.customerId)
+                                                ? "bg-green-200"
+                                                : "bg-gray-100"
+                                        }`}
+                                >
+                                    <input
+                                        type="checkbox"
+                                        checked={selectedLibraries.includes(lib.customerId)}
+                                        onChange={() => toggleLibrary(lib.customerId)}
+                                    />
+                                    <label className="text-sm font-semibold">{lib.libraryCode || lib.customerId}</label>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </section>
+            </section>
+        </main>
     </>
-  );
+);
 }
