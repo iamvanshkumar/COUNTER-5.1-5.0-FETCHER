@@ -35,7 +35,7 @@ export default function CounterReports() {
             ].map(({ label, gradient }) => (
               <label
                 key={label}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg shadow-md cursor-pointer text-black font-semibold bg-gradient-to-r ${gradient} hover:shadow-lg transform hover:scale-105 transition-all duration-300 hover:bg-green-200`}
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg shadow-md cursor-pointer text-black font-semibold bg-gradient-to-r ${gradient} hover:shadow-lg transform hover:scale-105 transition-all duration-300 hover:bg-gray-400`}
               >
                 <input type="checkbox" className="form-checkbox h-4 w-4" />
                 <span>{label}</span>
@@ -50,7 +50,31 @@ export default function CounterReports() {
             <i className="bx bx-filter text-red-500"></i>
             Select your standard views
           </h4>
-          <div>safsa</div>
+          <div className="flex gap-4 overflow-x-auto whitespace-nowrap pb-2">
+  {[
+    { label: "PR P1", gradient: "from-blue-500 to-purple-500" },
+    { label: "DR D1", gradient: "from-green-500 to-teal-500" },
+    { label: "DR D2", gradient: "from-red-500 to-pink-500" },
+    { label: "TR B1", gradient: "from-yellow-500 to-orange-500" },
+    { label: "TR B2", gradient: "from-blue-500 to-purple-500" },
+    { label: "TR B3", gradient: "from-green-500 to-teal-500" },
+    { label: "TR J1", gradient: "from-red-500 to-pink-500" },
+    { label: "TR J2", gradient: "from-yellow-500 to-orange-500" },
+    { label: "TR J3", gradient: "from-yellow-500 to-orange-500" },
+    { label: "TR J4", gradient: "from-yellow-500 to-orange-500" },
+    { label: "IR A1", gradient: "from-yellow-500 to-orange-500" },
+    { label: "IR M1", gradient: "from-yellow-500 to-orange-500" },
+  ].map(({ label, gradient }) => (
+    <label
+      key={label}
+      className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg shadow-md cursor-pointer text-black font-semibold bg-gradient-to-r ${gradient} hover:shadow-lg transform hover:scale-105 transition-all duration-300 hover:bg-gray-400`}
+    >
+      <input type="checkbox" className="form-checkbox h-4 w-4" />
+      <span>{label}</span>
+    </label>
+  ))}
+</div>
+
         </section>
 
         {/* Dates & Filters Grid */}
