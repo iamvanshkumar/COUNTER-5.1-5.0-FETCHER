@@ -2,7 +2,6 @@ import {Routes, Route, Navigate } from "react-router-dom";
 import Home from "./pages/Home";
 import FetcherReports from "./pages/FetcherReports";
 import CounterReports from "./pages/CounterReports";
-import AddVendor from "./pages/AddVendor";
 
 function App() {
   return (
@@ -11,7 +10,6 @@ function App() {
         <Route path="*" element={<Navigate to="/" />} />
         <Route path="insight-fetcher" element={<FetcherReports/>} />
         <Route path="counter-fetcher" element={<CounterReports/>} />
-        <Route path="add-vendor" element={<AddVendor/>} />
       </Routes>
   );
 }
