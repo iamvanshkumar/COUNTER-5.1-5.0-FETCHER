@@ -144,14 +144,10 @@ export default function CounterReports() {
   const toggleDrawer = () => {
     const drawer = document.getElementById("drawer-example");
     if (drawer) {
-      const isHidden = drawer.classList.contains("translate-x-full");
-      if (isHidden) {
-        drawer.classList.remove("translate-x-full");
-      } else {
-        drawer.classList.add("translate-x-full");
-      }
+      drawer.classList.toggle("translate-x-full");
     }
   };
+  
 
   return (
     <>
