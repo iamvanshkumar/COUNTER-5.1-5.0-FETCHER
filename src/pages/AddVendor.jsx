@@ -20,13 +20,7 @@ export default function AddVendor() {
             <SideNav />
             <main className="">
             <div className="">
-                <button
-                    className="bg-blue-500 p-2 text-white rounded"
-                    type="button"
-                    onClick={toggleDrawer}
-                >
-                    Add Vendor
-                </button>
+              
             </div>
 
                 {/* Pass visibility prop to SideBar */}

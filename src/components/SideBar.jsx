@@ -9,17 +9,11 @@ export default function SideBar() {
 
     return (
         <>
-            <button
-                onClick={toggleDrawer}
-                className="px-4 py-2 text-white bg-blue-500 rounded-md"
-            >
-                Toggle Drawer
-            </button>
             <div
                 id="drawer-example"
                 className={`fixed top-0 right-0 z-40 h-screen p-4 overflow-y-auto transition-transform ${
                     isDrawerOpen ? 'translate-x-0' : 'translate-x-full'
-                } bg-white w-80 dark:bg-gray-800`}
+                } bg-white w-80 shadow-xl border-l border-gray-200`}
                 tabIndex="-1"
                 aria-labelledby="drawer-label"
             >
