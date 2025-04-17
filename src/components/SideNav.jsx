@@ -1,7 +1,7 @@
 import { React } from "react";
 import { Link } from "react-router-dom";
 
-export default function SideNav() {
+export default function SideNav({ activeTab }) {
   return (
     <aside className="pl-2 pt-2">
       <div className="bg-white border border-gray-100 rounded-md p-4 h-screen w-full shadow-md col-span-1">
@@ -21,24 +21,36 @@ export default function SideNav() {
         <div className="flex flex-col gap-2 py-2">
           <Link
             to="/"
-            className="flex items-center gap-2 p-2 rounded-md hover:bg-gray-200 transition-all duration-200"
+            className={`flex items-center gap-2 p-2 rounded-md ${
+              activeTab === "home"
+                ? "bg-red-500 text-white"
+                : "hover:bg-gray-200"
+            } transition-all duration-200`}
           >
             <i className="bx bxs-home text-red-500"></i>
             <span className="text-sm font-medium">Home</span>
           </Link>
           <Link
-            to="/fetcher-reports"
-            className="flex items-center gap-2 p-2 rounded-md bg-red-500 text-white"
+            to="/insight-fetcher"
+            className={`flex items-center gap-2 p-2 rounded-md ${
+              activeTab === "insight-fetcher"
+                ? "bg-red-500 text-white"
+                : "hover:bg-gray-200"
+            } transition-all duration-200`}
           >
             <i className="bx bxs-user-account"></i>
             <span className="text-sm font-medium">Insight Fetcher</span>
           </Link>
           <Link
-            to="/counter-reports"
-            className="flex items-center gap-2 p-2 rounded-md hover:bg-gray-200 transition-all duration-200"
+            to="/counter-fetcher"
+            className={`flex items-center gap-2 p-2 rounded-md ${
+              activeTab === "counter-fetcher"
+                ? "bg-red-500 text-white"
+                : "hover:bg-gray-200"
+            } transition-all duration-200`}
           >
-            <i className="bx bxs-dice-5 text-red-500"></i>
-            <span className="text-sm font-medium">Counter 5.1 Fetcher</span>
+            <i className="bx bxs-dice-5"></i>
+            <span className="text-sm font-medium">Counter Fetcher</span>
           </Link>
         </div>
       </div>

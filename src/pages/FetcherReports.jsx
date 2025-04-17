@@ -180,7 +180,7 @@ export default function FetcherReports() {
 
 return (
     <>
-        <SideNav />
+        <SideNav activeTab="insight-fetcher" />
         <main className="col-span-4 h-full overflow-y-scroll p-2">
             <section className="w-full flex flex-col gap-2 h-full">
                 <section className="grid grid-cols-2 gap-2">
