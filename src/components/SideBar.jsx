@@ -40,7 +40,10 @@ export default function SideBar() {
         }}
       >
         <div className="flex justify-between items-center mb-4">
-          <h2 className="flex items-center gap-1 text-md font-semibold text-red-500" id="drawer-label">
+          <h2
+            className="flex items-center gap-1 text-md font-semibold text-red-500"
+            id="drawer-label"
+          >
             <i className="bx bxs-user-account"></i>
             Add New Vendor {vendorVersion}
           </h2>
@@ -153,26 +156,36 @@ export default function SideBar() {
             <label className="block mb-2 text-xs text-gray-600 font-semibold">
               Does it require two attempts per report?*
             </label>
-            <div className="flex items-center space-x-4">
-              <label className="flex items-center">
-                <input
-                  type="radio"
-                  name="twoAttempts"
-                  value="no"
-                  className="form-radio"
-                  required
-                />
-                <span className="ml-2">No</span>
+            <div className="flex items-center ps-4 border border-gray-200 rounded-sm dark:border-gray-700">
+              <input
+                id="bordered-radio-1"
+                type="radio"
+                value=""
+                name="bordered-radio"
+                className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+              />
+              <label
+                htmlFor="bordered-radio-1"
+                className="w-full py-4 ms-2 text-sm font-medium text-gray-900 dark:text-gray-300"
+              >
+                Default radio
               </label>
-              <label className="flex items-center">
-                <input
-                  type="radio"
-                  name="twoAttempts"
-                  value="yes"
-                  className="form-radio"
-                  required
-                />
-                <span className="ml-2">Yes</span>
+            </div>
+
+            <div className="flex items-center ps-4 border border-gray-200 rounded-sm dark:border-gray-700">
+              <input
+                id="bordered-radio-2"
+                type="radio"
+                value=""
+                name="bordered-radio"
+                defaultChecked
+                className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+              />
+              <label
+                htmlFor="bordered-radio-2"
+                className="w-full py-4 ms-2 text-sm font-medium text-gray-900 dark:text-gray-300"
+              >
+                Checked state
               </label>
             </div>
           </div>

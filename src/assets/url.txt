@@ -1,0 +1,11 @@
+https://sitemaster.books.rsc.org/sushi/reports/TR/?api_key=550fe0aa-2ecf-4484-9535-bc002de82e50&customer_id=2835&requestor_id=3&begin_date=2024-01&end_date=2024-12
+
+https://sitemaster.books.rsc.org/sushi/reports/TR/?api_key=550fe0aa-2ecf-4484-9535-bc002de82e50&customer_id=2835&requestor_id=3&begin_date=2025-01&end_date=2025-01
+
+https://sitemaster.dl.asminternational.org/sushi/reports/TR/?api_key=550fe0aa-2ecf-4484-9535-bc002de82e50&customer_id=2835&requestor_id=3&begin_date=2025-01&end_date=2025-01
+
+https://sitemaster.dl.asminternational.org/sushi/reports/TR/?api_key=550fe0aa-2ecf-4484-9535-bc002de82e50&customer_id=2835&requestor_id=91&begin_date=2024-01-01&end_date=2024-12-31
+
+https://sitemaster.books.rsc.org/sushi/reports/TR/?api_key=550fe0aa-2ecf-4484-9535-bc002de82e50&customer_id=2835&requestor_id=91&begin_date=2024-01&end_date=2024-12
+
+https://sitemaster.books.rsc.org/sushi/reports/TR/?api_key=550fe0aa-2ecf-4484-9535-bc002de82e50&customer_id=2835&requestor_id=3&begin_date=2024-01&end_date=2025-04
