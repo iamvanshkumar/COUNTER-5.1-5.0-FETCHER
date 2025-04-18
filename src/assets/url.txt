@@ -9,3 +9,38 @@ https://sitemaster.dl.asminternational.org/sushi/reports/TR/?api_key=550fe0aa-2e
 https://sitemaster.books.rsc.org/sushi/reports/TR/?api_key=550fe0aa-2ecf-4484-9535-bc002de82e50&customer_id=2835&requestor_id=91&begin_date=2024-01&end_date=2024-12
 
 https://sitemaster.books.rsc.org/sushi/reports/TR/?api_key=550fe0aa-2ecf-4484-9535-bc002de82e50&customer_id=2835&requestor_id=3&begin_date=2024-01&end_date=2025-04
+
+
+https://sitemaster.books.rsc.org/sushi/reports/TR/?api_key=550fe0aa-2ecf-4484-9535-bc002de82e50&customer_id=2835&requestor_id=3&begin_date=2024-01&end_date=2024-12&data_type=all&access_type=controlled&section_type=chapter
+
+https://sitemaster.dl.asminternational.org/sushi/reports/TR/?api_key=3f76db18-2dbe-48aa-8cc2-31621eb9183e&customer_id=5&requestor_id=91&begin_date=2025-01-01&end_date=2025-03-31
+
+
+CREATE TABLE c5_platform_master_report_json (
+    Institution_Code     VARCHAR(150) DEFAULT NULL,
+    pub_code             VARCHAR(1500) DEFAULT NULL,
+    Platform             VARCHAR(1500) DEFAULT NULL,
+    Collection_Platform  VARCHAR(1500) DEFAULT NULL,
+    Report_Type          VARCHAR(30) DEFAULT NULL,
+    Metric_Type          VARCHAR(1500) DEFAULT NULL,
+    Counter_Compliant    VARCHAR(135) DEFAULT NULL,
+    `Year`               INT DEFAULT NULL,
+    `month`              INT DEFAULT NULL,
+    YTD                  INT DEFAULT NULL,
+    Jan                  INT DEFAULT NULL,
+    Feb                  INT DEFAULT NULL,
+    Mar                  INT DEFAULT NULL,
+    Apr                  INT DEFAULT NULL,
+    May                  INT DEFAULT NULL,
+    Jun                  INT DEFAULT NULL,
+    Jul                  INT DEFAULT NULL,
+    Aug                  INT DEFAULT NULL,
+    Sep                  INT DEFAULT NULL,
+    Oct                  INT DEFAULT NULL,
+    Nov                  INT DEFAULT NULL,
+    `Dec`                INT DEFAULT NULL,
+    YOP                  VARCHAR(60) DEFAULT NULL,
+    Data_Type            VARCHAR(150) DEFAULT NULL,
+    Access_Type          VARCHAR(150) DEFAULT NULL,
+    Access_Method        VARCHAR(150) DEFAULT NULL
+);

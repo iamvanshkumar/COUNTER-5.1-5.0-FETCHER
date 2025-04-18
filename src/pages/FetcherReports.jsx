@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import Papa from "papaparse";
 import SideNav from "../components/SideNav";
 
 export default function FetcherReports() {
@@ -12,30 +13,116 @@ export default function FetcherReports() {
   const [endDate, setEndDate] = useState("");
   const [allReportsSelected, setAllReportsSelected] = useState(false);
   const [allLibrariesSelected, setAllLibrariesSelected] = useState(false);
-
+  
+  function generateCSVfromTR(data, libraryCode) {
+    const rows = [];
+  
+    data.Report_Items?.forEach((item) => {
+      const ids = {};
+      item.Item_ID?.forEach((id) => {
+        ids[id.Type] = id.Value;
+      });
+  
+      const pub_code = "Silver";
+      const publisher_id = "no data";
+      const collection_platform = "";
+      const report_type = "TR_SSS";
+      const uri = "no data";
+      const counter_compliant = "";
+      const Data_Type = "Book";
+      const Access_Type = "Controlled";
+      const Access_Method = "Regular";
+      const Section_Type = "no data";
+      const Online_ISSN = "no data";
+      const YOP = "no data";
+  
+      item.Performance?.forEach((perf) => {
+        const year = perf.Period.Begin_Date.slice(0, 4);
+        const month = perf.Period.Begin_Date.slice(5, 7);
+        const monthStr = new Date(`${year}-${month}-01`).toLocaleString("en-US", {
+          month: "short",
+        });
+  
+        perf.Instance?.forEach((inst) => {
+          const count = inst.Count;
+          const metric = inst.Metric_Type;
+  
+          const month_counts = {
+            Jan: 0, Feb: 0, Mar: 0, Apr: 0, May: 0, Jun: 0,
+            Jul: 0, Aug: 0, Sep: 0, Oct: 0, Nov: 0, Dec: 0,
+          };
+  
+          if (monthStr in month_counts) {
+            month_counts[monthStr] = count;
+          }
+  
+          rows.push({
+            Institution_Code: item.Institution_Code || libraryCode,
+            pub_code: item.pub_code || pub_code,
+            Title: item.Title || "",
+            Publisher: item.Publisher || "",
+            Publisher_Id: publisher_id,
+            Platform: item.Platform || "",
+            Collection_Platform: collection_platform,
+            Report_Type: report_type,
+            DOI: ids.DOI || "",
+            Proprietary_Identifier: ids.Proprietary || "",
+            ISBN: ids.ISBN || "",
+            Print_ISSN: ids.Print_ISSN || "",
+            Online_ISSN: ids.Online_ISSN || Online_ISSN,
+            URI: uri,
+            Metric_Type: metric,
+            Counter_Complaint: counter_compliant,
+            Year: year,
+            Month: month,
+            YTD: count,
+            Jan: month_counts.Jan,
+            Feb: month_counts.Feb,
+            Mar: month_counts.Mar,
+            Apr: month_counts.Apr,
+            May: month_counts.May,
+            Jun: month_counts.Jun,
+            Jul: month_counts.Jul,
+            Aug: month_counts.Aug,
+            Sep: month_counts.Sep,
+            Oct: month_counts.Oct,
+            Nov: month_counts.Nov,
+            Dec: month_counts.Dec,
+            YOP: item.YOP || YOP,
+            Data_Type: item.Data_Type || Data_Type,
+            Access_Type: item.Access_Type || Access_Type,
+            Access_Method: item.Access_Method || Access_Method,
+            Section_Type: item.Section_Type || Section_Type,
+          });
+        });
+      });
+    });
+  
+    const csv = Papa.unparse(rows);
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+  
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${libraryCode}_TR_Report.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+  
   const reportOptions = [
-    "TR",
-    "TR_J1",
-    "TR_J2",
-    "TR_J3",
-    "TR_J4",
-    "TR_B1",
-    "TR_B2",
-    "TR_B3",
-    "DR",
-    "DR_D1",
-    "DR_D2",
-    "PR",
-    "PR_P1",
+    "TR", "TR_J1", "TR_J2", "TR_J3", "TR_J4",
+    "TR_B1", "TR_B2", "TR_B3",
+    "DR", "DR_D1", "DR_D2",
+    "PR", "PR_P1"
   ];
-
+  
   useEffect(() => {
     const interval = setInterval(() => {
       setDateTime(new Date().toLocaleString());
     }, 1000);
     return () => clearInterval(interval);
   }, []);
-
+  
   const handleFileChange = (event) => {
     const file = event.target.files[0];
     setFile(file);
@@ -63,7 +150,7 @@ export default function FetcherReports() {
       reader.readAsText(file);
     }
   };
-
+  
   const toggleAllReports = () => {
     if (allReportsSelected) {
       setSelectedReports([]);
@@ -72,7 +159,7 @@ export default function FetcherReports() {
     }
     setAllReportsSelected(!allReportsSelected);
   };
-
+  
   const toggleReport = (report) => {
     setSelectedReports((prev) =>
       prev.includes(report)
@@ -80,7 +167,7 @@ export default function FetcherReports() {
         : [...prev, report]
     );
   };
-
+  
   const toggleLibrary = (customerId) => {
     setSelectedLibraries((prev) =>
       prev.includes(customerId)
@@ -88,11 +175,11 @@ export default function FetcherReports() {
         : [...prev, customerId]
     );
   };
-
+  
   useEffect(() => {
     setAllLibrariesSelected(selectedLibraries.length === libraryDetails.length);
   }, [selectedLibraries, libraryDetails]);
-
+  
   const saveFileWithPicker = async (blob, suggestedName) => {
     try {
       const handle = await window.showSaveFilePicker({
@@ -112,7 +199,7 @@ export default function FetcherReports() {
       alert(`Failed to save file: ${error.message}`);
     }
   };
-
+  
   const saveLogsWithPicker = async (logs, suggestedName) => {
     try {
       const logContent = logs.join("\n") || "No logs generated.";
@@ -134,7 +221,7 @@ export default function FetcherReports() {
       alert(`Failed to save log file: ${error.message}`);
     }
   };
-
+  
   const handleDownload = async () => {
     if (!startDate || !endDate) {
       alert("Please select a valid date range.");
@@ -148,50 +235,44 @@ export default function FetcherReports() {
       alert("Please select at least one library.");
       return;
     }
-
+  
     const formattedStartDate = new Date(startDate).toISOString().split("T")[0];
     const formattedEndDate = new Date(endDate).toISOString().split("T")[0];
     const chosenLibraries = libraryDetails.filter((lib) =>
       selectedLibraries.includes(lib.customerId)
     );
     const logs = [];
-
+  
     for (const reportType of selectedReports) {
       const combinedData = [];
       for (const library of chosenLibraries) {
         const asm = "sitemaster.dl.asminternational.org";
         const rsc = "sitemaster.books.rsc.org";
-
+  
         const selectedSite = selectedPlatform === "ASM" ? asm : rsc;
-
-        // Format date based on selected platform
+  
         const formatDate = (date) => {
           const d = new Date(date);
-          if (selectedPlatform === "RSC") {
-            // Format: YYYY-MM
-            return d.toISOString().slice(0, 7);
-          }
-          // Format: YYYY-MM-DD
-          return d.toISOString().split("T")[0];
+          return selectedPlatform === "RSC"
+            ? d.toISOString().slice(0, 7)
+            : d.toISOString().split("T")[0];
         };
-
-        const formattedStartDate = formatDate(startDate);
-        const formattedEndDate = formatDate(endDate);
-
-        // Build URL
-        const url = `https://${selectedSite}/sushi/reports/${reportType}/?api_key=${library.apiKey}&customer_id=${library.customerId}&requestor_id=${library.requestorId}&begin_date=${formattedStartDate}&end_date=${formattedEndDate}`;
-
-        console.log("Fetching URL:", url); // Debugging log
+  
+        const start = formatDate(startDate);
+        const end = formatDate(endDate);
+  
+        const url = `https://${selectedSite}/sushi/reports/${reportType}/?api_key=${library.apiKey}&customer_id=${library.customerId}&requestor_id=${library.requestorId}&begin_date=${start}&end_date=${end}`;
+  
+        console.log("Fetching URL:", url);
         try {
           const res = await fetch(url);
           if (!res.ok) throw new Error(res.statusText);
           const data = await res.json();
           combinedData.push({ libraryCode: library.libraryCode, data });
+          generateCSVfromTR(data, library.libraryCode);
           logs.push(`Success: ${library.customerId} / ${library.requestorId}`);
         } catch (error) {
-          logs.push(
-            `Error: ${library.customerId} / ${library.requestorId} - ${error.message}`
-          );
+          logs.push(`Error: ${library.customerId} / ${library.requestorId} - ${error.message}`);
         }
       }
       if (combinedData.length > 0) {
@@ -204,7 +285,7 @@ export default function FetcherReports() {
         logs.push(`No data for ${reportType}`);
       }
     }
-
+  
     if (logs.length > 0) {
       const logFileName = `logs_${formattedStartDate}_to_${formattedEndDate}.txt`;
       await saveLogsWithPicker(logs, logFileName);
