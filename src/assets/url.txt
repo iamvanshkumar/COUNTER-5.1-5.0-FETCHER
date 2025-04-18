@@ -13,7 +13,9 @@ https://sitemaster.books.rsc.org/sushi/reports/TR/?api_key=550fe0aa-2ecf-4484-95
 
 https://sitemaster.books.rsc.org/sushi/reports/TR/?api_key=550fe0aa-2ecf-4484-9535-bc002de82e50&customer_id=2835&requestor_id=3&begin_date=2024-01&end_date=2024-12&data_type=all&access_type=controlled&section_type=chapter
 
-https://sitemaster.dl.asminternational.org/sushi/reports/TR/?api_key=3f76db18-2dbe-48aa-8cc2-31621eb9183e&customer_id=5&requestor_id=91&begin_date=2025-01-01&end_date=2025-03-31
+https://sitemaster.dl.asminternational.org/sushi/reports/TR/?api_key=3f76db18-2dbe-48aa-8cc2-31621eb9183e&customer_id=5&requestor_id=91&begin_date=2025-01-01&end_date=2025-03-31&data_type=all
+
+https://sitemaster.dl.asminternational.org/sushi/reports/TR/?api_key=3f76db18-2dbe-48aa-8cc2-31621eb9183e&customer_id=5&requestor_id=91&begin_date=2025-01-01&end_date=2025-03-31&attributes_to_show=Access_Type|YOP|Access_Method|Data_Type|Section_Type
 
 
 CREATE TABLE c5_platform_master_report_json (
