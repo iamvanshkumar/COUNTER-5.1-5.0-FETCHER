@@ -15,41 +15,54 @@ export default function FetcherReports() {
 
   function generateCSVfromTR(data, libraryCode) {
     const rowsMap = {};
-  
+
     const reportHeader = data.Report_Header || {};
     const defaultPublisherId = "no data";
     const defaultUri = "no data";
     const defaultCounterCompliant = "";
     const defaultOnlineISSN = "no data";
     const monthCountsTemplate = {
-      Jan: 0, Feb: 0, Mar: 0, Apr: 0, May: 0, Jun: 0,
-      Jul: 0, Aug: 0, Sep: 0, Oct: 0, Nov: 0, Dec: 0,
+      Jan: 0,
+      Feb: 0,
+      Mar: 0,
+      Apr: 0,
+      May: 0,
+      Jun: 0,
+      Jul: 0,
+      Aug: 0,
+      Sep: 0,
+      Oct: 0,
+      Nov: 0,
+      Dec: 0,
     };
-  
+
     data.Report_Items?.forEach((item) => {
       const ids = {};
       item.Item_ID?.forEach((id) => {
         ids[id.Type] = id.Value;
       });
-  
+
       item.Performance?.forEach((perf) => {
         const year = perf.Period.Begin_Date.slice(0, 4);
         const month = perf.Period.Begin_Date.slice(5, 7);
-        const monthStr = new Date(`${year}-${month}-01`).toLocaleString("en-US", {
-          month: "short",
-        });
-  
+        const monthStr = new Date(`${year}-${month}-01`).toLocaleString(
+          "en-US",
+          {
+            month: "short",
+          }
+        );
+
         perf.Instance?.forEach((inst) => {
           const count = inst.Count;
           const metric = inst.Metric_Type;
-  
+
           const monthCounts = { ...monthCountsTemplate };
           if (monthStr in monthCounts) {
             monthCounts[monthStr] = count;
           }
-  
+
           const key = `${ids.ISBN || "noisbn"}|${metric}`;
-  
+
           if (!rowsMap[key]) {
             rowsMap[key] = {
               Institution_Code: libraryCode || reportHeader.Customer_ID || "",
@@ -79,26 +92,25 @@ export default function FetcherReports() {
               Section_Type: item.Section_Type || "",
             };
           }
-  
+
           rowsMap[key].YTD += count;
           rowsMap[key][monthStr] += count;
         });
       });
     });
-  
+
     const rows = Object.values(rowsMap);
-  
+
     const csv = Papa.unparse(rows);
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
-  
+
     const a = document.createElement("a");
     a.href = url;
     a.download = `${libraryCode}_TR_Report.csv`;
     a.click();
     URL.revokeObjectURL(url);
   }
-  
 
   const reportOptions = [
     "TR",
@@ -330,9 +342,13 @@ export default function FetcherReports() {
                   </div>
                 </div>
                 <div className="flex flex-col gap-2">
-                  <label className="text-xs text-gray-600 font-semibold flex items-center gap-1">
-                    Upload CSV file
-                  </label>
+                  <div className="flex items-center justify-between gap-2">
+                    <label className="text-xs text-gray-600 font-semibold flex items-center gap-1">
+                      Upload CSV file
+                    </label>
+                    <a className="text-xs text-blue-500 font-medium hover:underline transition-all duration-300" href="../assets/csv_template.csv" download="csv_template.csv">Download CSV template
+                    </a>
+                  </div>
                   <input
                     type="file"
                     accept=".csv"
