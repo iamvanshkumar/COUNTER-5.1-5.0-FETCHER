@@ -15,12 +15,7 @@ export default function FetcherReports() {
 
   function generateCSVfromTR(data, libraryCode) {
     const rowsMap = {};
-
     const reportHeader = data.Report_Header || {};
-    const defaultPublisherId = "no data";
-    const defaultUri = "no data";
-    const defaultCounterCompliant = "";
-    const defaultOnlineISSN = "no data";
     const monthCountsTemplate = {
       Jan: 0,
       Feb: 0,
@@ -38,29 +33,19 @@ export default function FetcherReports() {
 
     data.Report_Items?.forEach((item) => {
       const ids = {};
-      item.Item_ID?.forEach((id) => {
-        ids[id.Type] = id.Value;
-      });
+      item.Item_ID?.forEach((id) => (ids[id.Type] = id.Value));
 
       item.Performance?.forEach((perf) => {
         const year = perf.Period.Begin_Date.slice(0, 4);
         const month = perf.Period.Begin_Date.slice(5, 7);
         const monthStr = new Date(`${year}-${month}-01`).toLocaleString(
           "en-US",
-          {
-            month: "short",
-          }
+          { month: "short" }
         );
 
         perf.Instance?.forEach((inst) => {
           const count = inst.Count;
           const metric = inst.Metric_Type;
-
-          const monthCounts = { ...monthCountsTemplate };
-          if (monthStr in monthCounts) {
-            monthCounts[monthStr] = count;
-          }
-
           const key = `${ids.ISBN || "noisbn"}|${metric}`;
 
           if (!rowsMap[key]) {
@@ -69,7 +54,7 @@ export default function FetcherReports() {
               pub_code: ids.Proprietary?.split(":")[0] || "",
               Title: item.Title || "",
               Publisher: item.Publisher || "",
-              Publisher_Id: defaultPublisherId,
+              Publisher_Id: "no data",
               Platform: item.Platform || "",
               Collection_Platform: item.Platform || "",
               Report_Type: reportHeader.Report_ID || "TR",
@@ -77,14 +62,14 @@ export default function FetcherReports() {
               Proprietary_Identifier: ids.Proprietary || "",
               ISBN: ids.ISBN || "",
               Print_ISSN: ids.Print_ISSN || "",
-              Online_ISSN: ids.Online_ISSN || defaultOnlineISSN,
-              URI: defaultUri,
+              Online_ISSN: ids.Online_ISSN || "no data",
+              URI: "no data",
               Metric_Type: metric,
-              Counter_Complaint: defaultCounterCompliant,
+              Counter_Complaint: "",
               Year: year,
-              Month: "", // Can be left blank if aggregating across months
+              Month: "",
               YTD: 0,
-              ...monthCountsTemplate,
+              ...structuredClone(monthCountsTemplate),
               YOP: item.YOP || "",
               Data_Type: item.Data_Type || "",
               Access_Type: item.Access_Type || "",
@@ -101,15 +86,32 @@ export default function FetcherReports() {
 
     const rows = Object.values(rowsMap);
 
+    // Download CSV
     const csv = Papa.unparse(rows);
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
-
     const a = document.createElement("a");
     a.href = url;
     a.download = `${libraryCode}_TR_Report.csv`;
     a.click();
     URL.revokeObjectURL(url);
+
+    fetch("http://localhost:3001/api/insertTRReport", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ libraryCode, rows }),
+    })
+      .then((res) => res.json())
+      .then((result) => {
+        console.log("Backend response:", result);
+        alert(`Data also inserted into table: ${result.tableName || "unknown"}`);
+      })
+      .catch((err) => {
+        console.error("Error sending data to backend:", err);
+        alert("Failed to insert data into database.");
+      });
   }
 
   const reportOptions = [
@@ -127,13 +129,6 @@ export default function FetcherReports() {
     "PR",
     "PR_P1",
   ];
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setDateTime(new Date().toLocaleString());
-    }, 1000);
-    return () => clearInterval(interval);
-  }, []);
 
   const handleFileChange = (event) => {
     const file = event.target.files[0];
@@ -346,7 +341,12 @@ export default function FetcherReports() {
                     <label className="text-xs text-gray-600 font-semibold flex items-center gap-1">
                       Upload CSV file
                     </label>
-                    <a className="text-xs text-blue-500 font-medium hover:underline transition-all duration-300" href="../assets/csv_template.csv" download="csv_template.csv">Download CSV template
+                    <a
+                      className="text-xs text-blue-500 font-medium hover:underline transition-all duration-300"
+                      href="../assets/csv_template.csv"
+                      download="csv_template.csv"
+                    >
+                      Download CSV template
                     </a>
                   </div>
                   <input
