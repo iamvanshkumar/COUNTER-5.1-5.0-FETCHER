@@ -20,9 +20,9 @@ export default function SideNav({ activeTab }) {
         <hr />
         <div className="flex flex-col gap-2 py-2">
           <Link
-            to="/"
+            to="/Home"
             className={`flex items-center gap-2 p-2 rounded-md ${
-              activeTab === "home"
+              activeTab === "Home"
                 ? "bg-red-500 text-white"
                 : "hover:bg-gray-200"
             } transition-all duration-200`}

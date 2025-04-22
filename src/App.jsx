@@ -6,6 +6,7 @@ import CounterReports from "./pages/CounterReports";
 function App() {
   return (
       <Routes>
+        <Route path="/Home" element={<Home />} />
         <Route path="/" element={<Home />} />
         <Route path="*" element={<Navigate to="/" />} />
         <Route path="insight-fetcher" element={<FetcherReports/>} />
