@@ -1,16 +1,8 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom"; // Updated import
 import BgLogin from "../assets/bg_login.png";
 
 export default function Login() {
-  const [email, setEmail] = useState(
-    localStorage.getItem("rememberedEmail") || ""
-  );
-  const [password, setPassword] = useState("");
-  const [rememberMe, setRememberMe] = useState(
-    !!localStorage.getItem("rememberedEmail")
-  );
-  const [loading, setLoading] = useState(false);
-
   useEffect(() => {
     const rootElement = document.getElementById("root");
     if (rootElement) {
@@ -18,9 +10,22 @@ export default function Login() {
     }
   }, []);
 
+  const navigate = useNavigate(); // Updated hook
+  const [email, setEmail] = useState(
+    localStorage.getItem("rememberedEmail") || ""
+  );
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const userToken = sessionStorage.getItem("userToken");
+    if (userToken) {
+      navigate("/home"); // Redirect to dashboard if already logged in
+    }
+  }, [navigate]);
+
   const handleLogin = async (e) => {
     e.preventDefault();
-
     setLoading(true);
 
     try {
@@ -38,12 +43,15 @@ export default function Login() {
       const data = await response.json();
 
       if (response.ok) {
-        // Handle successful login
+        // Store session data
+        const randomToken = Math.random().toString(36).substr(2);
+        sessionStorage.setItem("userToken", randomToken);
+        sessionStorage.setItem("userEmail", email);
+
         alert("Login successful");
         console.log("User data:", data.user);
-        // Redirect or store the user data (e.g., in a global state or localStorage)
+        navigate("/dashboard"); // Redirect to dashboard on successful login
       } else {
-        // Handle login failure
         alert("Invalid credentials");
       }
     } catch (error) {
@@ -107,18 +115,6 @@ export default function Login() {
               required
             />
           </div>
-          <div className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              checked={rememberMe}
-              onChange={() => setRememberMe(!rememberMe)}
-              id="remember"
-              className="h-4 w-4 text-red-600 focus:ring-red-500 border-gray-300 rounded"
-            />
-            <label htmlFor="remember" className="text-sm text-gray-600">
-              Remember Me
-            </label>
-          </div>
           <button
             type="submit"
             disabled={loading}
@@ -135,7 +131,6 @@ export default function Login() {
             </a>
           </div>
         </form>
-
         <p className="text-center text-gray-500 text-xs">© 2025 MPST - DDN</p>
       </div>
     </div>

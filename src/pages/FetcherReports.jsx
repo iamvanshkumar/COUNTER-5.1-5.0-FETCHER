@@ -1,8 +1,21 @@
 import React, { useState, useEffect } from "react";
 import Papa from "papaparse";
+import { useNavigate } from "react-router-dom";
 import SideNav from "../components/SideNav";
 
 export default function FetcherReports() {
+
+  const history = useNavigate();
+
+  useEffect(() => {
+    const userToken = sessionStorage.getItem("userToken");
+    if (!userToken) {
+      // Redirect user to the login page if not authenticated
+      history("/login");
+    }
+  }, [history]);
+
+  
   const [selectedPlatform, setSelectedPlatform] = useState("ASM");
   const [file, setFile] = useState(null);
   const [libraryDetails, setLibraryDetails] = useState([]);

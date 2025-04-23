@@ -8,9 +8,9 @@ import Login from "./pages/Login";
 function App() {
   return (
       <Routes>
-        <Route path="/login" element={<Login />} />
+        <Route path="/" element={<Login />} />
         <Route path="/home" element={<Home />} />
-        <Route path="/" element={<Home />} />
+        <Route path="/" element={<Login />} />
         <Route path="*" element={<Navigate to="/" />} />
         <Route path="insight-fetcher" element={<FetcherReports/>} />
         <Route path="counter-fetcher" element={<CounterReports/>} />

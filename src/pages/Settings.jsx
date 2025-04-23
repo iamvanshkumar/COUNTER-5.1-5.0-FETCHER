@@ -1,7 +1,17 @@
 import React, { useState, useEffect } from "react";
 import SideNav from "../components/SideNav";
 
-export default function FetcherReports() {
+export default function Settings() {
+  const history = useNavigate();
+
+  useEffect(() => {
+    const userToken = sessionStorage.getItem("userToken");
+    if (!userToken) {
+      // Redirect user to the login page if not authenticated
+      history("/login");
+    }
+  }, [history]);
+
   return (
     <>
       <SideNav activeTab="settings" />
