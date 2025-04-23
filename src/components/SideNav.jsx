@@ -22,7 +22,7 @@ export default function SideNav({ activeTab }) {
           <Link
             to="/Home"
             className={`flex items-center gap-2 p-2 rounded-md ${
-              activeTab === "Home"
+              activeTab === "home"
                 ? "bg-red-500 text-white"
                 : "hover:bg-gray-200"
             } transition-all duration-200`}

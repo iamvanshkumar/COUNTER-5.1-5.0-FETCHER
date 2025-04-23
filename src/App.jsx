@@ -3,11 +3,13 @@ import Home from "./pages/Home";
 import FetcherReports from "./pages/FetcherReports";
 import CounterReports from "./pages/CounterReports";
 import Settings from "./pages/Settings";
+import Login from "./pages/Login";
 
 function App() {
   return (
       <Routes>
-        <Route path="/Home" element={<Home />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/home" element={<Home />} />
         <Route path="/" element={<Home />} />
         <Route path="*" element={<Navigate to="/" />} />
         <Route path="insight-fetcher" element={<FetcherReports/>} />
