@@ -3,6 +3,20 @@ import { useNavigate } from "react-router-dom"; // Updated import
 import BgLogin from "../assets/bg_login.png";
 
 export default function Login() {
+  const [animationDuration, setAnimationDuration] = useState(1); // initial duration set to 1 second
+  const durations = [1, 30, 1, 20]; // your pattern
+  const [index, setIndex] = useState(0);
+
+  useEffect(() => {
+    const interval = setTimeout(() => {
+      const nextIndex = (index + 1) % durations.length;
+      setAnimationDuration(durations[nextIndex]);
+      setIndex(nextIndex);
+    }, durations[index] * 300); // wait for current duration
+
+    return () => clearTimeout(interval);
+  }, [index]);
+
   useEffect(() => {
     const rootElement = document.getElementById("root");
     if (rootElement) {
@@ -70,7 +84,9 @@ export default function Login() {
           draggable="false"
           className="h-[90%] animate-spin"
           alt="Login Background"
-          style={{ animationDuration: "30s" }}
+          style={{
+            animationDuration: `${animationDuration}s`,
+          }}
         />
       </section>
 
