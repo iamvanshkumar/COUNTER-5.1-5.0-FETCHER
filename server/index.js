@@ -1,8 +1,8 @@
+// server/index.js
 import express from 'express';
 import cors from 'cors';
 import pool from './db.js';
-import bcrypt from 'bcrypt';
-import jwt from 'jsonwebtoken'; // If you want to use JWT for authentication
+
 
 const app = express();
 
@@ -10,49 +10,39 @@ const app = express();
 app.use(express.json({ limit: '100mb' }));
 app.use(express.urlencoded({ extended: true, limit: '100mb' }));
 
+// Enable CORS for frontend access
 app.use(cors());
 
-// API: Login route
+
+// Add login route to your server
 app.post('/api/login', async (req, res) => {
   const { email, password } = req.body;
 
+  if (!email || !password) {
+    return res.status(400).json({ message: 'Email and password are required' });
+  }
+
   try {
-    const query = 'SELECT * FROM users WHERE email = ? OR username = ?';
-    const [rows] = await pool.query(query, [email, email]);
+    // Query to find the user by email and password
+    const query = 'SELECT * FROM users WHERE email = ? AND password = ?';
+    const [rows] = await pool.query(query, [email, password]);
 
-    if (rows.length === 0) {
-      return res.status(401).json({ message: 'User not found' });
+    if (rows.length > 0) {
+      // User found, login successful
+      return res.status(200).json({ message: 'Login successful', user: rows[0] });
+    } else {
+      // Invalid credentials
+      return res.status(401).json({ message: 'Invalid email or password' });
     }
-
-    const user = rows[0];
-
-    // Compare the provided password with the stored hash
-    const isMatch = await bcrypt.compare(password, user.password);
-
-    if (!isMatch) {
-      return res.status(401).json({ message: 'Invalid password' });
-    }
-
-    // Generate a JWT token (optional)
-    const token = jwt.sign(
-      { userId: user.id, username: user.username, email: user.email },
-      'your_jwt_secret', // Replace with your secret key
-      { expiresIn: '1h' } // Optional: Token expiration time
-    );
-
-    // Send the token and user data in the response
-    res.status(200).json({
-      message: 'Login successful',
-      token, // Send the token if you're using JWT
-      user: { id: user.id, username: user.username, email: user.email },
-    });
   } catch (err) {
     console.error('Error during login:', err);
-    res.status(500).json({ message: 'Server error', error: err.message });
+    return res.status(500).json({ message: 'Error during login', error: err.message });
   }
 });
 
-// API: Insert TR report route
+
+
+
 app.post('/api/insertTRReport', async (req, res) => {
   try {
     const { libraryCode, rows } = req.body;
@@ -110,9 +100,9 @@ app.post('/api/insertTRReport', async (req, res) => {
       row.Institution_Code, row.pub_code, row.Title, row.Publisher, row.Publisher_ID,
       row.Platform, row.Collection_Platform, row.Report_Type, row.DOI, row.Proprietary_Id,
       row.ISBN, row.Print_ISSN, row.Online_ISSN, row.URI, row.Metric_Type,
-      row.Counter_Complaint, 
-      row.Year || null, 
-      row.Month || null, 
+      row.Counter_Complaint,
+      row.Year || null,
+      row.Month || null,
       row.YTD || null,
       row.Jan || null, row.Feb || null, row.Mar || null, row.Apr || null, row.May || null, row.Jun || null,
       row.Jul || null, row.Aug || null, row.Sep || null, row.Oct || null, row.Nov || null, row.Dec || null,

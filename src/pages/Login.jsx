@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from "react";
 import BgLogin from "../assets/bg_login.png";
-import axios from "axios";
 
 export default function Login() {
-  const [email, setEmail] = useState(localStorage.getItem("rememberedEmail") || "");
+  const [email, setEmail] = useState(
+    localStorage.getItem("rememberedEmail") || ""
+  );
   const [password, setPassword] = useState("");
-  const [rememberMe, setRememberMe] = useState(!!localStorage.getItem("rememberedEmail"));
+  const [rememberMe, setRememberMe] = useState(
+    !!localStorage.getItem("rememberedEmail")
+  );
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -17,31 +20,35 @@ export default function Login() {
 
   const handleLogin = async (e) => {
     e.preventDefault();
+
     setLoading(true);
+
     try {
-      const res = await axios.post("http://localhost:3001/api/login", {
-        email,
-        password,
+      const response = await fetch("http://localhost:3001/api/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: email,
+          password: password,
+        }),
       });
 
-      console.log("Login successful:", res.data);
-      alert("Login successful!");
+      const data = await response.json();
 
-      // Save token or user info in localStorage/sessionStorage
-      localStorage.setItem("user", JSON.stringify(res.data.user));
-
-      // Save email if "Remember Me" is checked
-      if (rememberMe) {
-        localStorage.setItem("rememberedEmail", email);
+      if (response.ok) {
+        // Handle successful login
+        alert("Login successful");
+        console.log("User data:", data.user);
+        // Redirect or store the user data (e.g., in a global state or localStorage)
       } else {
-        localStorage.removeItem("rememberedEmail");
+        // Handle login failure
+        alert("Invalid credentials");
       }
-
-      // Redirect to dashboard (if routing is setup)
-      // navigate("/dashboard");
-    } catch (err) {
-      console.error("Login failed:", err.response?.data || err.message);
-      alert("Invalid credentials.");
+    } catch (error) {
+      console.error("Login failed", error);
+      alert("Login failed, please try again");
     } finally {
       setLoading(false);
     }
@@ -72,7 +79,10 @@ export default function Login() {
           </h1>
         </div>
 
-        <form onSubmit={handleLogin} className="flex flex-col gap-4 w-full px-8">
+        <form
+          onSubmit={handleLogin}
+          className="flex flex-col gap-4 w-full px-8"
+        >
           <div>
             <label className="block mb-2 text-xs text-gray-600 font-semibold">
               Enter username or email address
