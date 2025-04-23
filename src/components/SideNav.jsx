@@ -5,14 +5,8 @@ export default function SideNav({ activeTab }) {
   const navigate = useNavigate();
 
   const handleSignOut = () => {
-    // Clear session or user data
     sessionStorage.removeItem("userToken");
     sessionStorage.removeItem("userEmail");
-
-    // Optional: Clear everything from sessionStorage
-    // sessionStorage.clear();
-
-    // Redirect to login page
     navigate("/login");
   };
   return (
@@ -40,7 +34,7 @@ export default function SideNav({ activeTab }) {
                 : "hover:bg-gray-200"
             } transition-all duration-200`}
           >
-            <i className="bx bxs-home text-red-500"></i>
+            <i className="bx bxs-home"></i>
             <span className="text-sm font-medium">Home</span>
           </Link>
           <Link
