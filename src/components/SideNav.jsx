@@ -52,6 +52,17 @@ export default function SideNav({ activeTab }) {
             <i className="bx bxs-dice-5"></i>
             <span className="text-sm font-medium">Counter Fetcher</span>
           </Link>
+          <Link
+            to="/settings"
+            className={`flex items-center gap-2 p-2 rounded-md ${
+              activeTab === "settings"
+                ? "bg-red-500 text-white"
+                : "hover:bg-gray-200"
+            } transition-all duration-200`}
+          >
+            <i className='bx bxs-cog'></i>
+            <span className="text-sm font-medium">Settings</span>
+          </Link>
         </div>
       </div>
     </aside>
