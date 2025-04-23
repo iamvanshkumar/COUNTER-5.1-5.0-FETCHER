@@ -1,7 +1,14 @@
 import { React } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 export default function SideNav({ activeTab }) {
+  const navigate = useNavigate();
+
+  const handleSignOut = () => {
+    sessionStorage.removeItem("userToken");
+    sessionStorage.removeItem("userEmail");
+    navigate("/login");
+  };
   return (
     <aside className="pl-2 pt-2">
       <div className="bg-white border border-gray-100 rounded-md p-4 h-screen w-full shadow-md col-span-1">
@@ -20,14 +27,14 @@ export default function SideNav({ activeTab }) {
         <hr />
         <div className="flex flex-col gap-2 py-2">
           <Link
-            to="/Home"
+            to="/home"
             className={`flex items-center gap-2 p-2 rounded-md ${
               activeTab === "home"
                 ? "bg-red-500 text-white"
                 : "hover:bg-gray-200"
             } transition-all duration-200`}
           >
-            <i className="bx bxs-home text-red-500"></i>
+            <i className="bx bxs-home"></i>
             <span className="text-sm font-medium">Home</span>
           </Link>
           <Link
@@ -60,9 +67,16 @@ export default function SideNav({ activeTab }) {
                 : "hover:bg-gray-200"
             } transition-all duration-200`}
           >
-            <i className='bx bxs-cog'></i>
+            <i className="bx bxs-cog"></i>
             <span className="text-sm font-medium">Settings</span>
           </Link>
+          <button
+            onClick={handleSignOut}
+            className="flex items-center gap-2 p-2 rounded-md text-red-500 hover:bg-gray-200 transition-all duration-200"
+          >
+            <i className="bx bxs-log-out"></i>
+            <span className="text-sm font-medium">Sign Out</span>
+          </button>
         </div>
       </div>
     </aside>

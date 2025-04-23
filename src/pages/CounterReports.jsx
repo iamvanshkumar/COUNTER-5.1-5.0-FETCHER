@@ -1,8 +1,19 @@
-import React, { useState } from "react";
+import React, { useState,useEffect } from "react";
 import SideBar from "../components/SideBar";
 import SideNav from "../components/SideNav";
+import { useNavigate } from "react-router-dom";
 
 export default function CounterReports() {
+  const history = useNavigate();
+
+  useEffect(() => {
+    const userToken = sessionStorage.getItem("userToken");
+    if (!userToken) {
+      // Redirect user to the login page if not authenticated
+      history("/login");
+    }
+  }, [history]);
+
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
 

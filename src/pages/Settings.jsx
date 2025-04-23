@@ -1,14 +1,25 @@
 import React, { useState, useEffect } from "react";
 import SideNav from "../components/SideNav";
+import { useNavigate } from "react-router-dom";
 
-export default function FetcherReports() {
+export default function Settings() {
+  const history = useNavigate();
+
+  useEffect(() => {
+    const userToken = sessionStorage.getItem("userToken");
+    if (!userToken) {
+      // Redirect user to the login page if not authenticated
+      history("/login");
+    }
+  }, [history]);
+
   return (
     <>
       <SideNav activeTab="settings" />
       <main className="col-span-4 h-full overflow-y-scroll p-2 space-y-2">
         <div className="bg-white p-3 flex flex-col gap-4 rounded-md shadow-md border border-gray-100">
           <h4 className="text-xs text-gray-600 font-semibold flex items-center gap-1">
-            <i class="bx bxs-user  text-red-500"></i>
+            <i className="bx bxs-user  text-red-500"></i>
             User Account
           </h4>
           <form className="space-y-2">
