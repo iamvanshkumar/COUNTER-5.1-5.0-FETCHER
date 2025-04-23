@@ -63,15 +63,14 @@ export default function Login() {
       const randomToken = Math.random().toString(36).substr(2);
       sessionStorage.setItem("userToken", randomToken);
       sessionStorage.setItem("userEmail", email);
-
-      toast.success("Login successful");
-      console.log("User data:", data.user);
-      navigate("/dashboard"); // Redirect to dashboard on successful login
+      setTimeout(() => {
+        toast.success(`Login successful, welcome ${data.user.name}`);
+        navigate("/home"); // Redirect to dashboard on successful login
+      }, 1000); // 1-second delay
       } else {
       toast.error("Invalid credentials");
       }
     } catch (error) {
-      console.error("Login failed", error);
       toast.error("Login failed, please try again");
     } finally {
       setLoading(false);
