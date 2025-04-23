@@ -2,9 +2,10 @@ import React, { useState, useEffect } from "react";
 import Papa from "papaparse";
 import { useNavigate } from "react-router-dom";
 import SideNav from "../components/SideNav";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 export default function FetcherReports() {
-
   const history = useNavigate();
 
   useEffect(() => {
@@ -15,7 +16,6 @@ export default function FetcherReports() {
     }
   }, [history]);
 
-  
   const [selectedPlatform, setSelectedPlatform] = useState("ASM");
   const [file, setFile] = useState(null);
   const [libraryDetails, setLibraryDetails] = useState([]);
@@ -30,8 +30,18 @@ export default function FetcherReports() {
   function generateCombinedCSVfromTR(allLibraryData, reportType) {
     const rowsMap = {};
     const monthCountsTemplate = {
-      Jan: 0, Feb: 0, Mar: 0, Apr: 0, May: 0, Jun: 0,
-      Jul: 0, Aug: 0, Sep: 0, Oct: 0, Nov: 0, Dec: 0,
+      Jan: 0,
+      Feb: 0,
+      Mar: 0,
+      Apr: 0,
+      May: 0,
+      Jun: 0,
+      Jul: 0,
+      Aug: 0,
+      Sep: 0,
+      Oct: 0,
+      Nov: 0,
+      Dec: 0,
     };
 
     allLibraryData.forEach(({ libraryCode, data }) => {
@@ -44,7 +54,10 @@ export default function FetcherReports() {
         item.Performance?.forEach((perf) => {
           const year = perf.Period.Begin_Date.slice(0, 4);
           const month = perf.Period.Begin_Date.slice(5, 7);
-          const monthStr = new Date(`${year}-${month}-01`).toLocaleString("en-US", { month: "short" });
+          const monthStr = new Date(`${year}-${month}-01`).toLocaleString(
+            "en-US",
+            { month: "short" }
+          );
 
           perf.Instance?.forEach((inst) => {
             const count = inst.Count;
@@ -98,62 +111,67 @@ export default function FetcherReports() {
     a.click();
     URL.revokeObjectURL(url);
 
-
     const handleDownload = async () => {
       if (!startDate || !endDate) {
-        alert("Please select a valid date range.");
+        toast.error("Please select a valid date range");
         return;
       }
       if (selectedReports.length === 0) {
-        alert("Please select at least one report type.");
+        toast.error("Please select at least one report type");
         return;
       }
       if (selectedLibraries.length === 0) {
-        alert("Please select at least one library.");
+        toast.error("Please select at least one library.");
         return;
       }
-    
-      const formattedStartDate = new Date(startDate).toISOString().split("T")[0];
+
+      const formattedStartDate = new Date(startDate)
+        .toISOString()
+        .split("T")[0];
       const formattedEndDate = new Date(endDate).toISOString().split("T")[0];
       const chosenLibraries = libraryDetails.filter((lib) =>
         selectedLibraries.includes(lib.customerId)
       );
       const logs = [];
-    
+
       // Iterate through the selected report types
       for (const reportType of selectedReports) {
         const allLibraryData = []; // To collect data for all libraries
-    
+
         // Fetch data for each library and accumulate it
         for (const library of chosenLibraries) {
           const asm = "sitemaster.dl.asminternational.org";
           const rsc = "sitemaster.books.rsc.org";
           const selectedSite = selectedPlatform === "ASM" ? asm : rsc;
-    
+
           const formatDate = (date) => {
             const d = new Date(date);
             return selectedPlatform === "RSC"
               ? d.toISOString().slice(0, 7)
               : d.toISOString().split("T")[0];
           };
-    
+
           const start = formatDate(startDate);
           const end = formatDate(endDate);
-    
+
           const url = `https://${selectedSite}/sushi/reports/${reportType}/?api_key=${library.apiKey}&customer_id=${library.customerId}&requestor_id=${library.requestorId}&begin_date=${start}&end_date=${end}&attributes_to_show=Access_Type|YOP|Access_Method|Data_Type|Section_Type`;
-    
+
           console.log("Fetching URL:", url);
           try {
             const res = await fetch(url);
             if (!res.ok) throw new Error(res.statusText);
             const data = await res.json();
             allLibraryData.push({ libraryCode: library.libraryCode, data });
-            logs.push(`Success: ${library.customerId} / ${library.requestorId}`);
+            logs.push(
+              `Success: ${library.customerId} / ${library.requestorId}`
+            );
           } catch (error) {
-            logs.push(`Error: ${library.customerId} / ${library.requestorId} - ${error.message}`);
+            logs.push(
+              `Error: ${library.customerId} / ${library.requestorId} - ${error.message}`
+            );
           }
         }
-    
+
         // Generate combined CSV if there's data
         if (allLibraryData.length > 0) {
           generateCombinedCSVfromTR(allLibraryData, reportType);
@@ -161,7 +179,7 @@ export default function FetcherReports() {
           logs.push(`No data for ${reportType}`);
         }
       }
-    
+
       // Save logs if available
       if (logs.length > 0) {
         const logFileName = `logs_${formattedStartDate}_to_${formattedEndDate}.txt`;
@@ -180,11 +198,13 @@ export default function FetcherReports() {
       .then((res) => res.json())
       .then((result) => {
         console.log("Backend response:", result);
-        alert(`Data also inserted into table: ${result.tableName || "unknown"}`);
+        toast.success(
+          `Data also inserted into table: ${result.tableName || "unknown"}`
+        );
       })
       .catch((err) => {
         console.error("Error sending data to backend:", err);
-        alert("Failed to insert data into database.");
+        toast.error("Failed to insert data into database.");
       });
   }
 
@@ -275,9 +295,9 @@ export default function FetcherReports() {
       const writable = await handle.createWritable();
       await writable.write(blob);
       await writable.close();
-      alert(`File "${suggestedName}" has been saved successfully.`);
+      toast.success(`File "${suggestedName}" has been saved successfully.`);
     } catch (error) {
-      alert(`Failed to save file: ${error.message}`);
+      toast.error(`Failed to save file: ${error.message}`);
     }
   };
 
@@ -297,23 +317,23 @@ export default function FetcherReports() {
       const writable = await handle.createWritable();
       await writable.write(blob);
       await writable.close();
-      alert(`Log file "${suggestedName}" has been saved successfully.`);
+      toast.success(`Log file "${suggestedName}" has been saved successfully.`);
     } catch (error) {
-      alert(`Failed to save log file: ${error.message}`);
+      toast.error(`Failed to save log file: ${error.message}`);
     }
   };
 
   const handleDownload = async () => {
     if (!startDate || !endDate) {
-      alert("Please select a valid date range.");
+       toast.error("Please select a valid date range.");
       return;
     }
     if (selectedReports.length === 0) {
-      alert("Please select at least one report type.");
+      toast.error("Please select at least one report type.");
       return;
     }
     if (selectedLibraries.length === 0) {
-      alert("Please select at least one library.");
+      toast.error("Please select at least one library.");
       return;
     }
 
@@ -379,6 +399,7 @@ export default function FetcherReports() {
     <>
       <SideNav activeTab="insight-fetcher" />
       <main className="col-span-4 h-full overflow-y-scroll p-2">
+      <ToastContainer />
         <section className="w-full flex flex-col gap-2 h-full">
           <section className="grid grid-cols-2 gap-2">
             <div className="bg-white p-3 flex flex-col gap-4 rounded-md shadow-md border border-gray-100">
@@ -514,10 +535,11 @@ export default function FetcherReports() {
                     <div
                       key={report}
                       onClick={() => toggleReport(report)}
-                      className={` p-2 rounded-md flex items-center gap-1 hover:bg-green-200 transition-all duration-200 cursor-pointer ${selectedReports.includes(report)
-                        ? "bg-green-200"
-                        : "bg-gray-100"
-                        }`}
+                      className={` p-2 rounded-md flex items-center gap-1 hover:bg-green-200 transition-all duration-200 cursor-pointer ${
+                        selectedReports.includes(report)
+                          ? "bg-green-200"
+                          : "bg-gray-100"
+                      }`}
                     >
                       <input
                         type="checkbox"
@@ -582,10 +604,11 @@ export default function FetcherReports() {
                   <div
                     key={lib.customerId}
                     onClick={() => toggleLibrary(lib.customerId)}
-                    className={` p-2 rounded-md flex items-center gap-1 hover:bg-green-200 transition-all duration-200 cursor-pointer ${selectedLibraries.includes(lib.customerId)
-                      ? "bg-green-200"
-                      : "bg-gray-100"
-                      }`}
+                    className={` p-2 rounded-md flex items-center gap-1 hover:bg-green-200 transition-all duration-200 cursor-pointer ${
+                      selectedLibraries.includes(lib.customerId)
+                        ? "bg-green-200"
+                        : "bg-gray-100"
+                    }`}
                   >
                     <input
                       type="checkbox"

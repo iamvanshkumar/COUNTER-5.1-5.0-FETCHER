@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom"; // Updated import
 import BgLogin from "../assets/bg_login.png";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 export default function Login() {
   const [animationDuration, setAnimationDuration] = useState(1); // initial duration set to 1 second
@@ -44,39 +46,41 @@ export default function Login() {
 
     try {
       const response = await fetch("http://localhost:3001/api/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          email: email,
-          password: password,
-        }),
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        email: email,
+        password: password,
+      }),
       });
 
       const data = await response.json();
 
       if (response.ok) {
-        // Store session data
-        const randomToken = Math.random().toString(36).substr(2);
-        sessionStorage.setItem("userToken", randomToken);
-        sessionStorage.setItem("userEmail", email);
+      // Store session data
+      const randomToken = Math.random().toString(36).substr(2);
+      sessionStorage.setItem("userToken", randomToken);
+      sessionStorage.setItem("userEmail", email);
 
-        alert("Login successful");
-        console.log("User data:", data.user);
-        navigate("/dashboard"); // Redirect to dashboard on successful login
+      toast.success("Login successful");
+      console.log("User data:", data.user);
+      navigate("/dashboard"); // Redirect to dashboard on successful login
       } else {
-        alert("Invalid credentials");
+      toast.error("Invalid credentials");
       }
     } catch (error) {
       console.error("Login failed", error);
-      alert("Login failed, please try again");
+      toast.error("Login failed, please try again");
     } finally {
       setLoading(false);
     }
   };
 
   return (
+    <>
+    <ToastContainer />
     <div className="grid grid-cols-4 h-screen" style={{ userSelect: "none" }}>
       <section className="col-span-3 flex items-center justify-center bg-gray-50 h-screen p-2">
         <img
@@ -150,5 +154,6 @@ export default function Login() {
         <p className="text-center text-gray-500 text-xs">© 2025 MPST - DDN</p>
       </div>
     </div>
+    </>
   );
 }
