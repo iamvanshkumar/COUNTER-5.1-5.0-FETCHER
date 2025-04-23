@@ -1,7 +1,8 @@
-// server/index.js
 import express from 'express';
 import cors from 'cors';
 import pool from './db.js';
+import bcrypt from 'bcrypt';
+import jwt from 'jsonwebtoken'; // If you want to use JWT for authentication
 
 const app = express();
 
@@ -9,9 +10,49 @@ const app = express();
 app.use(express.json({ limit: '100mb' }));
 app.use(express.urlencoded({ extended: true, limit: '100mb' }));
 
-// Enable CORS for frontend access
-app.use(cors());  
+app.use(cors());
 
+// API: Login route
+app.post('/api/login', async (req, res) => {
+  const { email, password } = req.body;
+
+  try {
+    const query = 'SELECT * FROM users WHERE email = ? OR username = ?';
+    const [rows] = await pool.query(query, [email, email]);
+
+    if (rows.length === 0) {
+      return res.status(401).json({ message: 'User not found' });
+    }
+
+    const user = rows[0];
+
+    // Compare the provided password with the stored hash
+    const isMatch = await bcrypt.compare(password, user.password);
+
+    if (!isMatch) {
+      return res.status(401).json({ message: 'Invalid password' });
+    }
+
+    // Generate a JWT token (optional)
+    const token = jwt.sign(
+      { userId: user.id, username: user.username, email: user.email },
+      'your_jwt_secret', // Replace with your secret key
+      { expiresIn: '1h' } // Optional: Token expiration time
+    );
+
+    // Send the token and user data in the response
+    res.status(200).json({
+      message: 'Login successful',
+      token, // Send the token if you're using JWT
+      user: { id: user.id, username: user.username, email: user.email },
+    });
+  } catch (err) {
+    console.error('Error during login:', err);
+    res.status(500).json({ message: 'Server error', error: err.message });
+  }
+});
+
+// API: Insert TR report route
 app.post('/api/insertTRReport', async (req, res) => {
   try {
     const { libraryCode, rows } = req.body;
