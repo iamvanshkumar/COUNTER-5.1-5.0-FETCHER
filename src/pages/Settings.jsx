@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import SideNav from "../components/SideNav";
+import { useNavigate } from "react-router-dom";
 
 export default function Settings() {
   const history = useNavigate();

@@ -1,6 +1,7 @@
-import React, { useState } from "react";
+import React, { useState,useEffect } from "react";
 import SideBar from "../components/SideBar";
 import SideNav from "../components/SideNav";
+import { useNavigate } from "react-router-dom";
 
 export default function CounterReports() {
   const history = useNavigate();
