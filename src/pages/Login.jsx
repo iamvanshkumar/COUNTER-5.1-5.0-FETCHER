@@ -81,7 +81,7 @@ export default function Login() {
     <>
     <ToastContainer />
     <div className="grid grid-cols-4 h-screen" style={{ userSelect: "none" }}>
-      <section className="col-span-3 flex items-center justify-center bg-gray-50 h-screen p-2">
+      <section className="col-span-3 flex items-center justify-center bg-[#181616] h-screen p-2">
         <img
           src={BgLogin}
           draggable="false"
