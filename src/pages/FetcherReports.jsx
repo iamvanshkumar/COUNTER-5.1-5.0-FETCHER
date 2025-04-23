@@ -27,8 +27,9 @@ export default function FetcherReports() {
   const [allLibrariesSelected, setAllLibrariesSelected] = useState(false);
 
   // This version combines all libraries' data into one CSV file per report type.
-  function generateCombinedCSVfromTR(allLibraryData, reportType) {
+  function generateCSVfromTR(data, libraryCode) {
     const rowsMap = {};
+    const reportHeader = data.Report_Header || {};
     const monthCountsTemplate = {
       Jan: 0,
       Feb: 0,
@@ -43,168 +44,87 @@ export default function FetcherReports() {
       Nov: 0,
       Dec: 0,
     };
-
-    allLibraryData.forEach(({ libraryCode, data }) => {
-      const reportHeader = data.Report_Header || {};
-
-      data.Report_Items?.forEach((item) => {
-        const ids = {};
-        item.Item_ID?.forEach((id) => (ids[id.Type] = id.Value));
-
-        item.Performance?.forEach((perf) => {
-          const year = perf.Period.Begin_Date.slice(0, 4);
-          const month = perf.Period.Begin_Date.slice(5, 7);
-          const monthStr = new Date(`${year}-${month}-01`).toLocaleString(
-            "en-US",
-            { month: "short" }
-          );
-
-          perf.Instance?.forEach((inst) => {
-            const count = inst.Count;
-            const metric = inst.Metric_Type;
-            const key = `${ids.ISBN || "noisbn"}|${metric}|${libraryCode}`;
-
-            if (!rowsMap[key]) {
-              rowsMap[key] = {
-                Institution_Code: libraryCode || reportHeader.Customer_ID || "",
-                pub_code: ids.Proprietary?.split(":")[0] || "",
-                Title: item.Title || "",
-                Publisher: item.Publisher || "",
-                Publisher_Id: "no data",
-                Platform: item.Platform || "",
-                Collection_Platform: item.Platform || "",
-                Report_Type: reportHeader.Report_ID || reportType || "TR",
-                DOI: ids.DOI || "",
-                Proprietary_Identifier: ids.Proprietary || "",
-                ISBN: ids.ISBN || "",
-                Print_ISSN: ids.Print_ISSN || "",
-                Online_ISSN: ids.Online_ISSN || "no data",
-                URI: "no data",
-                Metric_Type: metric,
-                Counter_Complaint: "",
-                Year: year,
-                Month: "",
-                YTD: 0,
-                ...structuredClone(monthCountsTemplate),
-                YOP: item.YOP || "",
-                Data_Type: item.Data_Type || "",
-                Access_Type: item.Access_Type || "",
-                Access_Method: item.Access_Method || "",
-                Section_Type: item.Section_Type || "",
-              };
-            }
-
-            rowsMap[key].YTD += count;
-            rowsMap[key][monthStr] += count;
-          });
+ 
+    data.Report_Items?.forEach((item) => {
+      const ids = {};
+      item.Item_ID?.forEach((id) => (ids[id.Type] = id.Value));
+ 
+      item.Performance?.forEach((perf) => {
+        const year = perf.Period.Begin_Date.slice(0, 4);
+        const month = perf.Period.Begin_Date.slice(5, 7);
+        const monthStr = new Date(`${year}-${month}-01`).toLocaleString(
+          "en-US",
+          { month: "short" }
+        );
+ 
+        perf.Instance?.forEach((inst) => {
+          const count = inst.Count;
+          const metric = inst.Metric_Type;
+          const key = `${ids.ISBN || "noisbn"}|${metric}`;
+ 
+          if (!rowsMap[key]) {
+            rowsMap[key] = {
+              Institution_Code: libraryCode || reportHeader.Customer_ID || "",
+              pub_code: ids.Proprietary?.split(":")[0] || "",
+              Title: item.Title || "",
+              Publisher: item.Publisher || "",
+              Publisher_Id: "no data",
+              Platform: item.Platform || "",
+              Collection_Platform: item.Platform || "",
+              Report_Type: reportHeader.Report_ID || "TR",
+              DOI: ids.DOI || "",
+              Proprietary_Identifier: ids.Proprietary || "",
+              ISBN: ids.ISBN || "",
+              Print_ISSN: ids.Print_ISSN || "",
+              Online_ISSN: ids.Online_ISSN || "no data",
+              URI: "no data",
+              Metric_Type: metric,
+              Counter_Complaint: "",
+              Year: year,
+              Month: "",
+              YTD: 0,
+              ...structuredClone(monthCountsTemplate),
+              YOP: item.YOP || "",
+              Data_Type: item.Data_Type || "",
+              Access_Type: item.Access_Type || "",
+              Access_Method: item.Access_Method || "",
+              Section_Type: item.Section_Type || "",
+            };
+          }
+ 
+          rowsMap[key].YTD += count;
+          rowsMap[key][monthStr] += count;
         });
       });
     });
-
+ 
     const rows = Object.values(rowsMap);
+ 
+    // Download CSV
     const csv = Papa.unparse(rows);
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `Combined_${reportType}_Report.csv`;
+    a.download = `${libraryCode}_TR_Report.csv`;
     a.click();
     URL.revokeObjectURL(url);
-
-    const handleDownload = async () => {
-      if (!startDate || !endDate) {
-        toast.error("Please select a valid date range");
-        return;
-      }
-      if (selectedReports.length === 0) {
-        toast.error("Please select at least one report type");
-        return;
-      }
-      if (selectedLibraries.length === 0) {
-        toast.error("Please select at least one library.");
-        return;
-      }
-
-      const formattedStartDate = new Date(startDate)
-        .toISOString()
-        .split("T")[0];
-      const formattedEndDate = new Date(endDate).toISOString().split("T")[0];
-      const chosenLibraries = libraryDetails.filter((lib) =>
-        selectedLibraries.includes(lib.customerId)
-      );
-      const logs = [];
-
-      // Iterate through the selected report types
-      for (const reportType of selectedReports) {
-        const allLibraryData = []; // To collect data for all libraries
-
-        // Fetch data for each library and accumulate it
-        for (const library of chosenLibraries) {
-          const asm = "sitemaster.dl.asminternational.org";
-          const rsc = "sitemaster.books.rsc.org";
-          const selectedSite = selectedPlatform === "ASM" ? asm : rsc;
-
-          const formatDate = (date) => {
-            const d = new Date(date);
-            return selectedPlatform === "RSC"
-              ? d.toISOString().slice(0, 7)
-              : d.toISOString().split("T")[0];
-          };
-
-          const start = formatDate(startDate);
-          const end = formatDate(endDate);
-
-          const url = `https://${selectedSite}/sushi/reports/${reportType}/?api_key=${library.apiKey}&customer_id=${library.customerId}&requestor_id=${library.requestorId}&begin_date=${start}&end_date=${end}&attributes_to_show=Access_Type|YOP|Access_Method|Data_Type|Section_Type`;
-
-          console.log("Fetching URL:", url);
-          try {
-            const res = await fetch(url);
-            if (!res.ok) throw new Error(res.statusText);
-            const data = await res.json();
-            allLibraryData.push({ libraryCode: library.libraryCode, data });
-            logs.push(
-              `Success: ${library.customerId} / ${library.requestorId}`
-            );
-          } catch (error) {
-            logs.push(
-              `Error: ${library.customerId} / ${library.requestorId} - ${error.message}`
-            );
-          }
-        }
-
-        // Generate combined CSV if there's data
-        if (allLibraryData.length > 0) {
-          generateCombinedCSVfromTR(allLibraryData, reportType);
-        } else {
-          logs.push(`No data for ${reportType}`);
-        }
-      }
-
-      // Save logs if available
-      if (logs.length > 0) {
-        const logFileName = `logs_${formattedStartDate}_to_${formattedEndDate}.txt`;
-        await saveLogsWithPicker(logs, logFileName);
-      }
-    };
-
-    // Optionally send to backend (optional)
-    fetch("http://localhost:3001/api/insertTRReportBatch", {
+ 
+    fetch("http://localhost:3001/api/insertTRReport", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ reportType, rows }),
+      body: JSON.stringify({ libraryCode, rows }),
     })
       .then((res) => res.json())
       .then((result) => {
         console.log("Backend response:", result);
-        toast.success(
-          `Data also inserted into table: ${result.tableName || "unknown"}`
-        );
+        alert(`Data also inserted into table: ${result.tableName || "unknown"}`);
       })
       .catch((err) => {
         console.error("Error sending data to backend:", err);
-        toast.error("Failed to insert data into database.");
+        alert("Failed to insert data into database.");
       });
   }
 
