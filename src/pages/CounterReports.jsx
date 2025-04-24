@@ -78,6 +78,39 @@ export default function CounterReports() {
       <SideNav activeTab="counter-fetcher" />
       <main className="col-span-4 h-full overflow-y-scroll flex flex-col gap-y-2 p-2">
         <section className="grid grid-cols-4 gap-2">
+          {/* Dates & Filters Grid */}
+          <div className="bg-white p-3 flex flex-col gap-4 rounded-md shadow-md border border-gray-100">
+            <h4 className="text-xs text-gray-600 font-semibold flex items-center gap-1">
+              <i className="bx bx-calendar text-red-500"></i>
+              Select dates
+            </h4>
+            <div className="flex flex-col gap-2">
+              <label className="text-xs font-medium text-gray-600">
+                Start Date
+                <input
+                  type="date"
+                  value={startDate}
+                  onChange={(e) => setStartDate(e.target.value)}
+                  className="mt-1 p-2 border rounded w-full bg-gray-50"
+                />
+              </label>
+              <label className="text-xs font-medium text-gray-600">
+                End Date
+                <input
+                  type="date"
+                  value={endDate}
+                  onChange={(e) => setEndDate(e.target.value)}
+                  className="mt-1 p-2 border rounded w-full bg-gray-50"
+                />
+              </label>
+              <button
+                
+                className="bg-red-500 p-2 rounded-md text-white font-semibold text-sm hover:bg-red-600 transition-all duration-200 cursor-pointer"
+              >
+                Download Reports
+              </button>
+            </div>
+          </div>
           {/* Report Types Section */}
           <div className="bg-white p-3 flex flex-col gap-4 rounded-md shadow-md border border-gray-100">
             <div className="flex items-center justify-between">
@@ -87,7 +120,7 @@ export default function CounterReports() {
               </h4>
             </div>
 
-            <div className="grid grid-cols-2 gap-2">
+            <div className="flex flex-col gap-2">
               {reportOptions.map((report) => (
                 <div
                   key={report}
@@ -109,9 +142,8 @@ export default function CounterReports() {
               ))}
             </div>
           </div>
-
           {/* Standard Views Section */}
-          <div className="col-span-3 bg-white p-3 flex flex-col gap-4 rounded-md shadow-md border border-gray-100">
+          <div className="col-span-2 bg-white p-3 flex flex-col gap-4 rounded-md shadow-md border border-gray-100">
             <div className="flex items-center justify-between">
               <h4 className="text-xs text-gray-600 font-semibold flex items-center gap-1">
                 <i className="bx bx-filter text-red-500"></i>
@@ -134,7 +166,7 @@ export default function CounterReports() {
                 </label>
               </div>
             </div>
-            <div className="grid grid-cols-6 gap-2">
+            <div className="grid grid-cols-3 gap-2">
               {reportStandardOptions.map((report) => (
                 <div
                   key={report}
@@ -155,33 +187,6 @@ export default function CounterReports() {
                 </div>
               ))}
             </div>
-          </div>
-        </section>
-        {/* Dates & Filters Grid */}
-        <section className="bg-white p-3 flex flex-col gap-4 rounded-md shadow-md border border-gray-100">
-          <h4 className="text-xs text-gray-600 font-semibold flex items-center gap-1">
-            <i className="bx bx-calendar text-red-500"></i>
-            Select dates
-          </h4>
-          <div className="flex gap-2">
-            <label className="text-sm font-medium text-gray-600">
-              Start Date
-              <input
-                type="date"
-                value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
-                className="mt-1 p-2 border rounded w-full"
-              />
-            </label>
-            <label className="text-sm font-medium text-gray-600">
-              End Date
-              <input
-                type="date"
-                value={endDate}
-                onChange={(e) => setEndDate(e.target.value)}
-                className="mt-1 p-2 border rounded w-full"
-              />
-            </label>
           </div>
         </section>
 

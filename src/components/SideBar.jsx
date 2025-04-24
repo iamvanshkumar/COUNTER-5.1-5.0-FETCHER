@@ -136,6 +136,20 @@ export default function SideBar() {
               className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md  focus:ring-red-500 focus:ring-1 focus:border-red-500 block w-full p-1.5"
             />
           </div>
+          <div class="flex items-center mb-4">
+            <label
+              for="default-checkbox"
+              class="mr-2 block text-xs text-gray-600 font-semibold cursor-pointer"
+            >
+              Non-SUSHI Vendor
+            </label>
+            <input
+              id="default-checkbox"
+              type="checkbox"
+              value=""
+              class="w-4 h-4 text-red-500 border bg-gray-100 border-gray-300 rounded-sm focus:ring-red-500 cursor-pointer"
+            />
+          </div>
           <div>
             <label className="block mb-2 text-xs text-gray-600 font-semibold">
               Starting Year (Optional)
@@ -152,69 +166,13 @@ export default function SideBar() {
             </label>
             <textarea className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md  focus:ring-red-500 focus:ring-1 focus:border-red-500 block w-full p-1.5"></textarea>
           </div>
-          <div>
-            <label className="block mb-2 text-xs text-gray-600 font-semibold">
-              Does it require two attempts per report?*
-            </label>
-            <div className="flex items-center ps-4 border border-gray-200 rounded-sm dark:border-gray-700">
-              <input
-                id="bordered-radio-1"
-                type="radio"
-                value=""
-                name="bordered-radio"
-                className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
-              />
-              <label
-                htmlFor="bordered-radio-1"
-                className="w-full py-4 ms-2 text-sm font-medium text-gray-900 dark:text-gray-300"
-              >
-                Default radio
-              </label>
-            </div>
-
-            <div className="flex items-center ps-4 border border-gray-200 rounded-sm dark:border-gray-700">
-              <input
-                id="bordered-radio-2"
-                type="radio"
-                value=""
-                name="bordered-radio"
-                defaultChecked
-                className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
-              />
-              <label
-                htmlFor="bordered-radio-2"
-                className="w-full py-4 ms-2 text-sm font-medium text-gray-900 dark:text-gray-300"
-              >
-                Checked state
-              </label>
-            </div>
-          </div>
-          <div>
-            <label className="block mb-2 text-xs text-gray-600 font-semibold">
-              Does it need requests throttled?*
-            </label>
-            <div className="flex items-center space-x-4">
-              <label className="flex items-center">
-                <input
-                  type="radio"
-                  name="throttled"
-                  value="no"
-                  className="form-radio"
-                  required
-                />
-                <span className="ml-2">No</span>
-              </label>
-              <label className="flex items-center">
-                <input
-                  type="radio"
-                  name="throttled"
-                  value="yes"
-                  className="form-radio"
-                  required
-                />
-                <span className="ml-2">Yes</span>
-              </label>
-            </div>
+          <div className="flex gap-2">
+            <button className="bg-green-500 p-2 rounded-md text-white font-semibold text-sm hover:bg-green-600 transition-all duration-200 cursor-pointer w-full">
+              Save Changes
+            </button>
+            <button className="bg-red-500 p-2 rounded-md text-white font-semibold text-sm hover:bg-red-600 transition-all duration-200 cursor-pointer w-full">
+              Remove Vendor
+            </button>
           </div>
         </form>
       </div>
