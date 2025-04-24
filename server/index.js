@@ -60,16 +60,12 @@ app.get('/api/user/email/:email', async (req, res) => {
 // Update user
 app.put('/api/user/email/:email', async (req, res) => {
   const { email } = req.params;
-  const { username, password } = req.body;
-
-  if (!password) {
-    return res.status(400).json({ message: 'Password cannot be null' });
-  }
+  const { username } = req.body;
 
   try {
     await pool.query(
-      'UPDATE users SET username = ?, PASSWORD = ? WHERE email = ?',
-      [username, password, email]
+      'UPDATE users SET username = ? WHERE email = ?',
+      [username, email]
     );
     res.json({ message: 'User updated successfully' });
   } catch (err) {
