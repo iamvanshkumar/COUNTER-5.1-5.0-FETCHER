@@ -1,9 +1,11 @@
-import React, { useState,useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import SideBar from "../components/SideBar";
 import SideNav from "../components/SideNav";
 import { useNavigate } from "react-router-dom";
 
 export default function CounterReports() {
+  const [allReportsSelected, setAllReportsSelected] = useState(false);
+  const [selectedReports, setSelectedReports] = useState([]);
   const history = useNavigate();
 
   useEffect(() => {
@@ -14,11 +16,15 @@ export default function CounterReports() {
     }
   }, [history]);
 
+  const toggleDrawer = () => {
+    const drawer = document.getElementById("drawer-example");
+    if (drawer) {
+      drawer.classList.toggle("translate-x-full");
+    }
+  };
+
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
-
-  const formattedStartDate = startDate ? new Date(startDate).toISOString().split("T")[0] : "";
-  const formattedEndDate = endDate ? new Date(endDate).toISOString().split("T")[0] : "";
 
   const validateDates = () => {
     if (!startDate || !endDate) {
@@ -32,74 +38,125 @@ export default function CounterReports() {
     return true;
   };
 
-  const toggleDrawer = () => {
-    const drawer = document.getElementById("drawer-example");
-    if (drawer) {
-      drawer.classList.toggle("translate-x-full");
-    }
+  const reportOptions = ["TR", "DR", "PR", "IR"];
+  const reportStandardOptions = [
+    "PR_P1",
+    "DR_D1",
+    "DR_D2",
+    "TR_B1",
+    "TR_B2",
+    "TR_B3",
+    "TR_J1",
+    "TR_J2",
+    "TR_J3",
+    "TR_J4",
+    "IR_A1",
+    "IR_M1",
+  ];
+
+  const toggleReport = (report) => {
+    setSelectedReports((prev) =>
+      prev.includes(report)
+        ? prev.filter((r) => r !== report)
+        : [...prev, report]
+    );
   };
-  
+  // Updated toggleAllReports
+  const toggleAllReports = () => {
+    if (allReportsSelected) {
+      setSelectedReports([]);
+    } else {
+      setSelectedReports([
+        ...new Set([...selectedReports, ...reportStandardOptions]),
+      ]);
+    }
+    setAllReportsSelected(!allReportsSelected);
+  };
 
   return (
     <>
       <SideNav activeTab="counter-fetcher" />
       <main className="col-span-4 h-full overflow-y-scroll flex flex-col gap-y-2 p-2">
-        {/* Report Types Section */}
-        <section className="bg-white p-3 flex flex-col gap-4 rounded-md shadow-md border border-gray-100">
-          <h4 className="text-xs text-gray-600 font-semibold flex items-center gap-1">
-            <i className="bx bxs-report text-red-500"></i>
-            Select your report types
-          </h4>
-          <div className="flex gap-4 flex-wrap">
-            {[
-              { label: "PR", gradient: "from-blue-500 to-purple-500" },
-              { label: "DR", gradient: "from-green-500 to-teal-500" },
-              { label: "TR", gradient: "from-red-500 to-pink-500" },
-              { label: "IR", gradient: "from-yellow-500 to-orange-500" },
-            ].map(({ label, gradient }) => (
-              <label
-                key={label}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg shadow-md cursor-pointer text-black font-semibold bg-gradient-to-r ${gradient} hover:shadow-lg transform hover:scale-105 transition-all duration-300 hover:bg-gray-400`}
-              >
-                <input type="checkbox" className="form-checkbox h-4 w-4" />
-                <span>{label}</span>
-              </label>
-            ))}
+        <section className="grid grid-cols-4 gap-2">
+          {/* Report Types Section */}
+          <div className="bg-white p-3 flex flex-col gap-4 rounded-md shadow-md border border-gray-100">
+            <div className="flex items-center justify-between">
+              <h4 className="text-xs text-gray-600 font-semibold flex items-center gap-1">
+                <i className="bx bxs-report text-red-500"></i>
+                Select your report types
+              </h4>
+            </div>
+
+            <div className="grid grid-cols-2 gap-2">
+              {reportOptions.map((report) => (
+                <div
+                  key={report}
+                  onClick={() => toggleReport(report)}
+                  className={` p-2 rounded-md flex items-center gap-1 hover:bg-green-200 transition-all duration-200 cursor-pointer ${
+                    selectedReports.includes(report)
+                      ? "bg-green-200"
+                      : "bg-gray-100"
+                  }`}
+                >
+                  <input
+                    type="checkbox"
+                    className="mr-1"
+                    checked={selectedReports.includes(report)}
+                    readOnly
+                  />
+                  <label className="text-sm font-semibold">{report}</label>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Standard Views Section */}
+          <div className="col-span-3 bg-white p-3 flex flex-col gap-4 rounded-md shadow-md border border-gray-100">
+            <div className="flex items-center justify-between">
+              <h4 className="text-xs text-gray-600 font-semibold flex items-center gap-1">
+                <i className="bx bx-filter text-red-500"></i>
+                Select your standard views
+              </h4>
+              <div className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={allReportsSelected}
+                  onChange={toggleAllReports}
+                  id="selectAllCheckboxReport"
+                  className="bg-gray-100 cursor-pointer"
+                />
+
+                <label
+                  htmlFor="selectAllCheckboxReport"
+                  className="text-xs font-medium cursor-pointer"
+                >
+                  Select All
+                </label>
+              </div>
+            </div>
+            <div className="grid grid-cols-6 gap-2">
+              {reportStandardOptions.map((report) => (
+                <div
+                  key={report}
+                  onClick={() => toggleReport(report)}
+                  className={` p-2 rounded-md flex items-center gap-1 hover:bg-green-200 transition-all duration-200 cursor-pointer ${
+                    selectedReports.includes(report)
+                      ? "bg-green-200"
+                      : "bg-gray-100"
+                  }`}
+                >
+                  <input
+                    type="checkbox"
+                    className="mr-1"
+                    checked={selectedReports.includes(report)}
+                    readOnly
+                  />
+                  <label className="text-sm font-semibold">{report}</label>
+                </div>
+              ))}
+            </div>
           </div>
         </section>
-
-        {/* Standard Views Section */}
-        <section className="bg-white p-3 flex flex-col gap-4 rounded-md shadow-md border border-gray-100">
-          <h4 className="text-xs text-gray-600 font-semibold flex items-center gap-1">
-            <i className="bx bx-filter text-red-500"></i>
-            Select your standard views
-          </h4>
-          <div className="flex gap-4 overflow-x-auto whitespace-nowrap pb-2">
-            {[
-              { label: "PR P1", gradient: "from-blue-500 to-purple-500" },
-              { label: "DR D1", gradient: "from-green-500 to-teal-500" },
-              { label: "DR D2", gradient: "from-red-500 to-pink-500" },
-              { label: "TR B1", gradient: "from-yellow-500 to-orange-500" },
-              { label: "TR B2", gradient: "from-blue-500 to-purple-500" },
-              { label: "TR B3", gradient: "from-green-500 to-teal-500" },
-              { label: "TR J1", gradient: "from-red-500 to-pink-500" },
-              { label: "TR J2", gradient: "from-yellow-500 to-orange-500" },
-              { label: "TR J3", gradient: "from-yellow-500 to-orange-500" },
-              { label: "TR J4", gradient: "from-yellow-500 to-orange-500" },
-              { label: "IR A1", gradient: "from-yellow-500 to-orange-500" },
-              { label: "IR M1", gradient: "from-yellow-500 to-orange-500" },
-            ].map(({ label, gradient }) => (
-              <label
-                key={label}
-                className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg shadow-md cursor-pointer text-black font-semibold bg-gradient-to-r ${gradient} hover:shadow-lg transform hover:scale-105 transition-all duration-300 hover:bg-gray-400`}
-              >
-                <input type="checkbox" className="form-checkbox h-4 w-4" />
-                <span>{label}</span>
-              </label>
-            ))}
-          </div>
-        </section>
-
         {/* Dates & Filters Grid */}
         <div className="grid grid-cols-2 gap-2">
           <section className="bg-white p-3 flex flex-col gap-4 rounded-md shadow-md border border-gray-100">
