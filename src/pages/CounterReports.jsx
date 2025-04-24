@@ -158,42 +158,32 @@ export default function CounterReports() {
           </div>
         </section>
         {/* Dates & Filters Grid */}
-        <div className="grid grid-cols-2 gap-2">
-          <section className="bg-white p-3 flex flex-col gap-4 rounded-md shadow-md border border-gray-100">
-            <h4 className="text-xs text-gray-600 font-semibold flex items-center gap-1">
-              <i className="bx bx-calendar text-red-500"></i>
-              Select dates
-            </h4>
-            <div className="flex flex-col gap-2">
-              <label className="text-sm font-medium text-gray-600">
-                Start Date
-                <input
-                  type="date"
-                  value={startDate}
-                  onChange={(e) => setStartDate(e.target.value)}
-                  className="mt-1 p-2 border rounded w-full"
-                />
-              </label>
-              <label className="text-sm font-medium text-gray-600">
-                End Date
-                <input
-                  type="date"
-                  value={endDate}
-                  onChange={(e) => setEndDate(e.target.value)}
-                  className="mt-1 p-2 border rounded w-full"
-                />
-              </label>
-            </div>
-          </section>
-
-          <section className="bg-white p-3 flex flex-col gap-4 rounded-md shadow-md border border-gray-100">
-            <h4 className="text-xs text-gray-600 font-semibold flex items-center gap-1">
-              <i className="bx bx-filter-alt text-red-500"></i>
-              Select your report filter
-            </h4>
-            <div>safsa</div>
-          </section>
-        </div>
+        <section className="bg-white p-3 flex flex-col gap-4 rounded-md shadow-md border border-gray-100">
+          <h4 className="text-xs text-gray-600 font-semibold flex items-center gap-1">
+            <i className="bx bx-calendar text-red-500"></i>
+            Select dates
+          </h4>
+          <div className="flex gap-2">
+            <label className="text-sm font-medium text-gray-600">
+              Start Date
+              <input
+                type="date"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                className="mt-1 p-2 border rounded w-full"
+              />
+            </label>
+            <label className="text-sm font-medium text-gray-600">
+              End Date
+              <input
+                type="date"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+                className="mt-1 p-2 border rounded w-full"
+              />
+            </label>
+          </div>
+        </section>
 
         {/* Vendors Section */}
         <section className="bg-white p-3 flex flex-col gap-4 rounded-md shadow-md border border-gray-100">
