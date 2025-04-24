@@ -1,7 +1,7 @@
 // server/index.js
 import express from 'express';
 import cors from 'cors';
-import pool from './db.js';
+import pool from './db.js'; // Ensure this is correctly pointing to your database connection file
 
 
 const app = express();
@@ -24,7 +24,7 @@ app.post('/api/login', async (req, res) => {
 
   try {
     // Query to find the user by email and password
-    const query = 'SELECT * FROM users WHERE email = ? AND password = ?';
+    const query = 'SELECT * FROM users WHERE email = ? AND PASSWORD = ?';
     const [rows] = await pool.query(query, [email, password]);
 
     if (rows.length > 0) {
@@ -39,6 +39,46 @@ app.post('/api/login', async (req, res) => {
     return res.status(500).json({ message: 'Error during login', error: err.message });
   }
 });
+
+// Get user by email
+app.get('/api/user/email/:email', async (req, res) => {
+  const email = decodeURIComponent(req.params.email);
+  console.log("Looking for:", email);
+  try {
+    const [rows] = await pool.query('SELECT * FROM users WHERE email = ?', [email]);
+    if (rows.length === 0) return res.status(404).json({ error: 'User not found' });
+    res.json(rows[0]);
+  } catch (err) {
+    console.error('Error fetching user by email:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+
+
+
+// Update user
+app.put('/api/user/email/:email', async (req, res) => {
+  const { email } = req.params;
+  const { username, password } = req.body;
+
+  if (!password) {
+    return res.status(400).json({ message: 'Password cannot be null' });
+  }
+
+  try {
+    await pool.query(
+      'UPDATE users SET username = ?, PASSWORD = ? WHERE email = ?',
+      [username, password, email]
+    );
+    res.json({ message: 'User updated successfully' });
+  } catch (err) {
+    console.error('Error updating user:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+
 
 
 
