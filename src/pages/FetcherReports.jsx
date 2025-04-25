@@ -27,100 +27,292 @@ export default function FetcherReports() {
   const [allLibrariesSelected, setAllLibrariesSelected] = useState(false);
 
   // This version combines all libraries' data into one CSV file per report type.
-  function generateCSVfromTR(data, libraryCode) {
+  // function generateCSVfromTR(data, libraryCode) {
+  //   const rowsMap = {};
+  //   const reportHeader = data.Report_Header || {};
+  //   const monthCountsTemplate = {
+  //     Jan: 0,
+  //     Feb: 0,
+  //     Mar: 0,
+  //     Apr: 0,
+  //     May: 0,
+  //     Jun: 0,
+  //     Jul: 0,
+  //     Aug: 0,
+  //     Sep: 0,
+  //     Oct: 0,
+  //     Nov: 0,
+  //     Dec: 0,
+  //   };
+
+  //   data.Report_Items?.forEach((item) => {
+  //     const ids = {};
+  //     item.Item_ID?.forEach((id) => (ids[id.Type] = id.Value));
+
+  //     item.Performance?.forEach((perf) => {
+  //       const year = perf.Period.Begin_Date.slice(0, 4);
+  //       const month = perf.Period.Begin_Date.slice(5, 7);
+  //       const monthStr = new Date(`${year}-${month}-01`).toLocaleString(
+  //         "en-US",
+  //         { month: "short" }
+  //       );
+
+  //       perf.Instance?.forEach((inst) => {
+  //         const count = inst.Count;
+  //         const metric = inst.Metric_Type;
+  //         const key = `${ids.ISBN || "noisbn"}|${metric}`;
+
+  //         if (!rowsMap[key]) {
+  //           rowsMap[key] = {
+  //             Institution_Code: libraryCode || reportHeader.Customer_ID || "",
+  //             pub_code: ids.Proprietary?.split(":")[0] || "",
+  //             Title: item.Title || "",
+  //             Publisher: item.Publisher || "",
+  //             Publisher_Id: "no data",
+  //             Platform: item.Platform || "",
+  //             Collection_Platform: item.Platform || "",
+  //             Report_Type: reportHeader.Report_ID || "TR",
+  //             DOI: ids.DOI || "",
+  //             Proprietary_Identifier: ids.Proprietary || "",
+  //             ISBN: ids.ISBN || "",
+  //             Print_ISSN: ids.Print_ISSN || "",
+  //             Online_ISSN: ids.Online_ISSN || "no data",
+  //             URI: "no data",
+  //             Metric_Type: metric,
+  //             Counter_Complaint: "",
+  //             Year: year,
+  //             Month: "",
+  //             YTD: 0,
+  //             ...structuredClone(monthCountsTemplate),
+  //             YOP: item.YOP || "",
+  //             Data_Type: item.Data_Type || "",
+  //             Access_Type: item.Access_Type || "",
+  //             Access_Method: item.Access_Method || "",
+  //             Section_Type: item.Section_Type || "",
+  //           };
+  //         }
+
+  //         rowsMap[key].YTD += count;
+  //         rowsMap[key][monthStr] += count;
+  //       });
+  //     });
+  //   });
+
+  //   const rows = Object.values(rowsMap);
+
+  //   // Download CSV
+  //   const csv = Papa.unparse(rows);
+  //   const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+  //   const url = URL.createObjectURL(blob);
+  //   const a = document.createElement("a");
+  //   a.href = url;
+  //   a.download = `${libraryCode}_TR_Report.csv`;
+  //   a.click();
+  //   URL.revokeObjectURL(url);
+
+
+  // #######################################################33
+
+  //   function generateCSVfromTR(allReports) {
+  //     const rowsMap = {};
+  //     const monthCountsTemplate = {
+  //       Feb: 0, Mar: 0, Apr: 0, May: 0, Jun: 0,
+  //       Jul: 0, Aug: 0, Sep: 0, Oct: 0, Nov: 0, Dec: 0,
+  //     };
+
+  //     const allRows = [];
+
+  //     allReports.forEach(({ data, libraryCode }) => {
+  //       const reportHeader = data.Report_Header || {};
+
+  //       data.Report_Items?.forEach((item) => {
+  //         const ids = {};
+  //         item.Item_ID?.forEach((id) => (ids[id.Type] = id.Value));
+
+  //         item.Performance?.forEach((perf) => {
+  //           const year = perf.Period.Begin_Date.slice(0, 4);
+  //           const month = perf.Period.Begin_Date.slice(5, 7);
+  //           const monthStr = new Date(`${year}-${month}-01`).toLocaleString(
+  //             "en-US",
+  //             { month: "short" }
+  //           );
+
+  //           perf.Instance?.forEach((inst) => {
+  //             const count = inst.Count;
+  //             const metric = inst.Metric_Type;
+  //             const key = `${libraryCode}|${ids.ISBN || "noisbn"}|${metric}`;
+
+  //             if (!rowsMap[key]) {
+  //               rowsMap[key] = {
+  //                 Institution_Code: libraryCode || reportHeader.Customer_ID || "",
+  //                 pub_code: ids.Proprietary?.split(":")[0] || "",
+  //                 Title: item.Title || "",
+  //                 Publisher: item.Publisher || "",
+  //                 Publisher_Id: "no data",
+  //                 Platform: item.Platform || "",
+  //                 Collection_Platform: item.Platform || "",
+  //                 Report_Type: reportHeader.Report_ID || "TR",
+  //                 DOI: ids.DOI || "",
+  //                 Proprietary_Identifier: ids.Proprietary || "",
+  //                 ISBN: ids.ISBN || "",
+  //                 Print_ISSN: ids.Print_ISSN || "",
+  //                 Online_ISSN: ids.Online_ISSN || "no data",
+  //                 URI: "no data",
+  //                 Metric_Type: metric,
+  //                 Counter_Complaint: "",
+  //                 Year: year,
+  //                 Month: "",
+  //                 YTD: 0,
+  //                 ...structuredClone(monthCountsTemplate),
+  //                 YOP: item.YOP || "",
+  //                 Data_Type: item.Data_Type || "",
+  //                 Access_Type: item.Access_Type || "",
+  //                 Access_Method: item.Access_Method || "",
+  //                 Section_Type: item.Section_Type || "",
+  //               };
+  //             }
+
+  //             rowsMap[key].YTD += count;
+  //             rowsMap[key][monthStr] += count;
+  //           });
+  //         });
+  //       });
+
+  //       // Optionally upload each library's rows to backend
+  //       const libRows = Object.values(rowsMap).filter(row => row.Institution_Code === libraryCode);
+  //       fetch("http://localhost:3001/api/insertTRReport", {
+  //         method: "POST",
+  //         headers: {
+  //           "Content-Type": "application/json",
+  //         },
+  //         body: JSON.stringify({ libraryCode, rows: libRows }),
+  //       })
+  //         .then((res) => res.json())
+  //         .then((result) => {
+  //           console.log(`✅ Inserted for ${libraryCode}:`, result);
+  //         })
+  //         .catch((err) => {
+  //           console.error(`❌ Error for ${libraryCode}:`, err);
+  //         });
+  //     });
+
+
+  //     // Combine all rows into one CSV
+  //     const allCombinedRows = Object.values(rowsMap);
+  //     const csv = Papa.unparse(allCombinedRows);
+  //     const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+  //     const url = URL.createObjectURL(blob);
+  //     const a = document.createElement("a");
+  //     a.href = url;
+  //     a.download = `Combined_TR_Report.csv`;
+  //     a.click();
+  //     URL.revokeObjectURL(url);
+  //   fetch("http://localhost:3001/api/insertTRReport", {
+  //     method: "POST",
+  //     headers: {
+  //       "Content-Type": "application/json",
+  //     },
+  //     body: JSON.stringify({ libraryCode, rows }),
+  //   })
+  //     .then((res) => res.json())
+  //     .then((result) => {
+  //       console.log("Backend response:", result);
+  //       alert(`Data also inserted into table: ${result.tableName || "unknown"}`);
+  //     })
+  //     .catch((err) => {
+  //       console.error("Error sending data to backend:", err);
+  //       alert("Failed to insert data into database.");
+  //     });
+  // } 
+
+  function generateCSVfromTR(allReports, reportType) {
     const rowsMap = {};
-    const reportHeader = data.Report_Header || {};
     const monthCountsTemplate = {
-      Jan: 0,
-      Feb: 0,
-      Mar: 0,
-      Apr: 0,
-      May: 0,
-      Jun: 0,
-      Jul: 0,
-      Aug: 0,
-      Sep: 0,
-      Oct: 0,
-      Nov: 0,
-      Dec: 0,
+      Feb: 0, Mar: 0, Apr: 0, May: 0, Jun: 0,
+      Jul: 0, Aug: 0, Sep: 0, Oct: 0, Nov: 0, Dec: 0,
     };
- 
-    data.Report_Items?.forEach((item) => {
-      const ids = {};
-      item.Item_ID?.forEach((id) => (ids[id.Type] = id.Value));
- 
-      item.Performance?.forEach((perf) => {
-        const year = perf.Period.Begin_Date.slice(0, 4);
-        const month = perf.Period.Begin_Date.slice(5, 7);
-        const monthStr = new Date(`${year}-${month}-01`).toLocaleString(
-          "en-US",
-          { month: "short" }
-        );
- 
-        perf.Instance?.forEach((inst) => {
-          const count = inst.Count;
-          const metric = inst.Metric_Type;
-          const key = `${ids.ISBN || "noisbn"}|${metric}`;
- 
-          if (!rowsMap[key]) {
-            rowsMap[key] = {
-              Institution_Code: libraryCode || reportHeader.Customer_ID || "",
-              pub_code: ids.Proprietary?.split(":")[0] || "",
-              Title: item.Title || "",
-              Publisher: item.Publisher || "",
-              Publisher_Id: "no data",
-              Platform: item.Platform || "",
-              Collection_Platform: item.Platform || "",
-              Report_Type: reportHeader.Report_ID || "TR",
-              DOI: ids.DOI || "",
-              Proprietary_Identifier: ids.Proprietary || "",
-              ISBN: ids.ISBN || "",
-              Print_ISSN: ids.Print_ISSN || "",
-              Online_ISSN: ids.Online_ISSN || "no data",
-              URI: "no data",
-              Metric_Type: metric,
-              Counter_Complaint: "",
-              Year: year,
-              Month: "",
-              YTD: 0,
-              ...structuredClone(monthCountsTemplate),
-              YOP: item.YOP || "",
-              Data_Type: item.Data_Type || "",
-              Access_Type: item.Access_Type || "",
-              Access_Method: item.Access_Method || "",
-              Section_Type: item.Section_Type || "",
-            };
-          }
- 
-          rowsMap[key].YTD += count;
-          rowsMap[key][monthStr] += count;
+
+    allReports.forEach(({ data, libraryCode }) => {
+      const reportHeader = data.Report_Header || {};
+
+      data.Report_Items?.forEach((item) => {
+        const ids = {};
+        item.Item_ID?.forEach((id) => (ids[id.Type] = id.Value));
+
+        item.Performance?.forEach((perf) => {
+          const year = perf.Period.Begin_Date.slice(0, 4);
+          const month = perf.Period.Begin_Date.slice(5, 7);
+          const monthStr = new Date(`${year}-${month}-01`).toLocaleString(
+            "en-US", { month: "short" }
+          );
+
+          perf.Instance?.forEach((inst) => {
+            const count = inst.Count;
+            const metric = inst.Metric_Type;
+            const key = `${libraryCode}|${ids.ISBN || "noisbn"}|${metric}`;
+
+            if (!rowsMap[key]) {
+              rowsMap[key] = {
+                Institution_Code: libraryCode || reportHeader.Customer_ID || "",
+                pub_code: ids.Proprietary?.split(":")[0] || "",
+                Title: item.Title || "",
+                Publisher: item.Publisher || "",
+                Publisher_Id: "no data",
+                Platform: item.Platform || "",
+                Collection_Platform: item.Platform || "",
+                Report_Type: reportType || reportHeader.Report_ID || "TR",
+                DOI: ids.DOI || "",
+                Proprietary_Identifier: ids.Proprietary || "",
+                ISBN: ids.ISBN || "",
+                Print_ISSN: ids.Print_ISSN || "",
+                Online_ISSN: ids.Online_ISSN || "no data",
+                URI: "no data",
+                Metric_Type: metric,
+                Counter_Complaint: "",
+                Year: year,
+                Month: "",
+                YTD: 0,
+                ...structuredClone(monthCountsTemplate),
+                YOP: item.YOP || "",
+                Data_Type: item.Data_Type || "",
+                Access_Type: item.Access_Type || "",
+                Access_Method: item.Access_Method || "",
+                Section_Type: item.Section_Type || "",
+              };
+            }
+
+            rowsMap[key].YTD += count;
+            rowsMap[key][monthStr] += count;
+          });
         });
       });
     });
- 
-    const rows = Object.values(rowsMap);
- 
-    // Download CSV
-    const csv = Papa.unparse(rows);
+
+    const allCombinedRows = Object.values(rowsMap);
+    const csv = Papa.unparse(allCombinedRows);
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `${libraryCode}_TR_Report.csv`;
+    a.download = `Combined_${reportType || "TR"}_Report.csv`;
     a.click();
     URL.revokeObjectURL(url);
- 
+
+    console.log(JSON.stringify({ reportType, rows: allCombinedRows }));
+
+    // Single backend call for all rows
     fetch("http://localhost:3001/api/insertTRReport", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ libraryCode, rows }),
+      body: JSON.stringify({ reportType, rows: allCombinedRows }),
     })
       .then((res) => res.json())
       .then((result) => {
         console.log("Backend response:", result);
-        alert(`Data also inserted into table: ${result.tableName || "unknown"}`);
+        alert(`Data inserted into table: ${result.tableName || "table_" + reportType}`);
       })
       .catch((err) => {
         console.error("Error sending data to backend:", err);
@@ -128,6 +320,8 @@ export default function FetcherReports() {
       });
   }
 
+
+  //###########################################################################################
   const reportOptions = [
     "TR",
     "TR_J1",
@@ -243,9 +437,10 @@ export default function FetcherReports() {
     }
   };
 
+
   const handleDownload = async () => {
     if (!startDate || !endDate) {
-       toast.error("Please select a valid date range.");
+      toast.error("Please select a valid date range.");
       return;
     }
     if (selectedReports.length === 0) {
@@ -290,7 +485,8 @@ export default function FetcherReports() {
           if (!res.ok) throw new Error(res.statusText);
           const data = await res.json();
           combinedData.push({ libraryCode: library.libraryCode, data });
-          generateCSVfromTR(data, library.libraryCode);
+          // generateCSVfromTR(data, library.libraryCode);
+          combinedData.push({ libraryCode: library.libraryCode, data });
           logs.push(`Success: ${library.customerId} / ${library.requestorId}`);
         } catch (error) {
           logs.push(
@@ -304,6 +500,7 @@ export default function FetcherReports() {
         });
         const fileName = `report_${reportType}_${formattedStartDate}_to_${formattedEndDate}.json`;
         await saveFileWithPicker(blob, fileName);
+        generateCSVfromTR(combinedData, reportType);
       } else {
         logs.push(`No data for ${reportType}`);
       }
@@ -319,7 +516,7 @@ export default function FetcherReports() {
     <>
       <SideNav activeTab="insight-fetcher" />
       <main className="col-span-4 h-full overflow-y-scroll p-2">
-      <ToastContainer />
+        <ToastContainer />
         <section className="w-full flex flex-col gap-2 h-full">
           <section className="grid grid-cols-2 gap-2">
             <div className="bg-white p-3 flex flex-col gap-4 rounded-md shadow-md border border-gray-100">
@@ -455,11 +652,10 @@ export default function FetcherReports() {
                     <div
                       key={report}
                       onClick={() => toggleReport(report)}
-                      className={` p-2 rounded-md flex items-center gap-1 hover:bg-green-200 transition-all duration-200 cursor-pointer ${
-                        selectedReports.includes(report)
-                          ? "bg-green-200"
-                          : "bg-gray-100"
-                      }`}
+                      className={` p-2 rounded-md flex items-center gap-1 hover:bg-green-200 transition-all duration-200 cursor-pointer ${selectedReports.includes(report)
+                        ? "bg-green-200"
+                        : "bg-gray-100"
+                        }`}
                     >
                       <input
                         type="checkbox"
@@ -524,11 +720,10 @@ export default function FetcherReports() {
                   <div
                     key={lib.customerId}
                     onClick={() => toggleLibrary(lib.customerId)}
-                    className={` p-2 rounded-md flex items-center gap-1 hover:bg-green-200 transition-all duration-200 cursor-pointer ${
-                      selectedLibraries.includes(lib.customerId)
-                        ? "bg-green-200"
-                        : "bg-gray-100"
-                    }`}
+                    className={` p-2 rounded-md flex items-center gap-1 hover:bg-green-200 transition-all duration-200 cursor-pointer ${selectedLibraries.includes(lib.customerId)
+                      ? "bg-green-200"
+                      : "bg-gray-100"
+                      }`}
                   >
                     <input
                       type="checkbox"
@@ -548,3 +743,4 @@ export default function FetcherReports() {
     </>
   );
 }
+
