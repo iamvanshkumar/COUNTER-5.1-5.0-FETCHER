@@ -7,6 +7,7 @@ import "react-toastify/dist/ReactToastify.css";
 
 export default function FetcherReports() {
   const history = useNavigate();
+  const [progress, setProgress] = useState(0);
 
   useEffect(() => {
     const userToken = sessionStorage.getItem("userToken");
@@ -69,7 +70,7 @@ export default function FetcherReports() {
                 Institution_Code: libraryCode || reportHeader.Customer_ID || "",
                 pub_code: ids.Proprietary?.split(":")[0] || "",
                 Title: item.Title || "",
-                Publisher: item.Publisher || "",
+                Publisher: item.Publisher || "no data",
                 Publisher_Id: "no data",
                 Platform: item.Platform || "",
                 Collection_Platform: item.Platform || "",
@@ -264,26 +265,32 @@ export default function FetcherReports() {
       return;
     }
 
+    setProgress(0); // 🛑 Reset progress at the beginning
+
     const formattedStartDate = new Date(startDate).toISOString().split("T")[0];
     const formattedEndDate = new Date(endDate).toISOString().split("T")[0];
     const chosenLibraries = libraryDetails.filter((lib) =>
       selectedLibraries.includes(lib.customerId)
     );
     const logs = [];
+    const totalTasks = selectedReports.length * chosenLibraries.length;
+    let completedTasks = 0;
+    setProgress(0); // Reset progress bar at start
+
+    const formatDate = (date) => {
+      const d = new Date(date);
+      return selectedPlatform === "RSC"
+        ? d.toISOString().slice(0, 7)
+        : d.toISOString().split("T")[0];
+    };
 
     for (const reportType of selectedReports) {
       const combinedData = [];
+
       for (const library of chosenLibraries) {
         const asm = "sitemaster.dl.asminternational.org";
         const rsc = "sitemaster.books.rsc.org";
         const selectedSite = selectedPlatform === "ASM" ? asm : rsc;
-
-        const formatDate = (date) => {
-          const d = new Date(date);
-          return selectedPlatform === "RSC"
-            ? d.toISOString().slice(0, 7)
-            : d.toISOString().split("T")[0];
-        };
 
         const start = formatDate(startDate);
         const end = formatDate(endDate);
@@ -296,19 +303,20 @@ export default function FetcherReports() {
           if (!res.ok) throw new Error(res.statusText);
           const data = await res.json();
           combinedData.push({ libraryCode: library.libraryCode, data });
-
           logs.push(`Success: ${library.customerId} / ${library.requestorId}`);
         } catch (error) {
           logs.push(
             `Error: ${library.customerId} / ${library.requestorId} - ${error.message}`
           );
         }
+
+        // 🛠️ Update progress AFTER every URL hit (success OR fail)
+        completedTasks++;
+        setProgress(Math.round((completedTasks / totalTasks) * 100));
       }
 
-      // 🛠️ NEW: after collecting all libraries for a reportType:
       if (combinedData.length > 0) {
-        generateCSVfromTR(combinedData); // 📢 call here ONCE per reportType
-
+        generateCSVfromTR(combinedData);
         const blob = new Blob([JSON.stringify(combinedData, null, 2)], {
           type: "application/json",
         });
@@ -331,6 +339,23 @@ export default function FetcherReports() {
       <main className="col-span-4 h-full overflow-y-scroll p-2">
         <ToastContainer />
         <section className="w-full flex flex-col gap-2 h-full">
+          <nav className="bg-white p-3 flex flex-col gap-1 rounded-md shadow-md border border-gray-100">
+            <span className="flex items-center justify-between">
+              <span className="text-xs font-medium text-gray-600">
+                Progress Count
+              </span>
+              <span className="text-xs font-medium text-gray-600">
+                {progress}%
+              </span>
+            </span>
+            <div className="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700">
+              <div
+                className="bg-green-400 h-2.5 rounded-full transition-all duration-300"
+                style={{ width: `${progress}%` }}
+              ></div>
+            </div>
+          </nav>
+
           <section className="grid grid-cols-2 gap-2">
             <div className="bg-white p-3 flex flex-col gap-4 rounded-md shadow-md border border-gray-100">
               <h4 className="text-xs text-gray-600 font-semibold flex items-center gap-1">
