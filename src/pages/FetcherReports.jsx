@@ -91,7 +91,9 @@ export default function FetcherReports() {
 
             if (!rowsMap[key]) {
               const Proprietary_Identifier = ids.Proprietary || "";
-              const pubCode = Proprietary_Identifier ? Proprietary_Identifier.split(":")[0] : "";
+              const pubCode = Proprietary_Identifier
+                ? Proprietary_Identifier.split(":")[0]
+                : "";
 
               rowsMap[key] = {
                 Institution_Code: libraryCode || reportHeader.Customer_ID || "",
@@ -103,7 +105,7 @@ export default function FetcherReports() {
                 Collection_Platform: item.Platform || "no data",
                 Report_Type: reportHeader.Report_ID || "TR",
                 DOI: ids.DOI || "no data",
-                Proprietary_Identifier: Proprietary_Identifier ||"no data" ,
+                Proprietary_Identifier: Proprietary_Identifier || "no data",
                 ISBN: ids.ISBN || "no data",
                 Print_ISSN: ids.Print_ISSN || "no data",
                 Online_ISSN: ids.Online_ISSN || "no data",
@@ -324,7 +326,20 @@ export default function FetcherReports() {
         const start = formatDate(startDate);
         const end = formatDate(endDate);
 
-        const url = `https://${selectedSite}/sushi/reports/${reportType}/?api_key=${library.apiKey}&customer_id=${library.customerId}&requestor_id=${library.requestorId}&begin_date=${start}&end_date=${end}&attributes_to_show=Access_Type|YOP|Access_Method|Data_Type|Section_Type`;
+        let attribute = "";
+
+        if (reportType === "TR") {
+          attribute =
+            "&attributes_to_show=Access_Type|YOP|Access_Method|Data_Type|Section_Type";
+        } else if (reportType === "PR" || reportType === "DR") {
+          attribute = "&attributes_to_show=Access_Method|Data_Type";
+        } else {
+          attribute = "";
+        }
+
+        console.log(attribute + "_" + reportType);
+
+        const url = `https://${selectedSite}/sushi/reports/${reportType}/?api_key=${library.apiKey}&customer_id=${library.customerId}&requestor_id=${library.requestorId}&begin_date=${start}&end_date=${end}${attribute}`;
 
         console.log("Fetching URL:", url);
         try {
