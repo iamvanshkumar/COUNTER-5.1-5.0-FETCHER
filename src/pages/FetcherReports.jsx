@@ -28,7 +28,6 @@ export default function FetcherReports() {
     navigator.clipboard
       .writeText(tableName)
       .then(() => {
-        // You can show a toast or feedback indicating that the text was copied
         toast.success("Table name copied to clipboard!");
       })
       .catch((err) => {
@@ -39,7 +38,6 @@ export default function FetcherReports() {
   useEffect(() => {
     const userToken = sessionStorage.getItem("userToken");
     if (!userToken) {
-      // Redirect user to the login page if not authenticated
       history("/login");
     }
   }, [history]);
@@ -54,7 +52,6 @@ export default function FetcherReports() {
   const [allReportsSelected, setAllReportsSelected] = useState(false);
   const [allLibrariesSelected, setAllLibrariesSelected] = useState(false);
 
-  // This version combines all libraries' data into one CSV file per report type.
   function generateCSVfromTR(allReports) {
     const rowsMap = {};
     const monthCountsTemplate = {
@@ -130,19 +127,15 @@ export default function FetcherReports() {
 
     const allCombinedRows = Object.values(rowsMap);
 
-    // First, download CSV
     const csv = Papa.unparse(allCombinedRows);
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `Combined_TR_Report.csv`; // just hardcode TR for now
+    a.download = `Combined_TR_Report.csv`;
     a.click();
     URL.revokeObjectURL(url);
 
-    console.log("Generated CSV and downloading...");
-
-    // Then send data to backend
     fetch("http://localhost:3001/api/insertTRReport", {
       method: "POST",
       headers: {
@@ -152,15 +145,14 @@ export default function FetcherReports() {
     })
       .then((res) => res.json())
       .then((result) => {
-        console.log(result.tableName);
         if (result.tableName && result.tableName.trim()) {
           setTableName(result.tableName);
-            setTimeout(() => {
+          setTimeout(() => {
             openModal();
-            }, 500); // Add a 500ms delay before opening the modal
+          }, 500);
         } else {
           toast.error("Failed to retrieve table name.");
-          closeModal(); // Ensure modal is closed if tableName is invalid
+          closeModal();
         }
       })
       .catch((err) => {
