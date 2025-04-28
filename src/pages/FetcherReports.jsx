@@ -126,13 +126,13 @@ export default function FetcherReports() {
       .then((res) => res.json())
       .then((result) => {
         console.log("Backend response:", result);
-        alert(
-          `Data also inserted into table: ${result.tableName || "unknown"}`
+        toast.info(
+          `Data inserted into table: ${result.tableName || "unknown"}`
         );
       })
       .catch((err) => {
         console.error("Error sending data to backend:", err);
-        alert("Failed to insert data into database.");
+        toast.error("Failed to insert data into database.");
       });
   }
 
@@ -276,6 +276,7 @@ export default function FetcherReports() {
     const totalTasks = selectedReports.length * chosenLibraries.length;
     let completedTasks = 0;
     setProgress(0); // Reset progress bar at start
+    toast.info("Preparing your report for download...");
 
     const formatDate = (date) => {
       const d = new Date(date);
