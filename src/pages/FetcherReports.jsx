@@ -90,19 +90,22 @@ export default function FetcherReports() {
             const key = `${libraryCode}|${ids.ISBN || "noisbn"}|${metric}`;
 
             if (!rowsMap[key]) {
+              const Proprietary_Identifier = ids.Proprietary || "";
+              const pubCode = Proprietary_Identifier ? Proprietary_Identifier.split(":")[0] : "";
+
               rowsMap[key] = {
                 Institution_Code: libraryCode || reportHeader.Customer_ID || "",
                 pub_code: ids.Proprietary?.split(":")[0] || "",
                 Title: item.Title || "",
                 Publisher: item.Publisher || "no data",
                 Publisher_Id: "no data",
-                Platform: item.Platform || "",
-                Collection_Platform: item.Platform || "",
+                Platform: item.Platform || "no data",
+                Collection_Platform: item.Platform || "no data",
                 Report_Type: reportHeader.Report_ID || "TR",
-                DOI: ids.DOI || "",
-                Proprietary_Identifier: ids.Proprietary || "",
-                ISBN: ids.ISBN || "",
-                Print_ISSN: ids.Print_ISSN || "",
+                DOI: ids.DOI || "no data",
+                Proprietary_Identifier: Proprietary_Identifier ||"no data" ,
+                ISBN: ids.ISBN || "no data",
+                Print_ISSN: ids.Print_ISSN || "no data",
                 Online_ISSN: ids.Online_ISSN || "no data",
                 URI: "no data",
                 Metric_Type: metric,
@@ -362,7 +365,7 @@ export default function FetcherReports() {
   return (
     <>
       <div
-      id="popup-modal"
+        id="popup-modal"
         className={`${
           progress > 0 ? "fixed" : "hidden"
         } flex justify-center items-center overflow-y-auto overflow-x-hidden absolute top-0 right-0 left-0 z-50 w-full h-full bg-black bg-opacity-50`}
@@ -417,7 +420,7 @@ export default function FetcherReports() {
                 onClick={copyToClipboard} // Add onClick here
               >
                 Copy
-              </button> 
+              </button>
             </div>
           </div>
         </div>

@@ -79,7 +79,7 @@ app.post('/api/insertTRReport', async (req, res) => {
         \`Collection_Platform\` VARCHAR(1500),
         \`Report_Type\` VARCHAR(30),
         \`DOI\` VARCHAR(1500),
-        \`Proprietary_Id\` VARCHAR(1500),
+        \`Proprietary_Identifier\` VARCHAR(1500),
         \`ISBN\` VARCHAR(135),
         \`Print_ISSN\` VARCHAR(135),
         \`Online_ISSN\` VARCHAR(135),
@@ -105,7 +105,7 @@ app.post('/api/insertTRReport', async (req, res) => {
     const insertSQL = `
       INSERT INTO \`${tableName}\` (
         Institution_Code, pub_code, Title, Publisher, Publisher_ID,
-        Platform, Collection_Platform, Report_Type, DOI, Proprietary_Id,
+        Platform, Collection_Platform, Report_Type, DOI, Proprietary_Identifier,
         ISBN, Print_ISSN, Online_ISSN, URI, Metric_Type,
         Counter_Complaint, Year, Month, YTD,
         Jan, Feb, Mar, Apr, May, Jun,
@@ -116,7 +116,7 @@ app.post('/api/insertTRReport', async (req, res) => {
 
     const values = rows.map(row => [
       row.Institution_Code, row.pub_code, row.Title, row.Publisher, row.Publisher_ID,
-      row.Platform, row.Collection_Platform, row.Report_Type, row.DOI, row.Proprietary_Id,
+      row.Platform, row.Collection_Platform, row.Report_Type, row.DOI, row.Proprietary_Identifier,
       row.ISBN, row.Print_ISSN, row.Online_ISSN, row.URI, row.Metric_Type,
       row.Counter_Complaint,
       row.Year || null,
@@ -126,7 +126,6 @@ app.post('/api/insertTRReport', async (req, res) => {
       row.Jul || null, row.Aug || null, row.Sep || null, row.Oct || null, row.Nov || null, row.Dec || null,
       row.YOP, row.Data_Type, row.Access_Type, row.Access_Method, row.Section_Type
     ]);
-
     await pool.query(insertSQL, [values]);
 
     res.status(200).json({ message: 'Data inserted successfully', tableName });
