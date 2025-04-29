@@ -91,9 +91,7 @@ export default function FetcherReports() {
 
             if (!rowsMap[key]) {
               const Proprietary_Identifier = ids.Proprietary || "";
-              const pubCode = Proprietary_Identifier
-                ? Proprietary_Identifier.split(":")[0]
-                : "";
+              // Removed unused variable 'pubCode'
 
               rowsMap[key] = {
                 Institution_Code: libraryCode || reportHeader.Customer_ID || "",
@@ -152,12 +150,19 @@ export default function FetcherReports() {
       .then((result) => {
         if (result.tableName && result.tableName.trim()) {
           setTableName(result.tableName);
-          setTimeout(() => {
-            openModal();
-          }, 500);
-        } else {
-          toast.error("Failed to retrieve table name.");
-          closeModal();
+          if (result.success) {
+            if (result.tableName && result.tableName.trim()) {
+              setTableName(result.tableName);
+              setTimeout(() => {
+                openModal();
+              }, 500);
+            } else {
+              toast.error("Failed to retrieve table name.");
+              closeModal();
+            }
+          } else {
+            toast.error(`Data insertion failed: ${result.message || "Unknown error"}`);
+          }
         }
       })
       .catch((err) => {
@@ -281,6 +286,87 @@ export default function FetcherReports() {
     }
   };
 
+  // const handleDownload = async () => {
+  //   if (!startDate || !endDate) {
+  //     toast.error("Please select a valid date range.");
+  //     return;
+  //   }
+  //   if (selectedReports.length === 0) {
+  //     toast.error("Please select at least one report type.");
+  //     return;
+  //   }
+  //   if (selectedLibraries.length === 0) {
+  //     toast.error("Please select at least one library.");
+  //     return;
+  //   }
+
+  //   setProgress(0); // 🛑 Reset progress at the beginning
+
+  //   const formattedStartDate = new Date(startDate).toISOString().split("T")[0];
+  //   const formattedEndDate = new Date(endDate).toISOString().split("T")[0];
+  //   const chosenLibraries = libraryDetails.filter((lib) =>
+  //     selectedLibraries.includes(lib.customerId)
+  //   );
+  //   const logs = [];
+  //   const totalTasks = selectedReports.length * chosenLibraries.length;
+  //   let completedTasks = 0;
+  //   setProgress(0); // Reset progress bar at start
+  //   toast.info("Preparing your report for download...");
+
+  //   const formatDate = (date) => {
+  //     const d = new Date(date);
+  //     return selectedPlatform === "RSC"
+  //       ? d.toISOString().slice(0, 7)
+  //       : d.toISOString().split("T")[0];
+  //   };
+
+  //   for (const reportType of selectedReports) {
+  //     const combinedData = [];
+
+  //     for (const library of chosenLibraries) {
+  //       const asm = "sitemaster.dl.asminternational.org";
+  //       const rsc = "sitemaster.books.rsc.org";
+  //       const selectedSite = selectedPlatform === "ASM" ? asm : rsc;
+
+  //       const start = formatDate(startDate);
+  //       const end = formatDate(endDate);
+
+  //       const url = `https://${selectedSite}/sushi/reports/${reportType}/?api_key=${library.apiKey}&customer_id=${library.customerId}&requestor_id=${library.requestorId}&begin_date=${start}&end_date=${end}&attributes_to_show=Access_Type|YOP|Access_Method|Data_Type|Section_Type`;
+
+  //       console.log("Fetching URL:", url);
+  //       try {
+  //         const res = await fetch(url);
+  //         if (!res.ok) throw new Error(res.statusText);
+  //         const data = await res.json();
+  //         combinedData.push({ libraryCode: library.libraryCode, data });
+  //         logs.push(`Success: ${library.customerId} / ${library.requestorId}`);
+  //       } catch (error) {
+  //         logs.push(
+  //           `Error: ${library.customerId} / ${library.requestorId} - ${error.message}`
+  //         );
+  //       }
+
+  //       completedTasks++;
+  //       setProgress(Math.round((completedTasks / totalTasks) * 100));
+  //     }
+
+  //     if (combinedData.length > 0) {
+  //       generateCSVfromTR(combinedData);
+  //       const blob = new Blob([JSON.stringify(combinedData, null, 2)], {
+  //         type: "application/json",
+  //       });
+  //       const fileName = `report_${reportType}_${formattedStartDate}_to_${formattedEndDate}.json`;
+  //       await saveFileWithPicker(blob, fileName);
+  //     } else {
+  //       logs.push(`No data for ${reportType}`);
+  //     }
+  //   }
+
+  //   if (logs.length > 0) {
+  //     const logFileName = `logs_${formattedStartDate}_to_${formattedEndDate}.txt`;
+  //     await saveLogsWithPicker(logs, logFileName);
+  //   }
+  // };
   const handleDownload = async () => {
     if (!startDate || !endDate) {
       toast.error("Please select a valid date range.");
@@ -295,18 +381,16 @@ export default function FetcherReports() {
       return;
     }
 
-    setProgress(0); // 🛑 Reset progress at the beginning
-
+    setProgress(0);
     const formattedStartDate = new Date(startDate).toISOString().split("T")[0];
     const formattedEndDate = new Date(endDate).toISOString().split("T")[0];
     const chosenLibraries = libraryDetails.filter((lib) =>
       selectedLibraries.includes(lib.customerId)
     );
+
     const logs = [];
     const totalTasks = selectedReports.length * chosenLibraries.length;
     let completedTasks = 0;
-    setProgress(0); // Reset progress bar at start
-    toast.info("Preparing your report for download...");
 
     const formatDate = (date) => {
       const d = new Date(date);
@@ -315,60 +399,45 @@ export default function FetcherReports() {
         : d.toISOString().split("T")[0];
     };
 
-    for (const reportType of selectedReports) {
-      const combinedData = [];
+    const combinedAllReports = [];
 
+    toast.info("Preparing your report for download...");
+
+    for (const reportType of selectedReports) {
       for (const library of chosenLibraries) {
-        const asm = "sitemaster.dl.asminternational.org";
-        const rsc = "sitemaster.books.rsc.org";
-        const selectedSite = selectedPlatform === "ASM" ? asm : rsc;
+        const site = selectedPlatform === "ASM"
+          ? "sitemaster.dl.asminternational.org"
+          : "sitemaster.books.rsc.org";
 
         const start = formatDate(startDate);
         const end = formatDate(endDate);
 
-        let attribute = "";
+        const url = `https://${site}/sushi/reports/${reportType}/?api_key=${library.apiKey}&customer_id=${library.customerId}&requestor_id=${library.requestorId}&begin_date=${start}&end_date=${end}&attributes_to_show=Access_Type|YOP|Access_Method|Data_Type|Section_Type`;
 
-        if (reportType === "TR") {
-          attribute =
-            "&attributes_to_show=Access_Type|YOP|Access_Method|Data_Type|Section_Type";
-        } else if (reportType === "PR" || reportType === "DR") {
-          attribute = "&attributes_to_show=Access_Method|Data_Type";
-        } else {
-          attribute = "";
-        }
-
-        console.log(attribute + "_" + reportType);
-
-        const url = `https://${selectedSite}/sushi/reports/${reportType}/?api_key=${library.apiKey}&customer_id=${library.customerId}&requestor_id=${library.requestorId}&begin_date=${start}&end_date=${end}${attribute}`;
-
-        console.log("Fetching URL:", url);
         try {
           const res = await fetch(url);
           if (!res.ok) throw new Error(res.statusText);
           const data = await res.json();
-          combinedData.push({ libraryCode: library.libraryCode, data });
-          logs.push(`Success: ${library.customerId} / ${library.requestorId}`);
+          combinedAllReports.push({ libraryCode: library.libraryCode, data });
+          logs.push(`✅ Success: ${reportType} | ${library.customerId}`);
         } catch (error) {
-          logs.push(
-            `Error: ${library.customerId} / ${library.requestorId} - ${error.message}`
-          );
+          logs.push(`❌ Error: ${reportType} | ${library.customerId} - ${error.message}`);
         }
 
-        // 🛠️ Update progress AFTER every URL hit (success OR fail)
         completedTasks++;
         setProgress(Math.round((completedTasks / totalTasks) * 100));
       }
+    }
 
-      if (combinedData.length > 0) {
-        generateCSVfromTR(combinedData);
-        const blob = new Blob([JSON.stringify(combinedData, null, 2)], {
-          type: "application/json",
-        });
-        const fileName = `report_${reportType}_${formattedStartDate}_to_${formattedEndDate}.json`;
-        await saveFileWithPicker(blob, fileName);
-      } else {
-        logs.push(`No data for ${reportType}`);
-      }
+    if (combinedAllReports.length > 0) {
+      generateCSVfromTR(combinedAllReports);
+      const blob = new Blob([JSON.stringify(combinedAllReports, null, 2)], {
+        type: "application/json",
+      });
+      const fileName = `report_ALL_${formattedStartDate}_to_${formattedEndDate}.json`;
+      await saveFileWithPicker(blob, fileName);
+    } else {
+      toast.error("No data to generate report.");
     }
 
     if (logs.length > 0) {
@@ -376,14 +445,12 @@ export default function FetcherReports() {
       await saveLogsWithPicker(logs, logFileName);
     }
   };
-
   return (
     <>
       <div
         id="popup-modal"
-        className={`${
-          progress > 0 ? "fixed" : "hidden"
-        } flex justify-center items-center overflow-y-auto overflow-x-hidden absolute top-0 right-0 left-0 z-50 w-full h-full bg-black bg-opacity-50`}
+        className={`${progress > 0 ? "fixed" : "hidden"
+          } flex justify-center items-center overflow-y-auto overflow-x-hidden absolute top-0 right-0 left-0 z-50 w-full h-full bg-black bg-opacity-50`}
       >
         <div className="relative p-4 w-full max-w-md max-h-full">
           <div className="relative bg-white rounded-lg shadow-sm">
@@ -596,11 +663,10 @@ export default function FetcherReports() {
                     <div
                       key={report}
                       onClick={() => toggleReport(report)}
-                      className={` p-2 rounded-md flex items-center gap-1 hover:bg-green-200 transition-all duration-200 cursor-pointer ${
-                        selectedReports.includes(report)
-                          ? "bg-green-200"
-                          : "bg-gray-100"
-                      }`}
+                      className={` p-2 rounded-md flex items-center gap-1 hover:bg-green-200 transition-all duration-200 cursor-pointer ${selectedReports.includes(report)
+                        ? "bg-green-200"
+                        : "bg-gray-100"
+                        }`}
                     >
                       <input
                         type="checkbox"
@@ -665,11 +731,10 @@ export default function FetcherReports() {
                   <div
                     key={lib.customerId}
                     onClick={() => toggleLibrary(lib.customerId)}
-                    className={` p-2 rounded-md flex items-center gap-1 hover:bg-green-200 transition-all duration-200 cursor-pointer ${
-                      selectedLibraries.includes(lib.customerId)
-                        ? "bg-green-200"
-                        : "bg-gray-100"
-                    }`}
+                    className={` p-2 rounded-md flex items-center gap-1 hover:bg-green-200 transition-all duration-200 cursor-pointer ${selectedLibraries.includes(lib.customerId)
+                      ? "bg-green-200"
+                      : "bg-gray-100"
+                      }`}
                   >
                     <input
                       type="checkbox"
