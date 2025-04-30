@@ -151,6 +151,7 @@ export default function FetcherReports() {
       .then((res) => res.json())
       .then((result) => {
         if (result.tableName && result.tableName.trim()) {
+          console.log(result.tableName);
           setTableName(result.tableName);
           setTimeout(() => {
             openModal();
