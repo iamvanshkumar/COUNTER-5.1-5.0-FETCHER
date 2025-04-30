@@ -8,32 +8,6 @@ import "react-toastify/dist/ReactToastify.css";
 export default function FetcherReports() {
   const history = useNavigate();
   const [progress, setProgress] = useState(0);
-  const [tableName, setTableName] = useState("");
-
-  function openModal() {
-    const modal = document.getElementById("popup-modal");
-    if (modal) {
-      modal.classList.remove("hidden");
-    }
-  }
-
-  function closeModal() {
-    const modal = document.getElementById("popup-modal");
-    if (modal) {
-      modal.classList.add("hidden");
-    }
-  }
-
-  function copyToClipboard() {
-    navigator.clipboard
-      .writeText(tableName)
-      .then(() => {
-        toast.success("Table name copied to clipboard!");
-      })
-      .catch((err) => {
-        toast.error("Failed to copy text: " + err);
-      });
-  }
 
   useEffect(() => {
     const userToken = sessionStorage.getItem("userToken");
@@ -69,8 +43,12 @@ export default function FetcherReports() {
       Dec: 0,
     };
 
+    const reportTypes = new Set(); // Collect report types
+
     allReports.forEach(({ data, libraryCode }) => {
       const reportHeader = data.Report_Header || {};
+      const reportType = reportHeader.Report_ID || "Unknown";
+      reportTypes.add(reportType);
 
       data.Report_Items?.forEach((item) => {
         const ids = {};
@@ -91,7 +69,9 @@ export default function FetcherReports() {
 
             if (!rowsMap[key]) {
               const Proprietary_Identifier = ids.Proprietary || "";
-              // Removed unused variable 'pubCode'
+              const pubCode = Proprietary_Identifier
+                ? Proprietary_Identifier.split(":")[0]
+                : "";
 
               rowsMap[key] = {
                 Institution_Code: libraryCode || reportHeader.Customer_ID || "",
@@ -101,7 +81,7 @@ export default function FetcherReports() {
                 Publisher_Id: "no data",
                 Platform: item.Platform || "no data",
                 Collection_Platform: item.Platform || "no data",
-                Report_Type: reportHeader.Report_ID || "TR",
+                Report_Type: reportType || "no data",
                 DOI: ids.DOI || "no data",
                 Proprietary_Identifier: Proprietary_Identifier || "no data",
                 ISBN: ids.ISBN || "no data",
@@ -129,17 +109,21 @@ export default function FetcherReports() {
     });
 
     const allCombinedRows = Object.values(rowsMap);
-
     const csv = Papa.unparse(allCombinedRows);
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
+    const formattedStartDate = new Date(startDate).toISOString().split("T")[0];
+    const formattedEndDate = new Date(endDate).toISOString().split("T")[0];
+
+    // Use all collected report types for the file name
+    const reportTypeString = Array.from(reportTypes).join("_");
+    a.download = `${reportTypeString + "_Combined_Report"}_${formattedStartDate}_to_${formattedEndDate}.csv` || "Combined_Report.csv";
     a.href = url;
-    a.download = `Combined_TR_Report.csv`;
     a.click();
     URL.revokeObjectURL(url);
 
-    fetch("http://localhost:3001/api/insertTRReport", {
+    fetch("http://localhost:3001/api/insertReport", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -149,20 +133,17 @@ export default function FetcherReports() {
       .then((res) => res.json())
       .then((result) => {
         if (result.tableName && result.tableName.trim()) {
-          setTableName(result.tableName);
-          if (result.success) {
-            if (result.tableName && result.tableName.trim()) {
-              setTableName(result.tableName);
-              setTimeout(() => {
-                openModal();
-              }, 500);
-            } else {
-              toast.error("Failed to retrieve table name.");
-              closeModal();
+          // const logs = []; // Define logs as an array
+          // logs.push(`Data inserted into table : "${result.tableName}"`);
+          toast.info(`Data inserted into table : "${result.tableName}"`
+            , {
+              autoClose: false,
+              hideProgressBar: true,
+              pauseOnHover: true,
             }
-          } else {
-            toast.error(`Data insertion failed: ${result.message || "Unknown error"}`);
-          }
+          );
+        } else {
+          toast.error("No data found to insert.");
         }
       })
       .catch((err) => {
@@ -244,129 +225,16 @@ export default function FetcherReports() {
     setAllLibrariesSelected(selectedLibraries.length === libraryDetails.length);
   }, [selectedLibraries, libraryDetails]);
 
-  const saveFileWithPicker = async (blob, suggestedName) => {
+  const saveFileWithHandle = async (handle, blob) => {
     try {
-      const handle = await window.showSaveFilePicker({
-        suggestedName,
-        types: [
-          {
-            description: "JSON Files",
-            accept: { "application/json": [".json"] },
-          },
-        ],
-      });
       const writable = await handle.createWritable();
       await writable.write(blob);
       await writable.close();
-      toast.success(`File "${suggestedName}" has been saved successfully.`);
     } catch (error) {
-      toast.error(`Failed to save file: ${error.message}`);
+      throw new Error(`Failed to save file: ${error.message}`);
     }
   };
 
-  const saveLogsWithPicker = async (logs, suggestedName) => {
-    try {
-      const logContent = logs.join("\n") || "No logs generated.";
-      const blob = new Blob([logContent], { type: "text/plain" });
-      const handle = await window.showSaveFilePicker({
-        suggestedName,
-        types: [
-          {
-            description: "Text Log Files",
-            accept: { "text/plain": [".txt"] },
-          },
-        ],
-      });
-      const writable = await handle.createWritable();
-      await writable.write(blob);
-      await writable.close();
-      toast.success(`Log file "${suggestedName}" has been saved successfully.`);
-    } catch (error) {
-      toast.error(`Failed to save log file: ${error.message}`);
-    }
-  };
-
-  // const handleDownload = async () => {
-  //   if (!startDate || !endDate) {
-  //     toast.error("Please select a valid date range.");
-  //     return;
-  //   }
-  //   if (selectedReports.length === 0) {
-  //     toast.error("Please select at least one report type.");
-  //     return;
-  //   }
-  //   if (selectedLibraries.length === 0) {
-  //     toast.error("Please select at least one library.");
-  //     return;
-  //   }
-
-  //   setProgress(0); // 🛑 Reset progress at the beginning
-
-  //   const formattedStartDate = new Date(startDate).toISOString().split("T")[0];
-  //   const formattedEndDate = new Date(endDate).toISOString().split("T")[0];
-  //   const chosenLibraries = libraryDetails.filter((lib) =>
-  //     selectedLibraries.includes(lib.customerId)
-  //   );
-  //   const logs = [];
-  //   const totalTasks = selectedReports.length * chosenLibraries.length;
-  //   let completedTasks = 0;
-  //   setProgress(0); // Reset progress bar at start
-  //   toast.info("Preparing your report for download...");
-
-  //   const formatDate = (date) => {
-  //     const d = new Date(date);
-  //     return selectedPlatform === "RSC"
-  //       ? d.toISOString().slice(0, 7)
-  //       : d.toISOString().split("T")[0];
-  //   };
-
-  //   for (const reportType of selectedReports) {
-  //     const combinedData = [];
-
-  //     for (const library of chosenLibraries) {
-  //       const asm = "sitemaster.dl.asminternational.org";
-  //       const rsc = "sitemaster.books.rsc.org";
-  //       const selectedSite = selectedPlatform === "ASM" ? asm : rsc;
-
-  //       const start = formatDate(startDate);
-  //       const end = formatDate(endDate);
-
-  //       const url = `https://${selectedSite}/sushi/reports/${reportType}/?api_key=${library.apiKey}&customer_id=${library.customerId}&requestor_id=${library.requestorId}&begin_date=${start}&end_date=${end}&attributes_to_show=Access_Type|YOP|Access_Method|Data_Type|Section_Type`;
-
-  //       console.log("Fetching URL:", url);
-  //       try {
-  //         const res = await fetch(url);
-  //         if (!res.ok) throw new Error(res.statusText);
-  //         const data = await res.json();
-  //         combinedData.push({ libraryCode: library.libraryCode, data });
-  //         logs.push(`Success: ${library.customerId} / ${library.requestorId}`);
-  //       } catch (error) {
-  //         logs.push(
-  //           `Error: ${library.customerId} / ${library.requestorId} - ${error.message}`
-  //         );
-  //       }
-
-  //       completedTasks++;
-  //       setProgress(Math.round((completedTasks / totalTasks) * 100));
-  //     }
-
-  //     if (combinedData.length > 0) {
-  //       generateCSVfromTR(combinedData);
-  //       const blob = new Blob([JSON.stringify(combinedData, null, 2)], {
-  //         type: "application/json",
-  //       });
-  //       const fileName = `report_${reportType}_${formattedStartDate}_to_${formattedEndDate}.json`;
-  //       await saveFileWithPicker(blob, fileName);
-  //     } else {
-  //       logs.push(`No data for ${reportType}`);
-  //     }
-  //   }
-
-  //   if (logs.length > 0) {
-  //     const logFileName = `logs_${formattedStartDate}_to_${formattedEndDate}.txt`;
-  //     await saveLogsWithPicker(logs, logFileName);
-  //   }
-  // };
   const handleDownload = async () => {
     if (!startDate || !endDate) {
       toast.error("Please select a valid date range.");
@@ -381,16 +249,18 @@ export default function FetcherReports() {
       return;
     }
 
-    setProgress(0);
+    setProgress(0); // Reset progress at the beginning
+
     const formattedStartDate = new Date(startDate).toISOString().split("T")[0];
     const formattedEndDate = new Date(endDate).toISOString().split("T")[0];
     const chosenLibraries = libraryDetails.filter((lib) =>
       selectedLibraries.includes(lib.customerId)
     );
-
     const logs = [];
     const totalTasks = selectedReports.length * chosenLibraries.length;
     let completedTasks = 0;
+    setProgress(0); // Reset progress bar at start
+    toast.info("Preparing your report for download...");
 
     const formatDate = (date) => {
       const d = new Date(date);
@@ -399,115 +269,90 @@ export default function FetcherReports() {
         : d.toISOString().split("T")[0];
     };
 
-    const combinedAllReports = [];
-
-    toast.info("Preparing your report for download...");
+    let fileHandle = null;
+    try {
+      fileHandle = await window.showDirectoryPicker();
+    } catch (error) {
+      toast.error("Failed to select directory.");
+      return;
+    }
 
     for (const reportType of selectedReports) {
+      const combinedData = [];
+
       for (const library of chosenLibraries) {
-        const site = selectedPlatform === "ASM"
-          ? "sitemaster.dl.asminternational.org"
-          : "sitemaster.books.rsc.org";
+        const asm = "sitemaster.dl.asminternational.org";
+        const rsc = "sitemaster.books.rsc.org";
+        const selectedSite = selectedPlatform === "ASM" ? asm : rsc;
 
         const start = formatDate(startDate);
         const end = formatDate(endDate);
 
-        const url = `https://${site}/sushi/reports/${reportType}/?api_key=${library.apiKey}&customer_id=${library.customerId}&requestor_id=${library.requestorId}&begin_date=${start}&end_date=${end}&attributes_to_show=Access_Type|YOP|Access_Method|Data_Type|Section_Type`;
+        let attribute = "";
 
+        if (reportType === "TR") {
+          attribute =
+            "&attributes_to_show=Access_Type|YOP|Access_Method|Data_Type|Section_Type";
+        } else if (reportType === "PR" || reportType === "DR") {
+          attribute = "&attributes_to_show=Access_Method|Data_Type";
+        } else {
+          attribute = "";
+        }
+
+        console.log(attribute + "_" + reportType);
+
+        const url = `https://${selectedSite}/sushi/reports/${reportType}/?api_key=${library.apiKey}&customer_id=${library.customerId}&requestor_id=${library.requestorId}&begin_date=${start}&end_date=${end}${attribute}`;
+
+        console.log("Fetching URL:", url);
         try {
           const res = await fetch(url);
           if (!res.ok) throw new Error(res.statusText);
           const data = await res.json();
-          combinedAllReports.push({ libraryCode: library.libraryCode, data });
-          logs.push(`✅ Success: ${reportType} | ${library.customerId}`);
+          combinedData.push({ libraryCode: library.libraryCode, data });
+          logs.push(`Success: ${library.customerId} / ${library.requestorId}`);
         } catch (error) {
-          logs.push(`❌ Error: ${reportType} | ${library.customerId} - ${error.message}`);
+          logs.push(
+            `Error: ${library.customerId} / ${library.requestorId} - ${error.message}`
+          );
         }
 
+        // Update progress AFTER every URL hit (success OR fail)
         completedTasks++;
         setProgress(Math.round((completedTasks / totalTasks) * 100));
       }
-    }
 
-    if (combinedAllReports.length > 0) {
-      generateCSVfromTR(combinedAllReports);
-      const blob = new Blob([JSON.stringify(combinedAllReports, null, 2)], {
-        type: "application/json",
-      });
-      const fileName = `report_ALL_${formattedStartDate}_to_${formattedEndDate}.json`;
-      await saveFileWithPicker(blob, fileName);
-    } else {
-      toast.error("No data to generate report.");
+      if (combinedData.length > 0) {
+        generateCSVfromTR(combinedData);
+        const blob = new Blob([JSON.stringify(combinedData, null, 2)], {
+          type: "application/json",
+        });
+        const fileName = `report_${reportType}_${formattedStartDate}_to_${formattedEndDate}.json`;
+        try {
+          const file = await fileHandle.getFileHandle(fileName, { create: true });
+          await saveFileWithHandle(file, blob);
+        } catch (error) {
+          logs.push(`Failed to save file for ${reportType}: ${error.message}`);
+        }
+      } else {
+        logs.push(`No data for ${reportType}`);
+      }
     }
 
     if (logs.length > 0) {
+      const logContent = logs.join("\n") || "No logs generated.";
+      const logBlob = new Blob([logContent], { type: "text/plain" });
       const logFileName = `logs_${formattedStartDate}_to_${formattedEndDate}.txt`;
-      await saveLogsWithPicker(logs, logFileName);
+      try {
+        const logFile = await fileHandle.getFileHandle(logFileName, { create: true });
+        await saveFileWithHandle(logFile, logBlob);
+      } catch (error) {
+        toast.error(`Failed to save log file: ${error.message}`);
+      }
     }
   };
+
   return (
     <>
-      <div
-        id="popup-modal"
-        className={`${progress > 0 ? "fixed" : "hidden"
-          } flex justify-center items-center overflow-y-auto overflow-x-hidden absolute top-0 right-0 left-0 z-50 w-full h-full bg-black bg-opacity-50`}
-      >
-        <div className="relative p-4 w-full max-w-md max-h-full">
-          <div className="relative bg-white rounded-lg shadow-sm">
-            <button
-              type="button"
-              className="absolute top-3 end-2.5 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
-              onClick={closeModal}
-            >
-              <svg
-                className="w-3 h-3"
-                aria-hidden="true"
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 14 14"
-              >
-                <path
-                  stroke="currentColor"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
-                />
-              </svg>
-              <span className="sr-only">Close modal</span>
-            </button>
-            <div className="p-4 md:p-5 text-center">
-              <svg
-                className="mx-auto mb-4 text-gray-400 w-12 h-12 dark:text-gray-200"
-                aria-hidden="true"
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 20 20"
-              >
-                <path
-                  stroke="currentColor"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M10 11V6m0 8h.01M19 10a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
-                />
-              </svg>
-              <h3 className="mb-5 font-normal text-gray-600 bg-gray-200 p-1 border border-gray-300 rounded-md">
-                Data inserted into :{" "}
-                <span className="text-green-500 italic">{tableName}</span>
-              </h3>
-              <button
-                type="button"
-                className="text-white bg-red-500 hover:bg-red-600 focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-lg text-sm inline-flex items-center px-5 py-2.5 text-center"
-                onClick={copyToClipboard} // Add onClick here
-              >
-                Copy
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-
       <SideNav activeTab="insight-fetcher" />
       <main className="col-span-4 h-full overflow-y-scroll p-2">
         <ToastContainer />

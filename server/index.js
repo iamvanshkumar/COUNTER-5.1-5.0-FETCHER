@@ -4,10 +4,12 @@ import pool from './db.js';
 
 const app = express();
 
+// Middleware for JSON and URL-encoded payloads
 app.use(express.json({ limit: '100mb' }));
 app.use(express.urlencoded({ extended: true, limit: '100mb' }));
 app.use(cors());
 
+// === Login Route ===
 app.post('/api/login', async (req, res) => {
   const { email, password } = req.body;
   if (!email || !password) {
@@ -57,11 +59,13 @@ app.put('/api/user/email/:email', async (req, res) => {
 });
 
 
-app.post('/api/insertTRReport', async (req, res) => {
+// === Insert TR Report and Create Table ===
+
+app.post('/api/insertReport', async (req, res) => {
   try {
     const { rows } = req.body;
     const timestamp = new Date().toISOString().replace(/[-:.TZ]/g, '');
-    const tableName = `TR_Report_${timestamp}`;
+    const tableName = `${rows[0].Report_Type}_Report_${timestamp}`;
 
     const createTableSQL = `
       CREATE TABLE \`${tableName}\` (
@@ -111,44 +115,17 @@ app.post('/api/insertTRReport', async (req, res) => {
     `;
 
     const values = rows.map(row => [
-      row.Institution_Code || null,
-      row.pub_code || null,
-      row.Title || null,
-      row.Publisher || null,
-      row.Publisher_ID || null,
-      row.Platform || null,
-      row.Collection_Platform || null,
-      row.Report_Type || null,
-      row.DOI || null,
-      row.Proprietary_Identifier || null,
-      row.ISBN || null,
-      row.Print_ISSN || null,
-      row.Online_ISSN || null,
-      row.URI || null,
-      row.Metric_Type || null,
-      row.Counter_Complaint || null,
+      row.Institution_Code, row.pub_code, row.Title, row.Publisher, row.Publisher_ID,
+      row.Platform, row.Collection_Platform, row.Report_Type, row.DOI, row.Proprietary_Identifier,
+      row.ISBN, row.Print_ISSN, row.Online_ISSN, row.URI, row.Metric_Type,
+      row.Counter_Complaint,
       row.Year || null,
       row.Month || null,
       row.YTD || null,
-      row.Jan || null,
-      row.Feb || null,
-      row.Mar || null,
-      row.Apr || null,
-      row.May || null,
-      row.Jun || null,
-      row.Jul || null,
-      row.Aug || null,
-      row.Sep || null,
-      row.Oct || null,
-      row.Nov || null,
-      row.Dec || null,
-      row.YOP || null,
-      row.Data_Type || null,
-      row.Access_Type || null,
-      row.Access_Method || null,
-      row.Section_Type || null
+      row.Jan || null, row.Feb || null, row.Mar || null, row.Apr || null, row.May || null, row.Jun || null,
+      row.Jul || null, row.Aug || null, row.Sep || null, row.Oct || null, row.Nov || null, row.Dec || null,
+      row.YOP, row.Data_Type, row.Access_Type, row.Access_Method, row.Section_Type
     ]);
-
     await pool.query(insertSQL, [values]);
 
     res.status(200).json({ message: 'Data inserted successfully', tableName });
@@ -158,10 +135,8 @@ app.post('/api/insertTRReport', async (req, res) => {
   }
 });
 
-
 // === Start Server ===
 const PORT = 3001;
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
 });
- 
