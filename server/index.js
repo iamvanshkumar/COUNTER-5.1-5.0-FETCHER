@@ -61,11 +61,11 @@ app.put('/api/user/email/:email', async (req, res) => {
 
 // === Insert TR Report and Create Table ===
 
-app.post('/api/insertTRReport', async (req, res) => {
+app.post('/api/insertReport', async (req, res) => {
   try {
     const { rows } = req.body;
     const timestamp = new Date().toISOString().replace(/[-:.TZ]/g, '');
-    const tableName = `TR_Report_${timestamp}`;
+    const tableName = `${rows[0].Report_Type}_Report_${timestamp}`;
 
     const createTableSQL = `
       CREATE TABLE \`${tableName}\` (
