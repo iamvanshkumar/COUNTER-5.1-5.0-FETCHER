@@ -125,6 +125,8 @@ export default function FetcherReports() {
       .then((res) => res.json())
       .then((result) => {
         if (result.tableName && result.tableName.trim()) {
+          // const logs = []; // Define logs as an array
+          // logs.push(`Data inserted into table : "${result.tableName}"`);
           toast.info(`Data inserted into table : "${result.tableName}"`
             , {
               autoClose: false,
@@ -133,7 +135,7 @@ export default function FetcherReports() {
             }
           );
         } else {
-          toast.error("Failed to retrieve table name.");
+          toast.error("No data found to insert.");
         }
       })
       .catch((err) => {
@@ -215,45 +217,13 @@ export default function FetcherReports() {
     setAllLibrariesSelected(selectedLibraries.length === libraryDetails.length);
   }, [selectedLibraries, libraryDetails]);
 
-  const saveFileWithPicker = async (blob, suggestedName) => {
+  const saveFileWithHandle = async (handle, blob) => {
     try {
-      const handle = await window.showSaveFilePicker({
-        suggestedName,
-        types: [
-          {
-            description: "JSON Files",
-            accept: { "application/json": [".json"] },
-          },
-        ],
-      });
       const writable = await handle.createWritable();
       await writable.write(blob);
       await writable.close();
-      toast.success(`File "${suggestedName}" has been saved successfully.`);
     } catch (error) {
-      toast.error(`Failed to save file: ${error.message}`);
-    }
-  };
-
-  const saveLogsWithPicker = async (logs, suggestedName) => {
-    try {
-      const logContent = logs.join("\n") || "No logs generated.";
-      const blob = new Blob([logContent], { type: "text/plain" });
-      const handle = await window.showSaveFilePicker({
-        suggestedName,
-        types: [
-          {
-            description: "Text Log Files",
-            accept: { "text/plain": [".txt"] },
-          },
-        ],
-      });
-      const writable = await handle.createWritable();
-      await writable.write(blob);
-      await writable.close();
-      toast.success(`Log file "${suggestedName}" has been saved successfully.`);
-    } catch (error) {
-      toast.error(`Failed to save log file: ${error.message}`);
+      throw new Error(`Failed to save file: ${error.message}`);
     }
   };
 
@@ -271,7 +241,7 @@ export default function FetcherReports() {
       return;
     }
 
-    setProgress(0); // 🛑 Reset progress at the beginning
+    setProgress(0); // Reset progress at the beginning
 
     const formattedStartDate = new Date(startDate).toISOString().split("T")[0];
     const formattedEndDate = new Date(endDate).toISOString().split("T")[0];
@@ -290,6 +260,14 @@ export default function FetcherReports() {
         ? d.toISOString().slice(0, 7)
         : d.toISOString().split("T")[0];
     };
+
+    let fileHandle = null;
+    try {
+      fileHandle = await window.showDirectoryPicker();
+    } catch (error) {
+      toast.error("Failed to select directory.");
+      return;
+    }
 
     for (const reportType of selectedReports) {
       const combinedData = [];
@@ -330,7 +308,7 @@ export default function FetcherReports() {
           );
         }
 
-        // 🛠️ Update progress AFTER every URL hit (success OR fail)
+        // Update progress AFTER every URL hit (success OR fail)
         completedTasks++;
         setProgress(Math.round((completedTasks / totalTasks) * 100));
       }
@@ -341,15 +319,27 @@ export default function FetcherReports() {
           type: "application/json",
         });
         const fileName = `report_${reportType}_${formattedStartDate}_to_${formattedEndDate}.json`;
-        await saveFileWithPicker(blob, fileName);
+        try {
+          const file = await fileHandle.getFileHandle(fileName, { create: true });
+          await saveFileWithHandle(file, blob);
+        } catch (error) {
+          logs.push(`Failed to save file for ${reportType}: ${error.message}`);
+        }
       } else {
         logs.push(`No data for ${reportType}`);
       }
     }
 
     if (logs.length > 0) {
+      const logContent = logs.join("\n") || "No logs generated.";
+      const logBlob = new Blob([logContent], { type: "text/plain" });
       const logFileName = `logs_${formattedStartDate}_to_${formattedEndDate}.txt`;
-      await saveLogsWithPicker(logs, logFileName);
+      try {
+        const logFile = await fileHandle.getFileHandle(logFileName, { create: true });
+        await saveFileWithHandle(logFile, logBlob);
+      } catch (error) {
+        toast.error(`Failed to save log file: ${error.message}`);
+      }
     }
   };
 
