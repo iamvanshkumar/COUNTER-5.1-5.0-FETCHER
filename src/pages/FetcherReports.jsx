@@ -43,8 +43,12 @@ export default function FetcherReports() {
       Dec: 0,
     };
 
+    const reportTypes = new Set(); // Collect report types
+
     allReports.forEach(({ data, libraryCode }) => {
       const reportHeader = data.Report_Header || {};
+      const reportType = reportHeader.Report_ID || "Unknown";
+      reportTypes.add(reportType);
 
       data.Report_Items?.forEach((item) => {
         const ids = {};
@@ -77,7 +81,7 @@ export default function FetcherReports() {
                 Publisher_Id: "no data",
                 Platform: item.Platform || "no data",
                 Collection_Platform: item.Platform || "no data",
-                Report_Type: reportHeader.Report_ID || "TR",
+                Report_Type: reportType || "no data",
                 DOI: ids.DOI || "no data",
                 Proprietary_Identifier: Proprietary_Identifier || "no data",
                 ISBN: ids.ISBN || "no data",
@@ -105,13 +109,17 @@ export default function FetcherReports() {
     });
 
     const allCombinedRows = Object.values(rowsMap);
-
     const csv = Papa.unparse(allCombinedRows);
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
+    const formattedStartDate = new Date(startDate).toISOString().split("T")[0];
+    const formattedEndDate = new Date(endDate).toISOString().split("T")[0];
+
+    // Use all collected report types for the file name
+    const reportTypeString = Array.from(reportTypes).join("_");
+    a.download = `${reportTypeString + "_Combined_Report"}_${formattedStartDate}_to_${formattedEndDate}.csv` || "Combined_Report.csv";
     a.href = url;
-    a.download = `Combined_Report.csv`;
     a.click();
     URL.revokeObjectURL(url);
 
