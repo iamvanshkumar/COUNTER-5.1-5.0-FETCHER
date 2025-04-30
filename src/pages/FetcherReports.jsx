@@ -111,7 +111,7 @@ export default function FetcherReports() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `Combined_TR_Report.csv`;
+    a.download = `Combined_Report.csv`;
     a.click();
     URL.revokeObjectURL(url);
 
