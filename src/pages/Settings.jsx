@@ -20,8 +20,7 @@ export default function Settings() {
     created_at: '', // Add this!
   });
   
-
-  const emailUser = "vansh.kumar@highwire.com"; // can be dynamic later
+  const emailUser = sessionStorage.getItem("userEmail");
 
   useEffect(() => {
     axios
@@ -40,7 +39,7 @@ export default function Settings() {
     e.preventDefault();
     axios
       .put(
-        `http://localhost:3001/api/user/email/${encodeURIComponent(emailUser)}`,
+        `http://localhost:3001/api/userUpdate/email/${encodeURIComponent(emailUser)}`,
         formData
       )
       .then(() => alert("User updated successfully"))
@@ -70,9 +69,13 @@ export default function Settings() {
                     name={field}
                     value={formData[field]}
                     onChange={handleChange}
-                    className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-red-500 focus:ring-1 focus:border-red-500 block w-full p-1.5"
+                    className={`${
+                      field === "created_at" || field === "email"
+                        ? "bg-gray-300 border-gray-200"
+                        : "bg-gray-50 border-gray-300"
+                    } border  text-gray-900 text-sm rounded-md focus:ring-red-500 focus:ring-1 focus:border-red-500 block w-full p-1.5`}
                     required={field !== "created_at"}
-                    readOnly={field === "created_at"}
+                    disabled={field === "created_at" ||   field ==="email"}
                   />
                 </div>
               ))}

@@ -45,12 +45,13 @@ app.get('/api/user/email/:email', async (req, res) => {
 });
 
 // === Update User ===
-app.put('/api/user/email/:email', async (req, res) => {
+app.put('/api/userUpdate/email/:email', async (req, res) => {
   const { email } = req.params;
   const { username } = req.body;
+  const { PASSWORD } = req.body;
 
   try {
-    await pool.query('UPDATE users SET username = ? WHERE email = ?', [username, email]);
+    await pool.query('UPDATE users SET username = ?, PASSWORD = ? WHERE email = ?', [username, PASSWORD, email]);
     res.json({ message: 'User updated successfully' });
   } catch (err) {
     console.error('Error updating user:', err);
