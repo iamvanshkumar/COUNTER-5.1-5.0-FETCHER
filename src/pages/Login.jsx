@@ -115,7 +115,7 @@ export default function Login() {
           >
             <div>
               <label className="block mb-2 text-xs text-gray-600 font-semibold">
-                Enter username or email address
+                Enter email address
               </label>
               <input
                 value={email}
