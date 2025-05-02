@@ -121,8 +121,8 @@ router.get('/api/tables/names', async (_, res) => {
     const query = 'SHOW TABLES';
     const [tables] = await db.query(query);
 
-    // Limit the response to the first 10 table names
-    const tableNames = tables.slice(0, 12).map((row) => Object.values(row)[0]);
+    // Fetch all table names without any limit
+    const tableNames = tables.map((row) => Object.values(row)[0]);
 
     res.status(200).json({ tableNames });
   } catch (err) {

@@ -215,7 +215,7 @@ export default function Home() {
           </div>
         </section>
         <section className="grid grid-cols-2 gap-2">
-          <div className="bg-white p-3 flex flex-col gap-4 rounded-md shadow-md border border-gray-100">
+          <div className="h-[27.5rem] overflow-hidden bg-white p-3 flex flex-col gap-4 rounded-md shadow-md border border-gray-100">
             <h4 className="text-xs text-gray-600 font-semibold flex items-center gap-1">
               <i className="bx bx-table text-red-500"></i>
               Last 5 Report Downloads -{" "}
@@ -230,43 +230,53 @@ export default function Home() {
               onChange={(e) => setSearchTerm(e.target.value)}
             />
 
-            <div className="flex flex-col gap-4">
-              <table className="w-full text-sm text-gray-500">
-                <thead className="text-xs text-gray-700 uppercase bg-red-100">
-                  <tr>
-                    <th scope="col" className="px-6 py-2 text-left">
-                      Table Name
-                    </th>
-                    <th scope="col" className="px-6 py-2 text-right">
-                      Action
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {tableNames
-                    .filter((tableName) =>
-                      tableName.toLowerCase().includes(searchTerm.toLowerCase())
-                    )
-                    .map((tableName, index) => (
-                      <tr
-                        key={index}
-                        className="bg-white border-b border-gray-200"
+            <div className="flex flex-col gap-2 h-full overflow-hidden">
+              <div className="overflow-y-auto h-[22rem]">
+                <table className="w-full text-sm text-gray-500">
+                  <thead className="text-xs text-gray-700 uppercase bg-red-100 sticky top-0 z-10">
+                    <tr>
+                      <th
+                        scope="col"
+                        className="px-6 py-2 text-left bg-red-100"
                       >
-                        <th
-                          scope="row"
-                          className="text-sm font-normal px-6 py-2 text-gray-500 whitespace-nowrap text-left"
+                        Table Name
+                      </th>
+                      <th
+                        scope="col"
+                        className="px-6 py-2 text-right bg-red-100"
+                      >
+                        Action
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {tableNames
+                      .filter((tableName) =>
+                        tableName
+                          .toLowerCase()
+                          .includes(searchTerm.toLowerCase())
+                      )
+                      .map((tableName, index) => (
+                        <tr
+                          key={index}
+                          className="bg-white border-b border-gray-200"
                         >
-                          {tableName}
-                        </th>
-                        <td className="px-6 py-2 text-right">
-                          <button onClick={() => handleViewTable(tableName)}>
-                            View
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                </tbody>
-              </table>
+                          <th
+                            scope="row"
+                            className="text-sm font-normal px-6 py-2 text-gray-500 whitespace-nowrap text-left"
+                          >
+                            {tableName}
+                          </th>
+                          <td className="px-6 py-2 text-right">
+                            <button onClick={() => handleViewTable(tableName)}>
+                              View
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
 
@@ -276,7 +286,7 @@ export default function Home() {
               Last 5 Report Downloads -{" "}
               <span className="text-red-500">Counter Fetcher</span>
             </h4>
-            <input
+            {/* <input
               type="text"
               placeholder="Search table name..."
               className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-red-500 focus:ring-1 focus:border-red-500 block w-full p-1.5"
@@ -321,7 +331,7 @@ export default function Home() {
                     ))}
                 </tbody>
               </table>
-            </div>
+            </div> */}
           </div>
         </section>
       </main>
