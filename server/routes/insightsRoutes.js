@@ -115,4 +115,35 @@ router.get('/api/tables/count', async (_, res) => {
   }
 });
 
+// Route for getting all table names in the database
+router.get('/api/tables/names', async (_, res) => {
+  try {
+    const query = 'SHOW TABLES';
+    const [tables] = await db.query(query);
+
+    // Limit the response to the first 10 table names
+    const tableNames = tables.slice(0, 12).map((row) => Object.values(row)[0]);
+
+    res.status(200).json({ tableNames });
+  } catch (err) {
+    console.error('Error fetching table names:', err);
+    res.status(500).json({ message: 'Error fetching table names', error: err.message });
+  }
+});
+
+
+router.get('/api/table/:tableName', async (req, res) => {
+  const tableName = req.params.tableName;
+
+  try {
+    const [rows] = await db.query(`SELECT * FROM \`${tableName}\` `);
+    res.json({ rows });
+    console.log
+  } catch (err) {
+    console.error(`Error fetching data for table ${tableName}:`, err);
+    res.status(500).json({ message: 'Failed to fetch table data', error: err.message });
+  }
+});
+
+
 export default router;
