@@ -75,8 +75,8 @@ export default function FetcherReports() {
 
               rowsMap[key] = {
                 Institution_Code: libraryCode || reportHeader.Customer_ID || "",
-                pub_code: ids.Proprietary?.split(":")[0] || "",
-                Title: item.Title || "",
+                pub_code: ids.Proprietary?.split(":")[0] || "no data",
+                Title: item.Title || "no data",
                 Publisher: item.Publisher || "no data",
                 Publisher_Id: "no data",
                 Platform: item.Platform || "no data",
@@ -89,16 +89,16 @@ export default function FetcherReports() {
                 Online_ISSN: ids.Online_ISSN || "no data",
                 URI: "no data",
                 Metric_Type: metric,
-                Counter_Complaint: "",
+                Counter_Complaint: "no data",
                 Year: year,
                 Month: "",
                 YTD: 0,
                 ...structuredClone(monthCountsTemplate),
-                YOP: item.YOP || "",
-                Data_Type: item.Data_Type || "",
-                Access_Type: item.Access_Type || "",
-                Access_Method: item.Access_Method || "",
-                Section_Type: item.Section_Type || "",
+                YOP: item.YOP || "no data",
+                Data_Type: item.Data_Type || "no data",
+                Access_Type: item.Access_Type || "no data",
+                Access_Method: item.Access_Method || "no data",
+                Section_Type: item.Section_Type || "no data",
               };
             }
             rowsMap[key].YTD += count;
@@ -109,6 +109,12 @@ export default function FetcherReports() {
     });
 
     const allCombinedRows = Object.values(rowsMap);
+
+    if (allCombinedRows.length === 0) {
+      toast.error("No data available to generate the CSV file.");
+      return;
+    }
+
     const csv = Papa.unparse(allCombinedRows);
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
@@ -133,15 +139,11 @@ export default function FetcherReports() {
       .then((res) => res.json())
       .then((result) => {
         if (result.tableName && result.tableName.trim()) {
-          // const logs = []; // Define logs as an array
-          // logs.push(`Data inserted into table : "${result.tableName}"`);
-          toast.info(`Data inserted into table : "${result.tableName}"`
-            , {
-              autoClose: false,
-              hideProgressBar: true,
-              pauseOnHover: true,
-            }
-          );
+          toast.info(`Data inserted into table : "${result.tableName}"`, {
+            autoClose: false,
+            hideProgressBar: true,
+            pauseOnHover: true,
+          });
         } else {
           toast.error("No data found to insert.");
         }
@@ -149,6 +151,9 @@ export default function FetcherReports() {
       .catch((err) => {
         console.error("Error sending data to backend:", err);
         toast.error("Failed to insert data into database.");
+      })
+      .finally(() => {
+        toast.success("Report downloaded successfully!");
       });
   }
 
