@@ -91,9 +91,9 @@ export default function Settings() {
   return (
     <>
       <SideNav activeTab="settings" />
-      <main className="col-span-4 h-full overflow-y-scroll p-2 space-y-2">
+      <main className="col-span-4 h-full overflow-y-scroll p-2">
       <ToastContainer />
-        <div className="bg-white p-3 flex flex-col gap-4 rounded-md shadow-md border border-gray-100">
+        <div className="bg-white p-3 mb-2 flex flex-col gap-4 rounded-md shadow-md border border-gray-100">
           <h4 className="text-xs text-gray-600 font-semibold flex items-center gap-1">
             <i className="bx bxs-user text-red-500"></i>
             User Account
