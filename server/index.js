@@ -1,6 +1,8 @@
 import express from 'express';
 import cors from 'cors';
 import pool from './db.js';
+import fs from 'fs';
+import path from 'path';
 
 const app = express();
 
@@ -8,6 +10,42 @@ const app = express();
 app.use(express.json({ limit: '100mb' }));
 app.use(express.urlencoded({ extended: true, limit: '100mb' }));
 app.use(cors());
+
+
+
+const CONFIG_PATH = path.join(process.cwd(), './dbConfig.json');
+
+// GET config
+app.get('/api/config', (req, res) => {
+  try {
+    const config = JSON.parse(fs.readFileSync(CONFIG_PATH));
+    res.json(config);
+  } catch (err) {
+    res.status(500).json({ message: 'Failed to read config', error: err.message });
+  }
+});
+
+// POST update config
+app.post('/api/config', (req, res) => {
+  try {
+    const { tool, config } = req.body;
+
+    const fullConfig = fs.existsSync(CONFIG_PATH)
+      ? JSON.parse(fs.readFileSync(CONFIG_PATH))
+      : {};
+
+    fullConfig[tool] = config;
+
+    fs.writeFileSync(CONFIG_PATH, JSON.stringify(fullConfig, null, 2));
+    res.json({ message: 'Configuration saved successfully' });
+  } catch (err) {
+    res.status(500).json({ message: 'Failed to save config', error: err.message });
+  }
+});
+
+
+
+
 
 // === Login Route ===
 app.post('/api/login', async (req, res) => {
