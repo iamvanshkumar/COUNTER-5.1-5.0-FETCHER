@@ -6,6 +6,7 @@ export default function Home() {
   const navigate = useNavigate();
   const [tableCount, setTableCount] = useState(0);
   const [tableNames, setTableNames] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
 
   const [showModal, setShowModal] = useState(false);
   const [selectedTable, setSelectedTable] = useState(null);
@@ -91,17 +92,16 @@ export default function Home() {
     return () => clearInterval(interval); // Cleanup the interval on component unmount
   }, []);
 
-
   const downloadCSV = () => {
     if (!tableData.length) return;
-  
+
     const headers = Object.keys(tableData[0]).join(",");
-    const rows = tableData.map(row =>
+    const rows = tableData.map((row) =>
       Object.values(row)
-        .map(val => `"${String(val).replace(/"/g, '""')}"`)
+        .map((val) => `"${String(val).replace(/"/g, '""')}"`)
         .join(",")
     );
-  
+
     const csvContent = [headers, ...rows].join("\n");
     const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
     const link = document.createElement("a");
@@ -111,7 +111,6 @@ export default function Home() {
     link.click();
     document.body.removeChild(link);
   };
-  
 
   return (
     <>
@@ -184,7 +183,9 @@ export default function Home() {
         <nav className="flex justify-between items-center text-sm border-b border-red-500 p-2">
           <h1 className="text-gray-600 flex gap-1">
             👋Welcome Back,
-            <span className="text-red-500 font-semibold">Vansh Kumar</span>
+            <span className="text-red-500 font-semibold">
+              {sessionStorage.getItem("userEmail") || "Guest"}
+            </span>
           </h1>
           <div className="flex items-center gap-1">
             <i className="bx bx-time text-red-500"></i>
@@ -221,6 +222,14 @@ export default function Home() {
               <span className="text-red-500">Insights Fetcher</span>
             </h4>
 
+            <input
+              type="text"
+              placeholder="Search table name..."
+              className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-red-500 focus:ring-1 focus:border-red-500 block w-full p-1.5"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+
             <div className="flex flex-col gap-4">
               <table className="w-full text-sm text-gray-500">
                 <thead className="text-xs text-gray-700 uppercase bg-red-100">
@@ -234,8 +243,11 @@ export default function Home() {
                   </tr>
                 </thead>
                 <tbody>
-                  {tableNames.length > 0 ? (
-                    tableNames.map((tableName, index) => (
+                  {tableNames
+                    .filter((tableName) =>
+                      tableName.toLowerCase().includes(searchTerm.toLowerCase())
+                    )
+                    .map((tableName, index) => (
                       <tr
                         key={index}
                         className="bg-white border-b border-gray-200"
@@ -252,14 +264,7 @@ export default function Home() {
                           </button>
                         </td>
                       </tr>
-                    ))
-                  ) : (
-                    <tr>
-                      <td colSpan="2" className="px-6 py-4 text-center">
-                        No tables found
-                      </td>
-                    </tr>
-                  )}
+                    ))}
                 </tbody>
               </table>
             </div>
@@ -271,6 +276,13 @@ export default function Home() {
               Last 5 Report Downloads -{" "}
               <span className="text-red-500">Counter Fetcher</span>
             </h4>
+            <input
+              type="text"
+              placeholder="Search table name..."
+              className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-red-500 focus:ring-1 focus:border-red-500 block w-full p-1.5"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
 
             <div className="flex flex-col gap-4">
               <table className="w-full text-sm text-gray-500">
@@ -285,8 +297,11 @@ export default function Home() {
                   </tr>
                 </thead>
                 <tbody>
-                  {tableNames.length > 0 ? (
-                    tableNames.map((tableName, index) => (
+                  {tableNames
+                    .filter((tableName) =>
+                      tableName.toLowerCase().includes(searchTerm.toLowerCase())
+                    )
+                    .map((tableName, index) => (
                       <tr
                         key={index}
                         className="bg-white border-b border-gray-200"
@@ -303,14 +318,7 @@ export default function Home() {
                           </button>
                         </td>
                       </tr>
-                    ))
-                  ) : (
-                    <tr>
-                      <td colSpan="2" className="px-6 py-4 text-center">
-                        No tables found
-                      </td>
-                    </tr>
-                  )}
+                    ))}
                 </tbody>
               </table>
             </div>
