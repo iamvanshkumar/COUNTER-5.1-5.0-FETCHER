@@ -98,4 +98,21 @@ router.post('/api/insertReport', async (req, res) => {
   }
 });
 
+// Route for getting the count of all tables in the database
+router.get('/api/tables/count', async (_, res) => {
+  try {
+    // Query to get all table names in the database
+    const query = 'SHOW TABLES';
+    const [tables] = await db.query(query);
+
+    // The number of tables is the length of the result array
+    const tableCount = tables.length;
+
+    res.status(200).json({ count: tableCount });
+  } catch (err) {
+    console.error('Error fetching table count:', err);  // Log the error for better visibility
+    res.status(500).json({ message: 'Error fetching table count', error: err.message });
+  }
+});
+
 export default router;
