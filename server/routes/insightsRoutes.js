@@ -7,11 +7,13 @@ const router = express.Router();
 
 
 
-const configPath = path.resolve('dbConfig.json');
+const configPath = path.resolve('./dbConfig.json');
 const configData = JSON.parse(fs.readFileSync(configPath, 'utf8'));
 const config = configData.insightsFetcher;
+
 const db = mysql.createPool({
   host: config.host,
+  port: Number(config.port),
   user: config.username,
   password: config.password,
   database: config.database,
@@ -19,6 +21,7 @@ const db = mysql.createPool({
   connectionLimit: 10,
   queueLimit: 0
 });
+
 
 router.post('/api/insertReport', async (req, res) => {
   try {

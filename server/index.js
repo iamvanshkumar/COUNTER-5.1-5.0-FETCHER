@@ -20,6 +20,7 @@ const CONFIG_PATH = path.join(process.cwd(), './dbConfig.json');
 
 // GET config
 app.use(counterFetcherRoute);
+
 app.get('/api/config', (req, res) => {
   try {
     const config = JSON.parse(fs.readFileSync(CONFIG_PATH));
