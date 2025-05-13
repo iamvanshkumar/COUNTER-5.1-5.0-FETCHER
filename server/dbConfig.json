@@ -1,10 +1,10 @@
 {
   "insightsFetcher": {
-    "host": "10.220.53.135",
-    "port": "3308",
+    "host": "localhost",
+    "port": "3306",
     "database": "fetcher_reports",
-    "username": "insight-team",
-    "password": "Mps@1234#$"
+    "username": "root",
+    "password": "Devans@99978"
   },
   "counterFetcher": {
     "host": "localhost",
