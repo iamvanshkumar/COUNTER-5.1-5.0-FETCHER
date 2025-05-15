@@ -99,6 +99,41 @@ app.put('/api/userUpdate/email/:email', async (req, res) => {
 
 
 
+// === Save Vendor User ===
+app.post('/api/save-vendor', async (req, res) => {
+  try {
+    const { vendor } = req.body; // Changed from 'vendors' to 'vendor'
+
+    if (!vendor) {
+      return res.status(400).json({ message: 'Vendor data is required' });
+    }
+
+    const filePath = path.join(process.cwd(), 'vendors.json');
+    
+    // Read existing vendors if file exists
+    let vendors = [];
+    if (fs.existsSync(filePath)) {
+      const fileContent = fs.readFileSync(filePath, 'utf8');
+      vendors = fileContent.trim() ? JSON.parse(fileContent) : [];
+    }
+
+    // Add new vendor to the array
+    vendors.push(vendor);
+
+    // Save the updated array
+    fs.writeFileSync(filePath, JSON.stringify(vendors, null, 2));
+
+    res.json({ 
+      message: 'Vendor saved successfully',
+      vendor,
+      totalVendors: vendors.length
+    });
+  } catch (err) {
+    console.error('Error saving vendor:', err);
+    res.status(500).json({ message: 'Failed to save vendor', error: err.message });
+  }
+});
+
 // === Start Server ===
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {

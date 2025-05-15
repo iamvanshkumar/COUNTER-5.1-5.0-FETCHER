@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import {React, useState, useEffect } from "react";
 import SideBar from "../components/SideBar";
 import SideNav from "../components/SideNav";
 import { useNavigate } from "react-router-dom";
@@ -104,7 +104,6 @@ export default function CounterReports() {
                 />
               </label>
               <button
-                
                 className="bg-red-500 p-2 rounded-md text-white font-semibold text-sm hover:bg-red-600 transition-all duration-200 cursor-pointer"
               >
                 Download Reports
