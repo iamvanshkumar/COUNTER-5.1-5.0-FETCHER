@@ -214,7 +214,7 @@ export default function CounterReports() {
               <input type="checkbox" id="vendorCheckbox" />
 
            
-              <select className="border border-gray-300 rounded py-1 text-sm text-gray-800 pl-2 pr-8">
+              <select class="border bg-gray-100 hover:bg-gray-200 transition-all duration-100 rounded-md pr-6 pl-2 text-sm cursor-pointer">
                 <option value="5.1">5.1</option>
                 <option value="5">5</option>
               </select>
