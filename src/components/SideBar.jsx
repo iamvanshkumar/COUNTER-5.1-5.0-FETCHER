@@ -98,9 +98,8 @@ export default function SideBar() {
       <ToastContainer />
       <div
         id="drawer-example"
-        className={`fixed top-0 right-0 z-40 h-screen p-4 overflow-y-auto transition-transform ${
-          isDrawerOpen ? "translate-x-0" : "translate-x-full"
-        } bg-white w-80 shadow-xl border-l border-gray-200`}
+        className={`fixed top-0 right-0 z-40 h-screen p-4 overflow-y-auto transition-transform ${isDrawerOpen ? "translate-x-0" : "translate-x-full"
+          } bg-white w-80 shadow-xl border-l border-gray-200`}
         tabIndex="-1"
         aria-labelledby="drawer-label"
         onClick={(e) => {
@@ -117,6 +116,12 @@ export default function SideBar() {
             <i className="bx bxs-user-account"></i>
             Add New Vendor {vendorVersion}
           </h2>
+          {/* <button
+            className="bg-gray-100 px-1 rounded-md hover:bg-gray-200 transition-all duration-100"
+            onClick={closeDrawer}
+          >
+            <i className="bx bx-x text-lg"></i>
+          </button> */}
           <button
             className="bg-gray-100 px-1 rounded-md hover:bg-gray-200 transition-all duration-100"
             onClick={closeDrawer}
