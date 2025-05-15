@@ -104,7 +104,6 @@ export default function CounterReports() {
                 />
               </label>
               <button
-                
                 className="bg-red-500 p-2 rounded-md text-white font-semibold text-sm hover:bg-red-600 transition-all duration-200 cursor-pointer"
               >
                 Download Reports
@@ -125,11 +124,10 @@ export default function CounterReports() {
                 <div
                   key={report}
                   onClick={() => toggleReport(report)}
-                  className={` p-2 rounded-md flex items-center gap-1 hover:bg-green-200 transition-all duration-200 cursor-pointer ${
-                    selectedReports.includes(report)
-                      ? "bg-green-200"
-                      : "bg-gray-100"
-                  }`}
+                  className={` p-2 rounded-md flex items-center gap-1 hover:bg-green-200 transition-all duration-200 cursor-pointer ${selectedReports.includes(report)
+                    ? "bg-green-200"
+                    : "bg-gray-100"
+                    }`}
                 >
                   <input
                     type="checkbox"
@@ -157,7 +155,6 @@ export default function CounterReports() {
                   id="selectAllCheckboxReport"
                   className="bg-gray-100 cursor-pointer"
                 />
-
                 <label
                   htmlFor="selectAllCheckboxReport"
                   className="text-xs font-medium cursor-pointer"
@@ -171,11 +168,10 @@ export default function CounterReports() {
                 <div
                   key={report}
                   onClick={() => toggleReport(report)}
-                  className={` p-2 rounded-md flex items-center gap-1 hover:bg-green-200 transition-all duration-200 cursor-pointer ${
-                    selectedReports.includes(report)
-                      ? "bg-green-200"
-                      : "bg-gray-100"
-                  }`}
+                  className={`p-2 rounded-md flex items-center gap-1 hover:bg-green-200 transition-all duration-200 cursor-pointer ${selectedReports.includes(report)
+                    ? "bg-green-200"
+                    : "bg-gray-100"
+                    }`}
                 >
                   <input
                     type="checkbox"
@@ -192,21 +188,53 @@ export default function CounterReports() {
 
         {/* Vendors Section */}
         <section className="bg-white p-3 flex flex-col gap-4 rounded-md shadow-md border border-gray-100">
-          <h4 className="text-xs text-gray-600 font-semibold flex items-center gap-1">
-            <i className="bx bxs-buildings text-red-500"></i>
-            Select vendors
-          </h4>
-          <div>
-            <button
-              className="bg-blue-500 p-2 text-white rounded hover:bg-blue-600 transition-all duration-300"
-              type="button"
-              onClick={toggleDrawer}
-            >
-              Add Vendor
-            </button>
-            <SideBar />
+          <div className="flex items-center justify-between">
+            <h4 className="text-xs text-gray-600 font-semibold flex items-center gap-1">
+              <i className="bx bxs-buildings text-red-500"></i>
+              Select vendors
+            </h4>
+            <div className="flex items-center gap-2">
+              <input type="text" className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md  focus:ring-red-500 focus:ring-1 focus:border-red-500 block w-full p-1.5" />
+              <button
+                className="bg-blue-500 p-1.5 text-nowrap text-sm  font-medium text-white rounded hover:bg-blue-600 transition-all duration-300"
+                type="button"
+                onClick={toggleDrawer}
+              >
+                Add Vendor
+              </button>
+              <SideBar />
+            </div>
           </div>
-        </section>
+
+
+          <div className="flex justify-between items-center bg-gray-100 p-2 rounded-md">
+
+        
+            <div className="flex items-center gap-2 whitespace-nowrap">
+              <input type="checkbox" id="vendorCheckbox" />
+
+           
+              <select className="border border-gray-300 rounded py-1 text-sm text-gray-800 pl-2 pr-8">
+                <option value="5.1">5.1</option>
+                <option value="5">5</option>
+              </select>
+
+           
+              <label for="vendorCheckbox" className="text-gray-800 text-black">Vendor Name</label>
+            </div>
+
+          
+            <div className="flex">
+              <button onclick="openEditModal(1)" type="button" className="flex justify-center items-center px-2 py-1 text-sm font-medium text-green-500 bg-white border border-gray-200 rounded-l-lg hover:bg-gray-100">
+                <i className="bx bxs-edit text-xl"></i>
+              </button>
+              <button onclick="showModal(1)" type="button" className="flex justify-center items-center px-2 py-1 text-sm font-medium text-red-600 bg-white border border-gray-200 rounded-r-lg hover:bg-gray-100">
+                <i className="bx bxs-x-circle text-xl"></i>
+              </button>
+            </div>
+          </div>
+
+          </section>
       </main>
     </>
   );
