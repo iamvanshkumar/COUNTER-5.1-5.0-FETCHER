@@ -584,8 +584,8 @@ export default function FetcherReports() {
           );
         }
 
-        // ✅ Add 3-second delay between each API hit
-        await new Promise((resolve) => setTimeout(resolve, 3000));
+        // ✅ Add 2-second delay between each API hit
+        await new Promise((resolve) => setTimeout(resolve, 2000));
 
         completedTasks++;
         setProgress(Math.round((completedTasks / totalTasks) * 100));

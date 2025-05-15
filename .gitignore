@@ -23,5 +23,5 @@ dist-ssr
 *.sln
 *.sw?
 
-./server/db.json
-./server/dbConfig.json
+server/db.js
+server/dbConfig.json
