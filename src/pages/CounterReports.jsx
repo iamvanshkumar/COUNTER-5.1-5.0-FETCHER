@@ -220,7 +220,7 @@ export default function CounterReports() {
               </select>
 
            
-              <label for="vendorCheckbox" className="text-gray-800 text-black">Vendor Name</label>
+              <label for="vendorCheckbox" className="text-gray-800">Vendor Name</label>
             </div>
 
           
