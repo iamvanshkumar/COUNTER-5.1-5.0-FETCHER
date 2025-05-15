@@ -33,7 +33,10 @@ export default function SideBar() {
   };
 
   const closeDrawer = () => {
-    setIsDrawerOpen(false);
+    const drawer = document.getElementById("drawer-example");
+    if (drawer && !drawer.classList.contains("translate-x-full")) {
+      drawer.classList.add("translate-x-full");
+    }
   };
 
   const handleInputChange = (e) => {
@@ -116,12 +119,6 @@ export default function SideBar() {
             <i className="bx bxs-user-account"></i>
             Add New Vendor {vendorVersion}
           </h2>
-          {/* <button
-            className="bg-gray-100 px-1 rounded-md hover:bg-gray-200 transition-all duration-100"
-            onClick={closeDrawer}
-          >
-            <i className="bx bx-x text-lg"></i>
-          </button> */}
           <button
             className="bg-gray-100 px-1 rounded-md hover:bg-gray-200 transition-all duration-100"
             onClick={closeDrawer}
