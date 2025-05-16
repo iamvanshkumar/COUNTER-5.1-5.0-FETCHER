@@ -40,6 +40,7 @@ export default function CounterReports() {
   };
 
   const reportOptions = ["TR", "DR", "PR", "IR"];
+  const CounterReportOptions = ["5.1", "5.0"];
   const reportStandardOptions = [
     "PR_P1",
     "DR_D1",
@@ -172,15 +173,35 @@ export default function CounterReports() {
               </button>
             </div>
           </div>
-          {/* Report Types Section */}
-          <div className="bg-white p-3 flex flex-col gap-4 rounded-md shadow-md border border-gray-100">
-            <div className="flex items-center justify-between">
-              <h4 className="text-xs text-gray-600 font-semibold flex items-center gap-1">
-                <i className="bx bxs-report text-red-500"></i>
-                Select your report types
-              </h4>
-            </div>
+          <div className="flex flex-col gap-2">
+            {/* Report Types Section */}
+            <div className="bg-white p-3 flex flex-col gap-4 rounded-md shadow-md border border-gray-100">
+              <div className="flex items-center justify-between">
+                <h4 className="text-xs text-gray-600 font-semibold flex items-center gap-1">
+                  <i className="bx bxs-report text-red-500"></i>
+                  Select your report types
+                </h4>
+              </div>
+              <div className="flex flex-col gap-2 grid grid-cols-2">
+                {CounterReportOptions.map((report) => (
+                  <div
+                    key={report}
+                    onClick={() => setSelectedReports([report])}
+                    className={` p-2 rounded-md flex items-center gap-1 hover:bg-green-200 transition-all duration-200 cursor-pointer ${selectedReports.includes(report)
+                      ? "bg-green-200"
+                      : "bg-gray-100"
+                      }`}
+                  >
+                    <input
+                      type="radio"
+                      className="mr-1"  
+                      checked={selectedReports.includes(report)}
+                      onChange={() => setSelectedReports([report])}
+                    />
+                    <label className="text-sm font-semibold">{report}</label>
+                  </div>
 
+<<<<<<< HEAD
             <div className="flex flex-col gap-2">
               {reportOptions.map((report) => (
                 <div
@@ -201,6 +222,41 @@ export default function CounterReports() {
                   <label className="text-sm font-semibold">{report}</label>
                 </div>
               ))}
+=======
+                  
+
+                ))}
+              </div>
+            </div>
+            {/* Report Types Section */}
+            <div className="bg-white p-3 flex flex-col gap-4 rounded-md shadow-md border border-gray-100">
+              <div className="flex items-center justify-between">
+                <h4 className="text-xs text-gray-600 font-semibold flex items-center gap-1">
+                  <i className="bx bxs-report text-red-500"></i>
+                  Select your report types
+                </h4>
+              </div>
+              <div className="flex flex-col gap-2 grid grid-cols-2">
+                {reportOptions.map((report) => (
+                  <div
+                    key={report}
+                    onClick={() => toggleReport(report)}
+                    className={` p-2 rounded-md flex items-center gap-1 hover:bg-green-200 transition-all duration-200 cursor-pointer ${selectedReports.includes(report)
+                      ? "bg-green-200"
+                      : "bg-gray-100"
+                      }`}
+                  >
+                    <input
+                      type="checkbox"
+                      className="mr-1"
+                      checked={selectedReports.includes(report)}
+                      readOnly
+                    />
+                    <label className="text-sm font-semibold">{report}</label>
+                  </div>
+                ))}
+              </div>
+>>>>>>> a92bc69e92731672a9ff0990ae8c4c1b68019e8e
             </div>
           </div>
           {/* Standard Views Section */}
@@ -279,6 +335,7 @@ export default function CounterReports() {
             </div>
           </div>
 
+<<<<<<< HEAD
           <div className="grid grid-cols-3 gap-2">
             {vendors.map((vendor) => (
               <div
@@ -316,6 +373,35 @@ export default function CounterReports() {
               </div>
             ))}
           </div>
+=======
+
+          <div className="flex justify-between items-center bg-gray-100 p-2 rounded-md">
+
+
+            <div className="flex items-center gap-2 whitespace-nowrap">
+              <input type="checkbox" id="vendorCheckbox" />
+
+
+              {/* <select class="border bg-gray-100 hover:bg-gray-200 transition-all duration-100 rounded-md pr-6 pl-2 text-sm cursor-pointer">
+                <option value="5.1">5.1</option>
+                <option value="5">5</option>
+              </select> */}
+           
+              <label for="vendorCheckbox" className="text-gray-800">Vendor Name</label>
+            </div>
+
+
+            <div className="flex">
+              <button onclick="openEditModal(1)" type="button" className="flex justify-center items-center px-2 py-1 text-sm font-medium text-green-500 bg-white border border-gray-200 rounded-l-lg hover:bg-gray-100">
+                <i className="bx bxs-edit text-xl"></i>
+              </button>
+              <button onclick="showModal(1)" type="button" className="flex justify-center items-center px-2 py-1 text-sm font-medium text-red-600 bg-white border border-gray-200 rounded-r-lg hover:bg-gray-100">
+                <i className="bx bxs-x-circle text-xl"></i>
+              </button>
+            </div>
+          </div>
+
+>>>>>>> a92bc69e92731672a9ff0990ae8c4c1b68019e8e
         </section>
       </main>
     </>

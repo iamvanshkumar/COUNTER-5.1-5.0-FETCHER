@@ -3,8 +3,8 @@
     "host": "localhost",
     "port": "3306",
     "database": "fetcher_reports",
-    "username": "root",
-    "password": "Devans@99978"
+    "username": "fetcher_user",
+    "password": "mps@1234"
   },
   "counterFetcher": {
     "host": "localhost",
