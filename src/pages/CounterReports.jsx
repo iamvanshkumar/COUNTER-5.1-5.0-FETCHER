@@ -39,6 +39,7 @@ export default function CounterReports() {
   };
 
   const reportOptions = ["TR", "DR", "PR", "IR"];
+  const CounterReportOptions = ["5.1", "5.0"];
   const reportStandardOptions = [
     "PR_P1",
     "DR_D1",
@@ -110,34 +111,67 @@ export default function CounterReports() {
               </button>
             </div>
           </div>
-          {/* Report Types Section */}
-          <div className="bg-white p-3 flex flex-col gap-4 rounded-md shadow-md border border-gray-100">
-            <div className="flex items-center justify-between">
-              <h4 className="text-xs text-gray-600 font-semibold flex items-center gap-1">
-                <i className="bx bxs-report text-red-500"></i>
-                Select your report types
-              </h4>
-            </div>
+          <div className="flex flex-col gap-2">
+            {/* Report Types Section */}
+            <div className="bg-white p-3 flex flex-col gap-4 rounded-md shadow-md border border-gray-100">
+              <div className="flex items-center justify-between">
+                <h4 className="text-xs text-gray-600 font-semibold flex items-center gap-1">
+                  <i className="bx bxs-report text-red-500"></i>
+                  Select your report types
+                </h4>
+              </div>
+              <div className="flex flex-col gap-2 grid grid-cols-2">
+                {CounterReportOptions.map((report) => (
+                  <div
+                    key={report}
+                    onClick={() => setSelectedReports([report])}
+                    className={` p-2 rounded-md flex items-center gap-1 hover:bg-green-200 transition-all duration-200 cursor-pointer ${selectedReports.includes(report)
+                      ? "bg-green-200"
+                      : "bg-gray-100"
+                      }`}
+                  >
+                    <input
+                      type="radio"
+                      className="mr-1"  
+                      checked={selectedReports.includes(report)}
+                      onChange={() => setSelectedReports([report])}
+                    />
+                    <label className="text-sm font-semibold">{report}</label>
+                  </div>
 
-            <div className="flex flex-col gap-2">
-              {reportOptions.map((report) => (
-                <div
-                  key={report}
-                  onClick={() => toggleReport(report)}
-                  className={` p-2 rounded-md flex items-center gap-1 hover:bg-green-200 transition-all duration-200 cursor-pointer ${selectedReports.includes(report)
-                    ? "bg-green-200"
-                    : "bg-gray-100"
-                    }`}
-                >
-                  <input
-                    type="checkbox"
-                    className="mr-1"
-                    checked={selectedReports.includes(report)}
-                    readOnly
-                  />
-                  <label className="text-sm font-semibold">{report}</label>
-                </div>
-              ))}
+                  
+
+                ))}
+              </div>
+            </div>
+            {/* Report Types Section */}
+            <div className="bg-white p-3 flex flex-col gap-4 rounded-md shadow-md border border-gray-100">
+              <div className="flex items-center justify-between">
+                <h4 className="text-xs text-gray-600 font-semibold flex items-center gap-1">
+                  <i className="bx bxs-report text-red-500"></i>
+                  Select your report types
+                </h4>
+              </div>
+              <div className="flex flex-col gap-2 grid grid-cols-2">
+                {reportOptions.map((report) => (
+                  <div
+                    key={report}
+                    onClick={() => toggleReport(report)}
+                    className={` p-2 rounded-md flex items-center gap-1 hover:bg-green-200 transition-all duration-200 cursor-pointer ${selectedReports.includes(report)
+                      ? "bg-green-200"
+                      : "bg-gray-100"
+                      }`}
+                  >
+                    <input
+                      type="checkbox"
+                      className="mr-1"
+                      checked={selectedReports.includes(report)}
+                      readOnly
+                    />
+                    <label className="text-sm font-semibold">{report}</label>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
           {/* Standard Views Section */}
@@ -209,21 +243,20 @@ export default function CounterReports() {
 
           <div className="flex justify-between items-center bg-gray-100 p-2 rounded-md">
 
-        
+
             <div className="flex items-center gap-2 whitespace-nowrap">
               <input type="checkbox" id="vendorCheckbox" />
 
-           
-              <select className="border border-gray-300 rounded py-1 text-sm text-gray-800 pl-2 pr-8">
+
+              {/* <select class="border bg-gray-100 hover:bg-gray-200 transition-all duration-100 rounded-md pr-6 pl-2 text-sm cursor-pointer">
                 <option value="5.1">5.1</option>
                 <option value="5">5</option>
-              </select>
-
+              </select> */}
            
               <label for="vendorCheckbox" className="text-gray-800">Vendor Name</label>
             </div>
 
-          
+
             <div className="flex">
               <button onclick="openEditModal(1)" type="button" className="flex justify-center items-center px-2 py-1 text-sm font-medium text-green-500 bg-white border border-gray-200 rounded-l-lg hover:bg-gray-100">
                 <i className="bx bxs-edit text-xl"></i>
@@ -234,7 +267,7 @@ export default function CounterReports() {
             </div>
           </div>
 
-          </section>
+        </section>
       </main>
     </>
   );
