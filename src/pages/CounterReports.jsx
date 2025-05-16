@@ -169,63 +169,77 @@ export default function CounterReports() {
                   className="mt-1 p-2 border rounded w-full bg-gray-50"
                 />
               </label>
-              <button 
+              <button
                 className="bg-red-500 p-2 rounded-md text-white font-semibold text-sm hover:bg-red-600 transition-all duration-200 cursor-pointer"
-                onClick={() => validateDates() && console.log("Downloading reports...")}
+                onClick={() =>
+                  validateDates() && console.log("Downloading reports...")
+                }
               >
                 Download Reports
               </button>
             </div>
           </div>
 
-          {/* Report Types Section */}
-          <div className="bg-white p-3 flex flex-col gap-4 rounded-md shadow-md border border-gray-100">
-            <div className="flex items-center justify-between">
-              <h4 className="text-xs text-gray-600 font-semibold flex items-center gap-1">
-                <i className="bx bxs-report text-red-500"></i>
-                Select your report types
-              </h4>
+          <div className="flex flex-col gap-2">
+            {/* Report Types Section */}
+            <div className="bg-white p-3 flex flex-col gap-4 rounded-md shadow-md border border-gray-100">
+              <div className="flex items-center justify-between">
+                <h4 className="text-xs text-gray-600 font-semibold flex items-center gap-1">
+                  <i className="bx bxs-report text-red-500"></i>
+                  Select your report types
+                </h4>
+              </div>
+              <div className="flex flex-col gap-2 grid grid-cols-2">
+                {CounterReportOptions.map((report) => (
+                  <div
+                    key={report}
+                    onClick={() => setSelectedReports([report])}
+                    className={` p-2 rounded-md flex items-center gap-1 hover:bg-green-200 transition-all duration-200 cursor-pointer ${
+                      selectedReports.includes(report)
+                        ? "bg-green-200"
+                        : "bg-gray-100"
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      className="mr-1"
+                      checked={selectedReports.includes(report)}
+                      onChange={() => setSelectedReports([report])}
+                    />
+                    <label className="text-sm font-semibold">{report}</label>
+                  </div>
+                ))}
+              </div>
             </div>
-            
-            <div className="gap-2 grid grid-cols-2">
-              {CounterReportOptions.map((report) => (
-                <div
-                  key={report}
-                  onClick={() => toggleCounterReport(report)}
-                  className={`p-2 rounded-md flex items-center gap-1 hover:bg-green-200 transition-all duration-200 cursor-pointer ${
-                    selectedReports.includes(report) ? "bg-green-200" : "bg-gray-100"
-                  }`}
-                >
-                  <input
-                    type="radio"
-                    name="counterReport"
-                    className="mr-1"
-                    checked={selectedReports.includes(report)}
-                    onChange={() => toggleCounterReport(report)}
-                  />
-                  <label className="text-sm font-semibold">{report}</label>
-                </div>
-              ))}
-            </div>
-
-            <div className="flex flex-col gap-2">
-              {reportOptions.map((report) => (
-                <div
-                  key={report}
-                  onClick={() => toggleReport(report)}
-                  className={`p-2 rounded-md flex items-center gap-1 hover:bg-green-200 transition-all duration-200 cursor-pointer ${
-                    selectedReports.includes(report) ? "bg-green-200" : "bg-gray-100"
-                  }`}
-                >
-                  <input
-                    type="checkbox"
-                    className="mr-1"
-                    checked={selectedReports.includes(report)}
-                    onChange={() => toggleReport(report)}
-                  />
-                  <label className="text-sm font-semibold">{report}</label>
-                </div>
-              ))}
+            {/* Report Types Section */}
+            <div className="bg-white p-3 flex flex-col gap-4 rounded-md shadow-md border border-gray-100">
+              <div className="flex items-center justify-between">
+                <h4 className="text-xs text-gray-600 font-semibold flex items-center gap-1">
+                  <i className="bx bxs-report text-red-500"></i>
+                  Select your report types
+                </h4>
+              </div>
+              <div className="flex flex-col gap-2 grid grid-cols-2">
+                {reportOptions.map((report) => (
+                  <div
+                    key={report}
+                    onClick={() => toggleReport(report)}
+                    className={` p-2 rounded-md flex items-center gap-1 hover:bg-green-200 transition-all duration-200 cursor-pointer ${
+                      selectedReports.includes(report)
+                        ? "bg-green-200"
+                        : "bg-gray-100"
+                    }`}
+                  >
+                    <input
+                      type="checkbox"
+                      className="mr-1"
+                      checked={selectedReports.includes(report)}
+                      readOnly
+                    />
+                    <label className="text-sm font-semibold">{report}</label>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
 
@@ -258,7 +272,9 @@ export default function CounterReports() {
                   key={report}
                   onClick={() => toggleReport(report)}
                   className={`p-2 rounded-md flex items-center gap-1 hover:bg-green-200 transition-all duration-200 cursor-pointer ${
-                    selectedReports.includes(report) ? "bg-green-200" : "bg-gray-100"
+                    selectedReports.includes(report)
+                      ? "bg-green-200"
+                      : "bg-gray-100"
                   }`}
                 >
                   <input
