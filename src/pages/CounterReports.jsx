@@ -63,14 +63,17 @@ export default function CounterReports() {
         : [...prev, report]
     );
   };
-  // Updated toggleAllReports
+
+  const toggleCounterReport = (report) => {
+    // For counter reports, we want single selection (radio button behavior)
+    setSelectedReports([report]);
+  };
+
   const toggleAllReports = () => {
     if (allReportsSelected) {
       setSelectedReports([]);
     } else {
-      setSelectedReports([
-        ...new Set([...selectedReports, ...reportStandardOptions]),
-      ]);
+      setSelectedReports([...reportStandardOptions]);
     }
     setAllReportsSelected(!allReportsSelected);
   };
@@ -104,7 +107,6 @@ export default function CounterReports() {
     console.log("Edit vendor:", vendorId);
   };
 
-  // Handle delete vendor
   const handleDelete = async (vendorId) => {
     try {
       const confirmDelete = window.confirm(
@@ -112,7 +114,6 @@ export default function CounterReports() {
       );
       if (!confirmDelete) return;
 
-      // Encode the vendorId in case it contains spaces or special characters
       const encodedId = encodeURIComponent(vendorId);
       const response = await fetch(
         `http://localhost:3001/api/vendors/${encodedId}`,
@@ -126,18 +127,18 @@ export default function CounterReports() {
         throw new Error(errorData.message || "Failed to delete vendor");
       }
 
-      // Update state to remove the deleted vendor
       setVendors((prev) => prev.filter((v) => v.id !== vendorId));
-
       toast.success("Vendor deleted successfully!");
     } catch (error) {
       console.error("Error deleting vendor:", error);
       toast.error(error.message || "Failed to delete vendor");
     }
   };
+
   if (loading) {
     return <div>Loading vendors...</div>;
   }
+
   return (
     <>
       <SideNav activeTab="counter-fetcher" />
@@ -168,97 +169,66 @@ export default function CounterReports() {
                   className="mt-1 p-2 border rounded w-full bg-gray-50"
                 />
               </label>
-              <button className="bg-red-500 p-2 rounded-md text-white font-semibold text-sm hover:bg-red-600 transition-all duration-200 cursor-pointer">
+              <button 
+                className="bg-red-500 p-2 rounded-md text-white font-semibold text-sm hover:bg-red-600 transition-all duration-200 cursor-pointer"
+                onClick={() => validateDates() && console.log("Downloading reports...")}
+              >
                 Download Reports
               </button>
             </div>
           </div>
-          <div className="flex flex-col gap-2">
-            {/* Report Types Section */}
-            <div className="bg-white p-3 flex flex-col gap-4 rounded-md shadow-md border border-gray-100">
-              <div className="flex items-center justify-between">
-                <h4 className="text-xs text-gray-600 font-semibold flex items-center gap-1">
-                  <i className="bx bxs-report text-red-500"></i>
-                  Select your report types
-                </h4>
-              </div>
-              <div className="flex flex-col gap-2 grid grid-cols-2">
-                {CounterReportOptions.map((report) => (
-                  <div
-                    key={report}
-                    onClick={() => setSelectedReports([report])}
-                    className={` p-2 rounded-md flex items-center gap-1 hover:bg-green-200 transition-all duration-200 cursor-pointer ${selectedReports.includes(report)
-                      ? "bg-green-200"
-                      : "bg-gray-100"
-                      }`}
-                  >
-                    <input
-                      type="radio"
-                      className="mr-1"  
-                      checked={selectedReports.includes(report)}
-                      onChange={() => setSelectedReports([report])}
-                    />
-                    <label className="text-sm font-semibold">{report}</label>
-                  </div>
 
-<<<<<<< HEAD
+          {/* Report Types Section */}
+          <div className="bg-white p-3 flex flex-col gap-4 rounded-md shadow-md border border-gray-100">
+            <div className="flex items-center justify-between">
+              <h4 className="text-xs text-gray-600 font-semibold flex items-center gap-1">
+                <i className="bx bxs-report text-red-500"></i>
+                Select your report types
+              </h4>
+            </div>
+            
+            <div className="gap-2 grid grid-cols-2">
+              {CounterReportOptions.map((report) => (
+                <div
+                  key={report}
+                  onClick={() => toggleCounterReport(report)}
+                  className={`p-2 rounded-md flex items-center gap-1 hover:bg-green-200 transition-all duration-200 cursor-pointer ${
+                    selectedReports.includes(report) ? "bg-green-200" : "bg-gray-100"
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="counterReport"
+                    className="mr-1"
+                    checked={selectedReports.includes(report)}
+                    onChange={() => toggleCounterReport(report)}
+                  />
+                  <label className="text-sm font-semibold">{report}</label>
+                </div>
+              ))}
+            </div>
+
             <div className="flex flex-col gap-2">
               {reportOptions.map((report) => (
                 <div
                   key={report}
                   onClick={() => toggleReport(report)}
-                  className={` p-2 rounded-md flex items-center gap-1 hover:bg-green-200 transition-all duration-200 cursor-pointer ${
-                    selectedReports.includes(report)
-                      ? "bg-green-200"
-                      : "bg-gray-100"
+                  className={`p-2 rounded-md flex items-center gap-1 hover:bg-green-200 transition-all duration-200 cursor-pointer ${
+                    selectedReports.includes(report) ? "bg-green-200" : "bg-gray-100"
                   }`}
                 >
                   <input
                     type="checkbox"
                     className="mr-1"
                     checked={selectedReports.includes(report)}
-                    readOnly
+                    onChange={() => toggleReport(report)}
                   />
                   <label className="text-sm font-semibold">{report}</label>
                 </div>
               ))}
-=======
-                  
-
-                ))}
-              </div>
-            </div>
-            {/* Report Types Section */}
-            <div className="bg-white p-3 flex flex-col gap-4 rounded-md shadow-md border border-gray-100">
-              <div className="flex items-center justify-between">
-                <h4 className="text-xs text-gray-600 font-semibold flex items-center gap-1">
-                  <i className="bx bxs-report text-red-500"></i>
-                  Select your report types
-                </h4>
-              </div>
-              <div className="flex flex-col gap-2 grid grid-cols-2">
-                {reportOptions.map((report) => (
-                  <div
-                    key={report}
-                    onClick={() => toggleReport(report)}
-                    className={` p-2 rounded-md flex items-center gap-1 hover:bg-green-200 transition-all duration-200 cursor-pointer ${selectedReports.includes(report)
-                      ? "bg-green-200"
-                      : "bg-gray-100"
-                      }`}
-                  >
-                    <input
-                      type="checkbox"
-                      className="mr-1"
-                      checked={selectedReports.includes(report)}
-                      readOnly
-                    />
-                    <label className="text-sm font-semibold">{report}</label>
-                  </div>
-                ))}
-              </div>
->>>>>>> a92bc69e92731672a9ff0990ae8c4c1b68019e8e
             </div>
           </div>
+
           {/* Standard Views Section */}
           <div className="col-span-2 bg-white p-3 flex flex-col gap-4 rounded-md shadow-md border border-gray-100">
             <div className="flex items-center justify-between">
@@ -288,16 +258,14 @@ export default function CounterReports() {
                   key={report}
                   onClick={() => toggleReport(report)}
                   className={`p-2 rounded-md flex items-center gap-1 hover:bg-green-200 transition-all duration-200 cursor-pointer ${
-                    selectedReports.includes(report)
-                      ? "bg-green-200"
-                      : "bg-gray-100"
+                    selectedReports.includes(report) ? "bg-green-200" : "bg-gray-100"
                   }`}
                 >
                   <input
                     type="checkbox"
                     className="mr-1"
                     checked={selectedReports.includes(report)}
-                    readOnly
+                    onChange={() => toggleReport(report)}
                   />
                   <label className="text-sm font-semibold">{report}</label>
                 </div>
@@ -316,16 +284,17 @@ export default function CounterReports() {
             <div className="flex items-center">
               <input
                 type="text"
-                className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-l-md  focus:ring-gray-300 focus:ring-1 block w-full p-1.5"
+                placeholder="Search vendors..."
+                className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-l-md focus:ring-gray-300 focus:ring-1 block w-full p-1.5"
               />
               <button
-                className="bg-red-500 py-2 px-2.5 text-nowrap text-sm  font-medium text-white rounded-r-md hover:bg-red-600 transition-all duration-300"
+                className="bg-red-500 py-2 px-2.5 text-nowrap text-sm font-medium text-white rounded-r-md hover:bg-red-600 transition-all duration-300"
                 type="button"
               >
-                <i className="bx  bx-search-alt"></i>
+                <i className="bx bx-search-alt"></i>
               </button>
               <button
-                className="bg-blue-500 p-1.5 ml-2 text-nowrap text-sm  font-medium text-white rounded hover:bg-blue-600 transition-all duration-300"
+                className="bg-blue-500 p-1.5 ml-2 text-nowrap text-sm font-medium text-white rounded hover:bg-blue-600 transition-all duration-300"
                 type="button"
                 onClick={toggleDrawer}
               >
@@ -335,7 +304,6 @@ export default function CounterReports() {
             </div>
           </div>
 
-<<<<<<< HEAD
           <div className="grid grid-cols-3 gap-2">
             {vendors.map((vendor) => (
               <div
@@ -359,6 +327,7 @@ export default function CounterReports() {
                     onClick={() => handleEdit(vendor.id || vendor.name)}
                     type="button"
                     className="flex justify-center items-center px-2 py-1 text-sm font-medium text-green-500 bg-white border border-gray-200 rounded-l-lg hover:bg-gray-100"
+                    aria-label={`Edit ${vendor.name}`}
                   >
                     <i className="bx bxs-edit"></i>
                   </button>
@@ -366,6 +335,7 @@ export default function CounterReports() {
                     onClick={() => handleDelete(vendor.id)}
                     type="button"
                     className="flex justify-center items-center px-2 py-1 text-sm font-medium text-red-600 bg-white border border-gray-200 rounded-r-lg hover:bg-gray-100"
+                    aria-label={`Delete ${vendor.name}`}
                   >
                     <i className="bx bxs-x-circle"></i>
                   </button>
@@ -373,35 +343,6 @@ export default function CounterReports() {
               </div>
             ))}
           </div>
-=======
-
-          <div className="flex justify-between items-center bg-gray-100 p-2 rounded-md">
-
-
-            <div className="flex items-center gap-2 whitespace-nowrap">
-              <input type="checkbox" id="vendorCheckbox" />
-
-
-              {/* <select class="border bg-gray-100 hover:bg-gray-200 transition-all duration-100 rounded-md pr-6 pl-2 text-sm cursor-pointer">
-                <option value="5.1">5.1</option>
-                <option value="5">5</option>
-              </select> */}
-           
-              <label for="vendorCheckbox" className="text-gray-800">Vendor Name</label>
-            </div>
-
-
-            <div className="flex">
-              <button onclick="openEditModal(1)" type="button" className="flex justify-center items-center px-2 py-1 text-sm font-medium text-green-500 bg-white border border-gray-200 rounded-l-lg hover:bg-gray-100">
-                <i className="bx bxs-edit text-xl"></i>
-              </button>
-              <button onclick="showModal(1)" type="button" className="flex justify-center items-center px-2 py-1 text-sm font-medium text-red-600 bg-white border border-gray-200 rounded-r-lg hover:bg-gray-100">
-                <i className="bx bxs-x-circle text-xl"></i>
-              </button>
-            </div>
-          </div>
-
->>>>>>> a92bc69e92731672a9ff0990ae8c4c1b68019e8e
         </section>
       </main>
     </>
