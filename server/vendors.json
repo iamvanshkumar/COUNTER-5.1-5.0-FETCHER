@@ -1,5 +1,6 @@
 [
   {
+    "id": "v_1747377959282",
     "vendorVersion": "5.1",
     "name": "Vansh Kumar",
     "baseUrl": "http://localhost:5173/counter-fetcher",
@@ -10,19 +11,6 @@
     "provider": "q35r32",
     "nonSushiVendor": false,
     "startingYear": 2020,
-    "notes": "asfs"
-  },
-  {
-    "vendorVersion": "5.1",
-    "name": "Vansh Kumar",
-    "baseUrl": "http://localhost:5173/counter-fetcher",
-    "customerId": "21414",
-    "requestorId": "afas",
-    "apiKey": "asf",
-    "platform": "asf",
-    "provider": "asfaf",
-    "nonSushiVendor": false,
-    "startingYear": 2020,
-    "notes": "asfaf"
+    "notes": "asf"
   }
 ]

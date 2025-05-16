@@ -134,6 +134,66 @@ app.post('/api/save-vendor', async (req, res) => {
   }
 });
 
+
+// === View All Vendor ===
+  app.get("/api/get-vendors", (req, res) => {
+    try {
+      const filePath = path.join(process.cwd(), "vendors.json");
+      if (!fs.existsSync(filePath)) {
+        return res.json({ vendors: [] });
+      }
+      const vendors = JSON.parse(fs.readFileSync(filePath, "utf8"));
+      res.json({ vendors });
+    } catch (err) {
+      console.error("Error reading vendors:", err);
+      res
+        .status(500)
+        .json({ message: "Failed to read vendors", error: err.message });
+    }
+  });
+
+
+// === Delete Vendor ===
+app.delete('/api/vendors/:id', (req, res) => {
+  try {
+    const vendorId = decodeURIComponent(req.params.id); // Decode the ID
+    const filePath = path.join(process.cwd(), 'vendors.json');
+    
+    if (!fs.existsSync(filePath)) {
+      return res.status(404).json({ 
+        success: false, 
+        message: 'Vendors file not found' 
+      });
+    }
+
+    const vendors = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+    const vendorIndex = vendors.findIndex(v => v.id === vendorId);
+
+    if (vendorIndex === -1) {
+      return res.status(404).json({ 
+        success: false, 
+        message: `Vendor with ID ${vendorId} not found` 
+      });
+    }
+
+    const [deletedVendor] = vendors.splice(vendorIndex, 1);
+    fs.writeFileSync(filePath, JSON.stringify(vendors, null, 2));
+
+    res.json({ 
+      success: true,
+      message: 'Vendor deleted successfully',
+      deletedVendor
+    });
+  } catch (err) {
+    console.error('Error deleting vendor:', err);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Failed to delete vendor',
+      error: err.message 
+    });
+  }
+});
+
 // === Start Server ===
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {

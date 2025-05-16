@@ -51,8 +51,12 @@ export default function SideBar() {
     e.preventDefault();
 
     try {
+      // Generate a unique ID for the vendor
+      const uniqueId = `v_${Date.now()}`;
+
       // Create the data object to save
       const vendorData = {
+        id: uniqueId, // Add the unique ID
         vendorVersion,
         ...formData,
       };
@@ -73,6 +77,10 @@ export default function SideBar() {
       console.log("Vendor saved successfully:", result);
 
       toast.success("Vendor data saved successfully!");
+
+      // Reload the page to reflect changes
+      window.location.reload();
+      
 
       // Reset form after saving
       setFormData({

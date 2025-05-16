@@ -1,7 +1,8 @@
-import {React, useState, useEffect } from "react";
+import { React, useState, useEffect } from "react";
 import SideBar from "../components/SideBar";
 import SideNav from "../components/SideNav";
 import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 
 export default function CounterReports() {
   const [allReportsSelected, setAllReportsSelected] = useState(false);
@@ -73,6 +74,69 @@ export default function CounterReports() {
     setAllReportsSelected(!allReportsSelected);
   };
 
+  // ---Fetch vendors from API---
+  const [vendors, setVendors] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  // Fetch vendors from backend
+  useEffect(() => {
+    const fetchVendors = async () => {
+      try {
+        const response = await fetch("http://localhost:3001/api/get-vendors");
+        if (!response.ok) {
+          throw new Error("Failed to fetch vendors");
+        }
+        const data = await response.json();
+        setVendors(data.vendors);
+      } catch (error) {
+        console.error("Error fetching vendors:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchVendors();
+  }, []);
+
+  const handleEdit = (vendorId) => {
+    // Implement edit functionality
+    console.log("Edit vendor:", vendorId);
+  };
+
+  // Handle delete vendor
+  const handleDelete = async (vendorId) => {
+    try {
+      const confirmDelete = window.confirm(
+        "Are you sure you want to delete this vendor?"
+      );
+      if (!confirmDelete) return;
+
+      // Encode the vendorId in case it contains spaces or special characters
+      const encodedId = encodeURIComponent(vendorId);
+      const response = await fetch(
+        `http://localhost:3001/api/vendors/${encodedId}`,
+        {
+          method: "DELETE",
+        }
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to delete vendor");
+      }
+
+      // Update state to remove the deleted vendor
+      setVendors((prev) => prev.filter((v) => v.id !== vendorId));
+
+      toast.success("Vendor deleted successfully!");
+    } catch (error) {
+      console.error("Error deleting vendor:", error);
+      toast.error(error.message || "Failed to delete vendor");
+    }
+  };
+  if (loading) {
+    return <div>Loading vendors...</div>;
+  }
   return (
     <>
       <SideNav activeTab="counter-fetcher" />
@@ -103,9 +167,7 @@ export default function CounterReports() {
                   className="mt-1 p-2 border rounded w-full bg-gray-50"
                 />
               </label>
-              <button
-                className="bg-red-500 p-2 rounded-md text-white font-semibold text-sm hover:bg-red-600 transition-all duration-200 cursor-pointer"
-              >
+              <button className="bg-red-500 p-2 rounded-md text-white font-semibold text-sm hover:bg-red-600 transition-all duration-200 cursor-pointer">
                 Download Reports
               </button>
             </div>
@@ -124,10 +186,11 @@ export default function CounterReports() {
                 <div
                   key={report}
                   onClick={() => toggleReport(report)}
-                  className={` p-2 rounded-md flex items-center gap-1 hover:bg-green-200 transition-all duration-200 cursor-pointer ${selectedReports.includes(report)
-                    ? "bg-green-200"
-                    : "bg-gray-100"
-                    }`}
+                  className={` p-2 rounded-md flex items-center gap-1 hover:bg-green-200 transition-all duration-200 cursor-pointer ${
+                    selectedReports.includes(report)
+                      ? "bg-green-200"
+                      : "bg-gray-100"
+                  }`}
                 >
                   <input
                     type="checkbox"
@@ -168,10 +231,11 @@ export default function CounterReports() {
                 <div
                   key={report}
                   onClick={() => toggleReport(report)}
-                  className={`p-2 rounded-md flex items-center gap-1 hover:bg-green-200 transition-all duration-200 cursor-pointer ${selectedReports.includes(report)
-                    ? "bg-green-200"
-                    : "bg-gray-100"
-                    }`}
+                  className={`p-2 rounded-md flex items-center gap-1 hover:bg-green-200 transition-all duration-200 cursor-pointer ${
+                    selectedReports.includes(report)
+                      ? "bg-green-200"
+                      : "bg-gray-100"
+                  }`}
                 >
                   <input
                     type="checkbox"
@@ -188,15 +252,24 @@ export default function CounterReports() {
 
         {/* Vendors Section */}
         <section className="bg-white p-3 flex flex-col gap-4 rounded-md shadow-md border border-gray-100">
-          <div className="flex items-center justify-between">
+          <div className="flex items-start justify-between">
             <h4 className="text-xs text-gray-600 font-semibold flex items-center gap-1">
               <i className="bx bxs-buildings text-red-500"></i>
               Select vendors
             </h4>
-            <div className="flex items-center gap-2">
-              <input type="text" className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md  focus:ring-red-500 focus:ring-1 focus:border-red-500 block w-full p-1.5" />
+            <div className="flex items-center">
+              <input
+                type="text"
+                className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-l-md  focus:ring-gray-300 focus:ring-1 block w-full p-1.5"
+              />
               <button
-                className="bg-blue-500 p-1.5 text-nowrap text-sm  font-medium text-white rounded hover:bg-blue-600 transition-all duration-300"
+                className="bg-red-500 py-2 px-2.5 text-nowrap text-sm  font-medium text-white rounded-r-md hover:bg-red-600 transition-all duration-300"
+                type="button"
+              >
+                <i className="bx  bx-search-alt"></i>
+              </button>
+              <button
+                className="bg-blue-500 p-1.5 ml-2 text-nowrap text-sm  font-medium text-white rounded hover:bg-blue-600 transition-all duration-300"
                 type="button"
                 onClick={toggleDrawer}
               >
@@ -206,35 +279,44 @@ export default function CounterReports() {
             </div>
           </div>
 
-
-          <div className="flex justify-between items-center bg-gray-100 p-2 rounded-md">
-
-        
-            <div className="flex items-center gap-2 whitespace-nowrap">
-              <input type="checkbox" id="vendorCheckbox" />
-
-           
-              <select className="border border-gray-300 rounded py-1 text-sm text-gray-800 pl-2 pr-8">
-                <option value="5.1">5.1</option>
-                <option value="5">5</option>
-              </select>
-
-           
-              <label for="vendorCheckbox" className="text-gray-800">Vendor Name</label>
-            </div>
-
-          
-            <div className="flex">
-              <button onclick="openEditModal(1)" type="button" className="flex justify-center items-center px-2 py-1 text-sm font-medium text-green-500 bg-white border border-gray-200 rounded-l-lg hover:bg-gray-100">
-                <i className="bx bxs-edit text-xl"></i>
-              </button>
-              <button onclick="showModal(1)" type="button" className="flex justify-center items-center px-2 py-1 text-sm font-medium text-red-600 bg-white border border-gray-200 rounded-r-lg hover:bg-gray-100">
-                <i className="bx bxs-x-circle text-xl"></i>
-              </button>
-            </div>
+          <div className="grid grid-cols-3 gap-2">
+            {vendors.map((vendor) => (
+              <div
+                key={vendor.id || vendor.name}
+                className="flex justify-between items-center bg-gray-100 p-2 rounded-md"
+              >
+                <div className="flex items-center gap-2 whitespace-nowrap">
+                  <input
+                    type="checkbox"
+                    id={`vendorCheckbox-${vendor.id || vendor.name}`}
+                  />
+                  <label
+                    htmlFor={`vendorCheckbox-${vendor.id || vendor.name}`}
+                    className="text-gray-800 text-sm font-medium"
+                  >
+                    {vendor.name}
+                  </label>
+                </div>
+                <div className="flex">
+                  <button
+                    onClick={() => handleEdit(vendor.id || vendor.name)}
+                    type="button"
+                    className="flex justify-center items-center px-2 py-1 text-sm font-medium text-green-500 bg-white border border-gray-200 rounded-l-lg hover:bg-gray-100"
+                  >
+                    <i className="bx bxs-edit"></i>
+                  </button>
+                  <button
+                    onClick={() => handleDelete(vendor.id)}
+                    type="button"
+                    className="flex justify-center items-center px-2 py-1 text-sm font-medium text-red-600 bg-white border border-gray-200 rounded-r-lg hover:bg-gray-100"
+                  >
+                    <i className="bx bxs-x-circle"></i>
+                  </button>
+                </div>
+              </div>
+            ))}
           </div>
-
-          </section>
+        </section>
       </main>
     </>
   );
