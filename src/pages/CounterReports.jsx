@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import {React, useState, useEffect } from "react";
 import SideBar from "../components/SideBar";
 import SideNav from "../components/SideNav";
 import { useNavigate } from "react-router-dom";
@@ -252,9 +252,8 @@ export default function CounterReports() {
                 <option value="5.1">5.1</option>
                 <option value="5">5</option>
               </select> */}
-
-
-              <label for="vendorCheckbox" className="text-gray-800 text-black">Vendor Name</label>
+           
+              <label for="vendorCheckbox" className="text-gray-800">Vendor Name</label>
             </div>
 
 

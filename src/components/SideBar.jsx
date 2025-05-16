@@ -1,8 +1,22 @@
 import React, { useState, useEffect } from "react";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 export default function SideBar() {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [vendorVersion, setVendorVersion] = useState("5.1");
+  const [formData, setFormData] = useState({
+    name: "",
+    baseUrl: "",
+    customerId: "",
+    requestorId: "",
+    apiKey: "",
+    platform: "",
+    provider: "",
+    nonSushiVendor: false,
+    startingYear: 2020,
+    notes: "",
+  });
 
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -17,6 +31,7 @@ export default function SideBar() {
   const handleVersionChange = (version) => {
     setVendorVersion(version);
   };
+
   const closeDrawer = () => {
     const drawer = document.getElementById("drawer-example");
     if (drawer && !drawer.classList.contains("translate-x-full")) {
@@ -24,13 +39,70 @@ export default function SideBar() {
     }
   };
 
+  const handleInputChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: type === "checkbox" ? checked : value,
+    }));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    try {
+      // Create the data object to save
+      const vendorData = {
+        vendorVersion,
+        ...formData,
+      };
+
+      const response = await fetch("http://localhost:3001/api/save-vendor", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ vendor: vendorData }), // Changed to send as 'vendor'
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to save vendor data");
+      }
+
+      const result = await response.json();
+      console.log("Vendor saved successfully:", result);
+
+      toast.success("Vendor data saved successfully!");
+
+      // Reset form after saving
+      setFormData({
+        name: "",
+        baseUrl: "",
+        customerId: "",
+        requestorId: "",
+        apiKey: "",
+        platform: "",
+        provider: "",
+        nonSushiVendor: false,
+        startingYear: 2020,
+        notes: "",
+      });
+
+      // Close the drawer
+      setIsDrawerOpen(false);
+    } catch (error) {
+      console.error("Error saving vendor data:", error);
+      toast.error("Failed to save vendor data");
+    }
+  };
+
   return (
     <>
+      <ToastContainer />
       <div
         id="drawer-example"
-        className={`fixed top-0 right-0 z-40 h-screen p-4 overflow-y-auto transition-transform ${
-          isDrawerOpen ? "translate-x-0" : "translate-x-full"
-        } bg-white w-80 shadow-xl border-l border-gray-200`}
+        className={`fixed top-0 right-0 z-40 h-screen p-4 overflow-y-auto transition-transform ${isDrawerOpen ? "translate-x-0" : "translate-x-full"
+          } bg-white w-80 shadow-xl border-l border-gray-200`}
         tabIndex="-1"
         aria-labelledby="drawer-label"
         onClick={(e) => {
@@ -69,14 +141,17 @@ export default function SideBar() {
             <option value="5.0">5.0</option>
           </select>
         </div>
-        <form className="mt-4 space-y-4">
+        <form className="mt-4 space-y-4" onSubmit={handleSubmit}>
           <div>
             <label className="block mb-2 text-xs text-gray-600 font-semibold">
               Name*
             </label>
             <input
               type="text"
-              className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md  focus:ring-red-500 focus:ring-1 focus:border-red-500 block w-full p-1.5"
+              name="name"
+              value={formData.name}
+              onChange={handleInputChange}
+              className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-red-500 focus:ring-1 focus:border-red-500 block w-full p-1.5"
               required
             />
           </div>
@@ -86,7 +161,10 @@ export default function SideBar() {
             </label>
             <input
               type="url"
-              className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md  focus:ring-red-500 focus:ring-1 focus:border-red-500 block w-full p-1.5"
+              name="baseUrl"
+              value={formData.baseUrl}
+              onChange={handleInputChange}
+              className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-red-500 focus:ring-1 focus:border-red-500 block w-full p-1.5"
               required
             />
           </div>
@@ -96,7 +174,10 @@ export default function SideBar() {
             </label>
             <input
               type="text"
-              className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md  focus:ring-red-500 focus:ring-1 focus:border-red-500 block w-full p-1.5"
+              name="customerId"
+              value={formData.customerId}
+              onChange={handleInputChange}
+              className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-red-500 focus:ring-1 focus:border-red-500 block w-full p-1.5"
               required
             />
           </div>
@@ -106,7 +187,10 @@ export default function SideBar() {
             </label>
             <input
               type="text"
-              className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md  focus:ring-red-500 focus:ring-1 focus:border-red-500 block w-full p-1.5"
+              name="requestorId"
+              value={formData.requestorId}
+              onChange={handleInputChange}
+              className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-red-500 focus:ring-1 focus:border-red-500 block w-full p-1.5"
             />
           </div>
           <div>
@@ -115,7 +199,10 @@ export default function SideBar() {
             </label>
             <input
               type="text"
-              className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md  focus:ring-red-500 focus:ring-1 focus:border-red-500 block w-full p-1.5"
+              name="apiKey"
+              value={formData.apiKey}
+              onChange={handleInputChange}
+              className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-red-500 focus:ring-1 focus:border-red-500 block w-full p-1.5"
             />
           </div>
           <div>
@@ -124,7 +211,10 @@ export default function SideBar() {
             </label>
             <input
               type="text"
-              className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md  focus:ring-red-500 focus:ring-1 focus:border-red-500 block w-full p-1.5"
+              name="platform"
+              value={formData.platform}
+              onChange={handleInputChange}
+              className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-red-500 focus:ring-1 focus:border-red-500 block w-full p-1.5"
             />
           </div>
           <div>
@@ -133,21 +223,26 @@ export default function SideBar() {
             </label>
             <input
               type="text"
-              className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md  focus:ring-red-500 focus:ring-1 focus:border-red-500 block w-full p-1.5"
+              name="provider"
+              value={formData.provider}
+              onChange={handleInputChange}
+              className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-red-500 focus:ring-1 focus:border-red-500 block w-full p-1.5"
             />
           </div>
-          <div class="flex items-center mb-4">
+          <div className="flex items-center mb-4">
             <label
-              for="default-checkbox"
-              class="mr-2 block text-xs text-gray-600 font-semibold cursor-pointer"
+              htmlFor="default-checkbox"
+              className="mr-2 block text-xs text-gray-600 font-semibold cursor-pointer"
             >
               Non-SUSHI Vendor
             </label>
             <input
               id="default-checkbox"
+              name="nonSushiVendor"
               type="checkbox"
-              value=""
-              class="w-4 h-4 text-red-500 border bg-gray-100 border-gray-300 rounded-sm focus:ring-red-500 cursor-pointer"
+              checked={formData.nonSushiVendor}
+              onChange={handleInputChange}
+              className="w-4 h-4 text-red-500 border bg-gray-100 border-gray-300 rounded-sm focus:ring-red-500 cursor-pointer"
             />
           </div>
           <div>
@@ -156,22 +251,29 @@ export default function SideBar() {
             </label>
             <input
               type="number"
-              defaultValue="2020"
-              className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md  focus:ring-red-500 focus:ring-1 focus:border-red-500 block w-full p-1.5"
+              name="startingYear"
+              value={formData.startingYear}
+              onChange={handleInputChange}
+              className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-red-500 focus:ring-1 focus:border-red-500 block w-full p-1.5"
             />
           </div>
           <div>
             <label className="block mb-2 text-xs text-gray-600 font-semibold">
               Notes (Optional)
             </label>
-            <textarea className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md  focus:ring-red-500 focus:ring-1 focus:border-red-500 block w-full p-1.5"></textarea>
+            <textarea
+              name="notes"
+              value={formData.notes}
+              onChange={handleInputChange}
+              className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-red-500 focus:ring-1 focus:border-red-500 block w-full p-1.5"
+            />
           </div>
           <div className="flex gap-2">
-            <button className="bg-green-500 p-2 rounded-md text-white font-semibold text-sm hover:bg-green-600 transition-all duration-200 cursor-pointer w-full">
+            <button
+              type="submit"
+              className="bg-green-500 p-2 rounded-md text-white font-semibold text-sm hover:bg-green-600 transition-all duration-200 cursor-pointer w-full"
+            >
               Save Changes
-            </button>
-            <button className="bg-red-500 p-2 rounded-md text-white font-semibold text-sm hover:bg-red-600 transition-all duration-200 cursor-pointer w-full">
-              Remove Vendor
             </button>
           </div>
         </form>
