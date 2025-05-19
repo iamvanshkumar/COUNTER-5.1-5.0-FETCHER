@@ -157,6 +157,13 @@ export default function FetcherReports() {
 
         item.Attribute_Performance?.forEach((attr) => {
           const dataType = attr.Data_Type || "no data";
+          const accessType = attr.Access_Type || "no data";
+          const accessMethod = attr.Access_Method || "no data";
+          const yop = attr.YOP || "no data";
+
+          console.log("attr", attr);
+          console.log("YOP", yop);
+
           const performance = attr.Performance;
 
           for (const [metric, valuesByMonth] of Object.entries(
@@ -169,7 +176,9 @@ export default function FetcherReports() {
               const month = dateStr.slice(5, 7);
               const monthStr = new Date(`${year}-${month}-01`).toLocaleString(
                 "en-US",
-                { month: "short" }
+                {
+                  month: "short",
+                }
               );
 
               const key = `${institutionCode}|${
@@ -203,10 +212,10 @@ export default function FetcherReports() {
                   Month: "",
                   YTD: 0,
                   ...structuredClone(monthCountsTemplate),
-                  YOP: item.YOP || "no data",
+                  YOP: yop,
                   Data_Type: dataType,
-                  Access_Type: item.Access_Type || "no data",
-                  Access_Method: item.Access_Method || "no data",
+                  Access_Type: accessType,
+                  Access_Method: accessMethod,
                   Section_Type: item.Section_Type || "no data",
                 };
               }
@@ -218,8 +227,6 @@ export default function FetcherReports() {
         });
       });
     });
-
-
 
     ///old data
 
