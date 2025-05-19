@@ -42,87 +42,186 @@ export default function FetcherReports() {
       Dec: 0,
     };
 
+    // const reportTypes = new Set(); // Collect report types
+
+    // allReports.forEach(({ data, libraryCode }) => {
+    //   const reportHeader = data.Report_Header || {};
+    //   let reportType = reportHeader.Report_ID;
+
+    //   // Fallback: try using reportName from reportHeader or a known type in data
+    //   if (!reportType) {
+    //     if (data.Report_Header?.Report_Name) {
+    //       // Try to infer it from Report_Name
+    //       const name = data.Report_Header.Report_Name;
+    //       if (name.startsWith("Journal")) reportType = "TR_J1";
+    //       else if (name.startsWith("Book")) reportType = "TR_B1";
+    //       else if (name.startsWith("Platform")) reportType = "PR_P1";
+    //       else if (name.startsWith("Database")) reportType = "DR_D1";
+    //       else reportType = "TR"; // default guess
+    //     } else {
+    //       reportType = "Unknown";
+    //     }
+    //   }
+
+    //   reportTypes.add(reportType);
+
+    //   data.Report_Items?.forEach((item) => {
+    //     const ids = {};
+    //     item.Item_ID?.forEach((id) => (ids[id.Type] = id.Value));
+
+    //     item.Performance?.forEach((perf) => {
+    //       const year = perf.Period.Begin_Date.slice(0, 4);
+    //       const month = perf.Period.Begin_Date.slice(5, 7);
+    //       const monthStr = new Date(`${year}-${month}-01`).toLocaleString(
+    //         "en-US",
+    //         { month: "short" }
+    //       );
+
+    //       perf.Instance?.forEach((inst) => {
+    //         const count = inst.Count;
+    //         const metric = inst.Metric_Type;
+    //         const key = `${libraryCode}|${ids.ISBN || "noisbn"}|${metric}`;
+
+    //         if (!rowsMap[key]) {
+    //           const Proprietary_Identifier = ids.Proprietary || "";
+    //           const pubCode = Proprietary_Identifier
+    //             ? Proprietary_Identifier.split(":")[0]
+    //             : "";
+
+    //           rowsMap[key] = {
+    //             Institution_Code: libraryCode || reportHeader.Customer_ID || "",
+    //             pub_code: ids.Proprietary?.split(":")[0] || "no data",
+    //             Title: item.Title || "no data",
+    //             Publisher: item.Publisher || "no data",
+    //             Publisher_Id: "no data",
+    //             Platform: item.Platform || "no data",
+    //             Collection_Platform: item.Platform || "no data",
+    //             Report_Type: reportType || "no data",
+    //             DOI: ids.DOI || "no data",
+    //             Proprietary_Identifier: Proprietary_Identifier || "no data",
+    //             ISBN: ids.ISBN || "no data",
+    //             Print_ISSN: ids.Print_ISSN || "no data",
+    //             Online_ISSN: ids.Online_ISSN || "no data",
+    //             URI: "no data",
+    //             Metric_Type: metric,
+    //             Counter_Complaint: "no data",
+    //             Year: year,
+    //             Month: "",
+    //             YTD: 0,
+    //             ...structuredClone(monthCountsTemplate),
+    //             YOP: item.YOP || "no data",
+    //             Data_Type: item.Data_Type || "no data",
+    //             Access_Type: item.Access_Type || "no data",
+    //             Access_Method: item.Access_Method || "no data",
+    //             Section_Type: item.Section_Type || "no data",
+    //           };
+    //         }
+
+    //         rowsMap[key].YTD += count;
+    //         rowsMap[key][monthStr] += count;
+    //       });
+    //     });
+    //   });
+    // });
+
     const reportTypes = new Set(); // Collect report types
 
     allReports.forEach(({ data, libraryCode }) => {
       const reportHeader = data.Report_Header || {};
-      let reportType = reportHeader.Report_ID;
+      let reportType = reportHeader.Report_ID || "Unknown";
 
-      // Fallback: try using reportName from reportHeader or a known type in data
-      if (!reportType) {
-        if (data.Report_Header?.Report_Name) {
-          // Try to infer it from Report_Name
-          const name = data.Report_Header.Report_Name;
-          if (name.startsWith("Journal")) reportType = "TR_J1";
-          else if (name.startsWith("Book")) reportType = "TR_B1";
-          else if (name.startsWith("Platform")) reportType = "PR_P1";
-          else if (name.startsWith("Database")) reportType = "DR_D1";
-          else reportType = "TR"; // default guess
-        } else {
-          reportType = "Unknown";
-        }
+      if (!reportType && data.Report_Header?.Report_Name) {
+        const name = data.Report_Header.Report_Name;
+        if (name.startsWith("Journal")) reportType = "TR_J1";
+        else if (name.startsWith("Book")) reportType = "TR_B1";
+        else if (name.startsWith("Platform")) reportType = "PR_P1";
+        else if (name.startsWith("Database")) reportType = "DR_D1";
+        else reportType = "TR";
       }
 
       reportTypes.add(reportType);
 
+      const institutionCode =
+        libraryCode ||
+        reportHeader.Institution_ID?.Proprietary?.[0]?.split(":")[1] ||
+        "";
+
       data.Report_Items?.forEach((item) => {
-        const ids = {};
-        item.Item_ID?.forEach((id) => (ids[id.Type] = id.Value));
+        const ids = {
+          Proprietary: item.Item_ID?.Proprietary || "",
+          DOI: item.Item_ID?.DOI || "",
+          ISBN: item.Item_ID?.ISBN || "",
+          Print_ISSN: item.Item_ID?.Print_ISSN || "",
+          Online_ISSN: item.Item_ID?.Online_ISSN || "",
+        };
 
-        item.Performance?.forEach((perf) => {
-          const year = perf.Period.Begin_Date.slice(0, 4);
-          const month = perf.Period.Begin_Date.slice(5, 7);
-          const monthStr = new Date(`${year}-${month}-01`).toLocaleString(
-            "en-US",
-            { month: "short" }
-          );
+        item.Attribute_Performance?.forEach((attr) => {
+          const dataType = attr.Data_Type || "no data";
+          const performance = attr.Performance;
 
-          perf.Instance?.forEach((inst) => {
-            const count = inst.Count;
-            const metric = inst.Metric_Type;
-            const key = `${libraryCode}|${ids.ISBN || "noisbn"}|${metric}`;
+          for (const [metric, valuesByMonth] of Object.entries(
+            performance || {}
+          )) {
+            for (const [dateStr, count] of Object.entries(
+              valuesByMonth || {}
+            )) {
+              const year = dateStr.slice(0, 4);
+              const month = dateStr.slice(5, 7);
+              const monthStr = new Date(`${year}-${month}-01`).toLocaleString(
+                "en-US",
+                { month: "short" }
+              );
 
-            if (!rowsMap[key]) {
-              const Proprietary_Identifier = ids.Proprietary || "";
-              const pubCode = Proprietary_Identifier
-                ? Proprietary_Identifier.split(":")[0]
-                : "";
+              const key = `${institutionCode}|${
+                ids.ISBN || "noisbn"
+              }|${metric}`;
 
-              rowsMap[key] = {
-                Institution_Code: libraryCode || reportHeader.Customer_ID || "",
-                pub_code: ids.Proprietary?.split(":")[0] || "no data",
-                Title: item.Title || "no data",
-                Publisher: item.Publisher || "no data",
-                Publisher_Id: "no data",
-                Platform: item.Platform || "no data",
-                Collection_Platform: item.Platform || "no data",
-                Report_Type: reportType || "no data",
-                DOI: ids.DOI || "no data",
-                Proprietary_Identifier: Proprietary_Identifier || "no data",
-                ISBN: ids.ISBN || "no data",
-                Print_ISSN: ids.Print_ISSN || "no data",
-                Online_ISSN: ids.Online_ISSN || "no data",
-                URI: "no data",
-                Metric_Type: metric,
-                Counter_Complaint: "no data",
-                Year: year,
-                Month: "",
-                YTD: 0,
-                ...structuredClone(monthCountsTemplate),
-                YOP: item.YOP || "no data",
-                Data_Type: item.Data_Type || "no data",
-                Access_Type: item.Access_Type || "no data",
-                Access_Method: item.Access_Method || "no data",
-                Section_Type: item.Section_Type || "no data",
-              };
+              if (!rowsMap[key]) {
+                const Proprietary_Identifier = ids.Proprietary || "";
+                const pubCode = Proprietary_Identifier
+                  ? Proprietary_Identifier.split(":")[0]
+                  : "";
+
+                rowsMap[key] = {
+                  Institution_Code: institutionCode,
+                  pub_code: pubCode || "no data",
+                  Title: item.Title || "no data",
+                  Publisher: item.Publisher || "no data",
+                  Publisher_Id: "no data",
+                  Platform: item.Platform || "no data",
+                  Collection_Platform: item.Platform || "no data",
+                  Report_Type: reportType || "no data",
+                  DOI: ids.DOI || "no data",
+                  Proprietary_Identifier: Proprietary_Identifier || "no data",
+                  ISBN: ids.ISBN || "no data",
+                  Print_ISSN: ids.Print_ISSN || "no data",
+                  Online_ISSN: ids.Online_ISSN || "no data",
+                  URI: "no data",
+                  Metric_Type: metric,
+                  Counter_Complaint: "no data",
+                  Year: year,
+                  Month: "",
+                  YTD: 0,
+                  ...structuredClone(monthCountsTemplate),
+                  YOP: item.YOP || "no data",
+                  Data_Type: dataType,
+                  Access_Type: item.Access_Type || "no data",
+                  Access_Method: item.Access_Method || "no data",
+                  Section_Type: item.Section_Type || "no data",
+                };
+              }
+
+              rowsMap[key].YTD += count;
+              rowsMap[key][monthStr] += count;
             }
-
-            rowsMap[key].YTD += count;
-            rowsMap[key][monthStr] += count;
-          });
+          }
         });
       });
     });
+
+
+
+    ///old data
 
     const allCombinedRows = Object.values(rowsMap);
 
@@ -171,7 +270,6 @@ export default function FetcherReports() {
         toast.success("Report downloaded successfully!");
       });
   }
-
 
   const reportOptions = [
     "TR",
@@ -319,7 +417,7 @@ export default function FetcherReports() {
           attribute = "";
         }
 
-        const url = `https://${selectedSite}/sushi/reports/${reportType}/?api_key=${library.apiKey}&customer_id=${library.customerId}&requestor_id=${library.requestorId}&begin_date=${start}&end_date=${end}${attribute}`;
+        const url = `https://${selectedSite}/sushi/r51/reports/${reportType}/?api_key=${library.apiKey}&customer_id=${library.customerId}&requestor_id=${library.requestorId}&begin_date=${start}&end_date=${end}${attribute}`;
 
         console.log("Fetching URL:", url);
         try {
@@ -348,7 +446,9 @@ export default function FetcherReports() {
         });
         const fileName = `report_${reportType}_${formattedStartDate}_to_${formattedEndDate}.json`;
         try {
-          const file = await fileHandle.getFileHandle(fileName, { create: true });
+          const file = await fileHandle.getFileHandle(fileName, {
+            create: true,
+          });
           await saveFileWithHandle(file, blob);
         } catch (error) {
           logs.push(`Failed to save file for ${reportType}: ${error.message}`);
@@ -363,14 +463,15 @@ export default function FetcherReports() {
       const logBlob = new Blob([logContent], { type: "text/plain" });
       const logFileName = `logs_${formattedStartDate}_to_${formattedEndDate}.txt`;
       try {
-        const logFile = await fileHandle.getFileHandle(logFileName, { create: true });
+        const logFile = await fileHandle.getFileHandle(logFileName, {
+          create: true,
+        });
         await saveFileWithHandle(logFile, logBlob);
       } catch (error) {
         toast.error(`Failed to save log file: ${error.message}`);
       }
     }
   };
-
 
   return (
     <>
@@ -529,10 +630,11 @@ export default function FetcherReports() {
                     <div
                       key={report}
                       onClick={() => toggleReport(report)}
-                      className={` p-2 rounded-md flex items-center gap-1 hover:bg-green-200 transition-all duration-200 cursor-pointer ${selectedReports.includes(report)
-                        ? "bg-green-200"
-                        : "bg-gray-100"
-                        }`}
+                      className={` p-2 rounded-md flex items-center gap-1 hover:bg-green-200 transition-all duration-200 cursor-pointer ${
+                        selectedReports.includes(report)
+                          ? "bg-green-200"
+                          : "bg-gray-100"
+                      }`}
                     >
                       <input
                         type="checkbox"
@@ -597,10 +699,11 @@ export default function FetcherReports() {
                   <div
                     key={lib.customerId}
                     onClick={() => toggleLibrary(lib.customerId)}
-                    className={` p-2 rounded-md flex items-center gap-1 hover:bg-green-200 transition-all duration-200 cursor-pointer ${selectedLibraries.includes(lib.customerId)
-                      ? "bg-green-200"
-                      : "bg-gray-100"
-                      }`}
+                    className={` p-2 rounded-md flex items-center gap-1 hover:bg-green-200 transition-all duration-200 cursor-pointer ${
+                      selectedLibraries.includes(lib.customerId)
+                        ? "bg-green-200"
+                        : "bg-gray-100"
+                    }`}
                   >
                     <input
                       type="checkbox"
