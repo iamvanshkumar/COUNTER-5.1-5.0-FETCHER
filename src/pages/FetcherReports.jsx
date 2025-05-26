@@ -42,88 +42,6 @@ export default function FetcherReports() {
       Dec: 0,
     };
 
-    // const reportTypes = new Set(); // Collect report types
-
-    // allReports.forEach(({ data, libraryCode }) => {
-    //   const reportHeader = data.Report_Header || {};
-    //   let reportType = reportHeader.Report_ID;
-
-    //   // Fallback: try using reportName from reportHeader or a known type in data
-    //   if (!reportType) {
-    //     if (data.Report_Header?.Report_Name) {
-    //       // Try to infer it from Report_Name
-    //       const name = data.Report_Header.Report_Name;
-    //       if (name.startsWith("Journal")) reportType = "TR_J1";
-    //       else if (name.startsWith("Book")) reportType = "TR_B1";
-    //       else if (name.startsWith("Platform")) reportType = "PR_P1";
-    //       else if (name.startsWith("Database")) reportType = "DR_D1";
-    //       else reportType = "TR"; // default guess
-    //     } else {
-    //       reportType = "Unknown";
-    //     }
-    //   }
-
-    //   reportTypes.add(reportType);
-
-    //   data.Report_Items?.forEach((item) => {
-    //     const ids = {};
-    //     item.Item_ID?.forEach((id) => (ids[id.Type] = id.Value));
-
-    //     item.Performance?.forEach((perf) => {
-    //       const year = perf.Period.Begin_Date.slice(0, 4);
-    //       const month = perf.Period.Begin_Date.slice(5, 7);
-    //       const monthStr = new Date(`${year}-${month}-01`).toLocaleString(
-    //         "en-US",
-    //         { month: "short" }
-    //       );
-
-    //       perf.Instance?.forEach((inst) => {
-    //         const count = inst.Count;
-    //         const metric = inst.Metric_Type;
-    //         const key = `${libraryCode}|${ids.ISBN || "noisbn"}|${metric}`;
-
-    //         if (!rowsMap[key]) {
-    //           const Proprietary_Identifier = ids.Proprietary || "";
-    //           const pubCode = Proprietary_Identifier
-    //             ? Proprietary_Identifier.split(":")[0]
-    //             : "";
-
-    //           rowsMap[key] = {
-    //             Institution_Code: libraryCode || reportHeader.Customer_ID || "",
-    //             pub_code: ids.Proprietary?.split(":")[0] || "no data",
-    //             Title: item.Title || "no data",
-    //             Publisher: item.Publisher || "no data",
-    //             Publisher_Id: "no data",
-    //             Platform: item.Platform || "no data",
-    //             Collection_Platform: item.Platform || "no data",
-    //             Report_Type: reportType || "no data",
-    //             DOI: ids.DOI || "no data",
-    //             Proprietary_Identifier: Proprietary_Identifier || "no data",
-    //             ISBN: ids.ISBN || "no data",
-    //             Print_ISSN: ids.Print_ISSN || "no data",
-    //             Online_ISSN: ids.Online_ISSN || "no data",
-    //             URI: "no data",
-    //             Metric_Type: metric,
-    //             Counter_Complaint: "no data",
-    //             Year: year,
-    //             Month: "",
-    //             YTD: 0,
-    //             ...structuredClone(monthCountsTemplate),
-    //             YOP: item.YOP || "no data",
-    //             Data_Type: item.Data_Type || "no data",
-    //             Access_Type: item.Access_Type || "no data",
-    //             Access_Method: item.Access_Method || "no data",
-    //             Section_Type: item.Section_Type || "no data",
-    //           };
-    //         }
-
-    //         rowsMap[key].YTD += count;
-    //         rowsMap[key][monthStr] += count;
-    //       });
-    //     });
-    //   });
-    // });
-
     const reportTypes = new Set(); // Collect report types
 
     allReports.forEach(({ data, libraryCode }) => {
@@ -131,7 +49,7 @@ export default function FetcherReports() {
       let reportType = reportHeader.Report_ID || "Unknown";
 
       if (!reportType && data.Report_Header?.Report_Name) {
-        const name = data.Report_Header.Report_Name;
+        const name = data.Report_Header.Report_Name;  
         if (name.startsWith("Journal")) reportType = "TR_J1";
         else if (name.startsWith("Book")) reportType = "TR_B1";
         else if (name.startsWith("Platform")) reportType = "PR_P1";
