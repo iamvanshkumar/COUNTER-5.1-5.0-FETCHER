@@ -17,6 +17,7 @@ export default function FetcherReports() {
   }, [history]);
 
   const [selectedPlatform, setSelectedPlatform] = useState("ASM");
+  const [selectedVersion, setSelectedVersion] = useState("5.1");
   const [file, setFile] = useState(null);
   const [libraryDetails, setLibraryDetails] = useState([]);
   const [selectedLibraries, setSelectedLibraries] = useState([]);
@@ -49,7 +50,7 @@ export default function FetcherReports() {
       let reportType = reportHeader.Report_ID || "Unknown";
 
       if (!reportType && data.Report_Header?.Report_Name) {
-        const name = data.Report_Header.Report_Name;  
+        const name = data.Report_Header.Report_Name;
         if (name.startsWith("Journal")) reportType = "TR_J1";
         else if (name.startsWith("Book")) reportType = "TR_B1";
         else if (name.startsWith("Platform")) reportType = "PR_P1";
@@ -323,6 +324,9 @@ export default function FetcherReports() {
       for (const library of chosenLibraries) {
         const asm = "sitemaster.dl.asminternational.org";
         const rsc = "sitemaster.books.rsc.org";
+        const r51 = "r51/";
+
+        const Version = selectedVersion === "5.1" ? r51 : "";
         const selectedSite = selectedPlatform === "ASM" ? asm : rsc;
 
         const start = formatDate(startDate);
@@ -339,7 +343,7 @@ export default function FetcherReports() {
           attribute = "";
         }
 
-        const url = `https://${selectedSite}/sushi/r51/reports/${reportType}/?api_key=${library.apiKey}&customer_id=${library.customerId}&requestor_id=${library.requestorId}&begin_date=${start}&end_date=${end}${attribute}`;
+        const url = `https://${selectedSite}/sushi/${Version}reports/${reportType}/?api_key=${library.apiKey}&customer_id=${library.customerId}&requestor_id=${library.requestorId}&begin_date=${start}&end_date=${end}${attribute}`;
 
         toast.info(`Fetching data for : sss_S_${library.customerId}`);
         try {
@@ -355,12 +359,17 @@ export default function FetcherReports() {
           });
           const responseFileName = `response_${library.customerId}_${reportType}_${start}_to_${end}.json`;
           try {
-            const responseFile = await fileHandle.getFileHandle(responseFileName, {
-              create: true,
-            });
+            const responseFile = await fileHandle.getFileHandle(
+              responseFileName,
+              {
+                create: true,
+              }
+            );
             await saveFileWithHandle(responseFile, responseBlob);
           } catch (error) {
-            logs.push(`Failed to save response file for ${library.customerId}: ${error.message}`);
+            logs.push(
+              `Failed to save response file for ${library.customerId}: ${error.message}`
+            );
           }
         } catch (error) {
           logs.push(
@@ -492,51 +501,100 @@ export default function FetcherReports() {
               </div>
             </div>
             <section className="flex flex-col gap-2">
-              {/* platform  */}
-              <div className="bg-white p-3 flex flex-col gap-4 rounded-md shadow-md border border-gray-100">
-                <div className="flex flex-col gap-2 justify-between">
-                  <h4 className="text-xs text-gray-600 font-semibold flex items-center gap-1">
-                    <i className="bx bxs-user-rectangle  text-red-500"></i>
-                    Platform
-                  </h4>
-                  <div className="flex items-center gap-2">
-                    <div className="flex w-full items-center ps-4 border border-gray-200 hover:bg-gray-50 rounded-md cursor-pointer dark:border-gray-700">
-                      <input
-                        id="bordered-radio-1"
-                        type="radio"
-                        value="ASM"
-                        name="platform"
-                        checked={selectedPlatform === "ASM"}
-                        onChange={() => setSelectedPlatform("ASM")}
-                        className="w-4 h-4 text-red-500 bg-gray-100 border-gray-300 focus:ring-blue-500 cursor-pointer"
-                      />
-                      <label
-                        htmlFor="bordered-radio-1"
-                        className="w-full py-2 ms-2 text-sm font-medium text-gray-900 dark:text-gray-300"
-                      >
-                        ASM
-                      </label>
-                    </div>
-                    <div className="flex w-full items-center ps-4 border border-gray-200 hover:bg-gray-50 rounded-md cursor-pointer">
-                      <input
-                        id="bordered-radio-2"
-                        type="radio"
-                        value="RSC"
-                        name="platform"
-                        checked={selectedPlatform === "RSC"}
-                        onChange={() => setSelectedPlatform("RSC")}
-                        className="w-4 h-4 text-red-500 bg-gray-100 border-gray-300 focus:ring-blue-500  cursor-pointer"
-                      />
-                      <label
-                        htmlFor="bordered-radio-2"
-                        className="w-full py-2 ms-2 text-sm font-medium text-gray-900 dark:text-gray-300"
-                      >
-                        RSC
-                      </label>
+              <div className="grid grid-cols-2 gap-2">
+                {/* report version  */}
+                <div className="bg-white p-3 flex flex-col gap-4 rounded-md shadow-md border border-gray-100">
+                  <div className="flex flex-col gap-2 justify-between">
+                    <h4 className="text-xs text-gray-600 font-semibold flex items-center gap-1">
+                      <i className="bx bxs-circle text-red-500"></i>
+                     SUSHI Version
+                    </h4>
+                    <div className="flex items-center gap-2">
+                      <div className="flex w-full items-center ps-4 border border-gray-200 hover:bg-gray-50 rounded-md cursor-pointer dark:border-gray-700">
+                        <input
+                          id="bordered-radio-1"
+                          type="radio"
+                          value="5.0"
+                          name="version"
+                          checked={selectedVersion === "5.0"}
+                          onChange={() => setSelectedVersion("5.0")}
+                          className="w-4 h-4 text-red-500 bg-gray-100 border-gray-300 focus:ring-blue-500 cursor-pointer"
+                        />
+                        <label
+                          htmlFor="bordered-radio-1"
+                          className="w-full py-2 ms-2 text-sm font-medium text-gray-900"
+                        >
+                          5.0
+                        </label>
+                      </div>
+                      <div className="flex w-full items-center ps-4 border border-gray-200 hover:bg-gray-50 rounded-md cursor-pointer">
+                        <input
+                          id="bordered-radio-2"
+                          type="radio"
+                          value="5.1"
+                          name="version"
+                          checked={selectedVersion === "5.1"}
+                          onChange={() => setSelectedVersion("5.1")}
+                          className="w-4 h-4 text-red-500 bg-gray-100 border-gray-300 focus:ring-blue-500  cursor-pointer"
+                        />
+                        <label
+                          htmlFor="bordered-radio-2"
+                          className="w-full py-2 ms-2 text-sm font-medium text-gray-900"
+                        >
+                          5.1
+                        </label>
+                      </div>
                     </div>
                   </div>
                 </div>
+                {/* platform  */}
+                <div className="bg-white p-3 flex flex-col gap-4 rounded-md shadow-md border border-gray-100">
+                  <div className="flex flex-col gap-2 justify-between">
+                    <h4 className="text-xs text-gray-600 font-semibold flex items-center gap-1">
+                      <i className="bx bxs-user-rectangle  text-red-500"></i>
+                      Platform
+                    </h4>
+                    <div className="flex items-center gap-2">
+                      <div className="flex w-full items-center ps-4 border border-gray-200 hover:bg-gray-50 rounded-md cursor-pointer dark:border-gray-700">
+                        <input
+                          id="bordered-radio-1"
+                          type="radio"
+                          value="ASM"
+                          name="platform"
+                          checked={selectedPlatform === "ASM"}
+                          onChange={() => setSelectedPlatform("ASM")}
+                          className="w-4 h-4 text-red-500 bg-gray-100 border-gray-300 focus:ring-blue-500 cursor-pointer"
+                        />
+                        <label
+                          htmlFor="bordered-radio-1"
+                          className="w-full py-2 ms-2 text-sm font-medium text-gray-900 dark:text-gray-300"
+                        >
+                          ASM
+                        </label>
+                      </div>
+                      <div className="flex w-full items-center ps-4 border border-gray-200 hover:bg-gray-50 rounded-md cursor-pointer">
+                        <input
+                          id="bordered-radio-2"
+                          type="radio"
+                          value="RSC"
+                          name="platform"
+                          checked={selectedPlatform === "RSC"}
+                          onChange={() => setSelectedPlatform("RSC")}
+                          className="w-4 h-4 text-red-500 bg-gray-100 border-gray-300 focus:ring-blue-500  cursor-pointer"
+                        />
+                        <label
+                          htmlFor="bordered-radio-2"
+                          className="w-full py-2 ms-2 text-sm font-medium text-gray-900 dark:text-gray-300"
+                        >
+                          RSC
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
               </div>
+
               {/* Report Types */}
               <div className="bg-white p-3 flex flex-col gap-4 rounded-md shadow-md border border-gray-100">
                 <div className="flex items-center justify-between">
