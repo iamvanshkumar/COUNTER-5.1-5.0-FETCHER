@@ -124,361 +124,367 @@ export default function FetcherReports() {
     //   });
     // });
 
-    const reportTypes = new Set(); // Collect report types
+  //   const reportTypes = new Set(); // Collect report types
 
-    allReports.forEach(({ data, libraryCode }) => {
-      const reportHeader = data.Report_Header || {};
-      let reportType = reportHeader.Report_ID || "Unknown";
+  //   allReports.forEach(({ data, libraryCode }) => {
+  //     const reportHeader = data.Report_Header || {};
+  //     let reportType = reportHeader.Report_ID || "Unknown";
 
-      if (!reportType && data.Report_Header?.Report_Name) {
-        const name = data.Report_Header.Report_Name;
-        if (name.startsWith("Journal")) reportType = "TR_J1";
-        else if (name.startsWith("Book")) reportType = "TR_B1";
-        else if (name.startsWith("Platform")) reportType = "PR_P1";
-        else if (name.startsWith("Database")) reportType = "DR_D1";
-        else reportType = "TR";
-      }
+  //     if (!reportType && data.Report_Header?.Report_Name) {
+  //       const name = data.Report_Header.Report_Name;
+  //       if (name.startsWith("Journal")) reportType = "TR_J1";
+  //       else if (name.startsWith("Book")) reportType = "TR_B1";
+  //       else if (name.startsWith("Platform")) reportType = "PR_P1";
+  //       else if (name.startsWith("Database")) reportType = "DR_D1";
+  //       else reportType = "TR";
+  //     }
 
-      reportTypes.add(reportType);
+  //     reportTypes.add(reportType);
 
-      const institutionCode =
-        libraryCode ||
-        reportHeader.Institution_ID?.Proprietary?.[0]?.split(":")[1] ||
-        "";
+  //     const institutionCode =
+  //       libraryCode ||
+  //       reportHeader.Institution_ID?.Proprietary?.[0]?.split(":")[1] ||
+  //       "";
 
-      data.Report_Items?.forEach((item) => {
-        const ids = {
-          Proprietary: item.Item_ID?.Proprietary || "",
-          DOI: item.Item_ID?.DOI || "",
-          ISBN: item.Item_ID?.ISBN || "",
-          Print_ISSN: item.Item_ID?.Print_ISSN || "",
-          Online_ISSN: item.Item_ID?.Online_ISSN || "",
-        };
+  //     data.Report_Items?.forEach((item) => {
+  //       const ids = {
+  //         Proprietary: item.Item_ID?.Proprietary || "",
+  //         DOI: item.Item_ID?.DOI || "",
+  //         ISBN: item.Item_ID?.ISBN || "",
+  //         Print_ISSN: item.Item_ID?.Print_ISSN || "",
+  //         Online_ISSN: item.Item_ID?.Online_ISSN || "",
+  //       };
 
-        item.Attribute_Performance?.forEach((attr) => {
-          const dataType = attr.Data_Type || "no data";
-          const accessType = attr.Access_Type || "no data";
-          const accessMethod = attr.Access_Method || "no data";
-          const yop = attr.YOP || "no data";
+  //       item.Attribute_Performance?.forEach((attr) => {
+  //         const dataType = attr.Data_Type || "no data";
+  //         const accessType = attr.Access_Type || "no data";
+  //         const accessMethod = attr.Access_Method || "no data";
+  //         const yop = attr.YOP || "no data";
 
-          console.log("attr", attr);
-          console.log("YOP", yop);
+  //         console.log("attr", attr);
+  //         console.log("YOP", yop);
 
-          const performance = attr.Performance;
+  //         const performance = attr.Performance;
 
-          for (const [metric, valuesByMonth] of Object.entries(
-            performance || {}
-          )) {
-            for (const [dateStr, count] of Object.entries(
-              valuesByMonth || {}
-            )) {
-              const year = dateStr.slice(0, 4);
-              const month = dateStr.slice(5, 7);
-              const monthStr = new Date(`${year}-${month}-01`).toLocaleString(
-                "en-US",
-                {
-                  month: "short",
-                }
-              );
+  //         for (const [metric, valuesByMonth] of Object.entries(
+  //           performance || {}
+  //         )) {
+  //           for (const [dateStr, count] of Object.entries(
+  //             valuesByMonth || {}
+  //           )) {
+  //             const year = dateStr.slice(0, 4);
+  //             const month = dateStr.slice(5, 7);
+  //             const monthStr = new Date(`${year}-${month}-01`).toLocaleString(
+  //               "en-US",
+  //               {
+  //                 month: "short",
+  //               }
+  //             );
 
-              const key = `${institutionCode}|${
-                ids.ISBN || "noisbn"
-              }|${metric}`;
+  //             const key = `${institutionCode}|${
+  //               ids.ISBN || "noisbn"
+  //             }|${metric}`;
 
-              if (!rowsMap[key]) {
-                const Proprietary_Identifier = ids.Proprietary || "";
-                const pubCode = Proprietary_Identifier
-                  ? Proprietary_Identifier.split(":")[0]
-                  : "";
+  //             if (!rowsMap[key]) {
+  //               const Proprietary_Identifier = ids.Proprietary || "";
+  //               const pubCode = Proprietary_Identifier
+  //                 ? Proprietary_Identifier.split(":")[0]
+  //                 : "";
 
-                rowsMap[key] = {
-                  Institution_Code: institutionCode,
-                  pub_code: pubCode || "no data",
-                  Title: item.Title || "no data",
-                  Publisher: item.Publisher || "no data",
-                  Publisher_Id: "no data",
-                  Platform: item.Platform || "no data",
-                  Collection_Platform: item.Platform || "no data",
-                  Report_Type: reportType || "no data",
-                  DOI: ids.DOI || "no data",
-                  Proprietary_Identifier: Proprietary_Identifier || "no data",
-                  ISBN: ids.ISBN || "no data",
-                  Print_ISSN: ids.Print_ISSN || "no data",
-                  Online_ISSN: ids.Online_ISSN || "no data",
-                  URI: "no data",
-                  Metric_Type: metric,
-                  Counter_Complaint: "no data",
-                  Year: year,
-                  Month: "",
-                  YTD: 0,
-                  ...structuredClone(monthCountsTemplate),
-                  YOP: yop,
-                  Data_Type: dataType,
-                  Access_Type: accessType,
-                  Access_Method: accessMethod,
-                  Section_Type: item.Section_Type || "no data",
-                };
-              }
+  //               rowsMap[key] = {
+  //                 Institution_Code: institutionCode,
+  //                 pub_code: pubCode || "no data",
+  //                 Title: item.Title || "no data",
+  //                 Publisher: item.Publisher || "no data",
+  //                 Publisher_Id: "no data",
+  //                 Platform: item.Platform || "no data",
+  //                 Collection_Platform: item.Platform || "no data",
+  //                 Report_Type: reportType || "no data",
+  //                 DOI: ids.DOI || "no data",
+  //                 Proprietary_Identifier: Proprietary_Identifier || "no data",
+  //                 ISBN: ids.ISBN || "no data",
+  //                 Print_ISSN: ids.Print_ISSN || "no data",
+  //                 Online_ISSN: ids.Online_ISSN || "no data",
+  //                 URI: "no data",
+  //                 Metric_Type: metric,
+  //                 Counter_Complaint: "no data",
+  //                 Year: year,
+  //                 Month: "",
+  //                 YTD: 0,
+  //                 ...structuredClone(monthCountsTemplate),
+  //                 YOP: yop,
+  //                 Data_Type: dataType,
+  //                 Access_Type: accessType,
+  //                 Access_Method: accessMethod,
+  //                 Section_Type: item.Section_Type || "no data",
+  //               };
+  //             }
 
-              rowsMap[key].YTD += count;
-              rowsMap[key][monthStr] += count;
-            }
-          }
-        });
-      });
-    });
+  //             rowsMap[key].YTD += count;
+  //             rowsMap[key][monthStr] += count;
+  //           }
+  //         }
+  //       });
+  //     });
+  //   });
 
-    ///old data
+  //   ///old data
 
-    const allCombinedRows = Object.values(rowsMap);
+  //   const allCombinedRows = Object.values(rowsMap);
 
-    if (allCombinedRows.length === 0) {
-      toast.error("No data available to generate the CSV file.");
-      return;
-    }
+  //   if (allCombinedRows.length === 0) {
+  //     toast.error("No data available to generate the CSV file.");
+  //     return;
+  //   }
 
-    const csv = Papa.unparse(allCombinedRows);
-    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    const formattedStartDate = new Date(startDate).toISOString().split("T")[0];
-    const formattedEndDate = new Date(endDate).toISOString().split("T")[0];
+  //   const csv = Papa.unparse(allCombinedRows);
+  //   const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+  //   const url = URL.createObjectURL(blob);
+  //   const a = document.createElement("a");
+  //   const formattedStartDate = new Date(startDate).toISOString().split("T")[0];
+  //   const formattedEndDate = new Date(endDate).toISOString().split("T")[0];
 
-    const reportTypeString = Array.from(reportTypes).join("_");
-    a.download = `${reportTypeString}_Combined_Report_${formattedStartDate}_to_${formattedEndDate}.csv`;
-    a.href = url;
-    a.click();
-    URL.revokeObjectURL(url);
+  //   const reportTypeString = Array.from(reportTypes).join("_");
+  //   a.download = `${reportTypeString}_Combined_Report_${formattedStartDate}_to_${formattedEndDate}.csv`;
+  //   a.href = url;
+  //   a.click();
+  //   URL.revokeObjectURL(url);
 
-    fetch("http://localhost:3001/api/insertReport", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ rows: allCombinedRows }),
-    })
-      .then((res) => res.json())
-      .then((result) => {
-        if (result.tableName && result.tableName.trim()) {
-          toast.info(`Data inserted into table : "${result.tableName}"`, {
-            autoClose: false,
-            hideProgressBar: true,
-            pauseOnHover: true,
-          });
-        } else {
-          toast.error("No data found to insert.");
-        }
-      })
-      .catch((err) => {
-        console.error("Error sending data to backend:", err);
-        toast.error("Failed to insert data into database.");
-      })
-      .finally(() => {
-        toast.success("Report downloaded successfully!");
-      });
-  }
+  //   fetch("http://localhost:3001/api/insertReport", {
+  //     method: "POST",
+  //     headers: {
+  //       "Content-Type": "application/json",
+  //     },
+  //     body: JSON.stringify({ rows: allCombinedRows }),
+  //   })
+  //     .then((res) => res.json())
+  //     .then((result) => {
+  //       if (result.tableName && result.tableName.trim()) {
+  //         toast.info(`Data inserted into table : "${result.tableName}"`, {
+  //           autoClose: false,
+  //           hideProgressBar: true,
+  //           pauseOnHover: true,
+  //         });
+  //       } else {
+  //         toast.error("No data found to insert.");
+  //       }
+  //     })
+  //     .catch((err) => {
+  //       console.error("Error sending data to backend:", err);
+  //       toast.error("Failed to insert data into database.");
+  //     })
+  //     .finally(() => {
+  //       toast.success("Report downloaded successfully!");
+  //     });
+  // }
 
-  const reportOptions = [
-    "TR",
-    "TR_J1",
-    "TR_J2",
-    "TR_J3",
-    "TR_J4",
-    "TR_B1",
-    "TR_B2",
-    "TR_B3",
-    "DR",
-    "DR_D1",
-    "DR_D2",
-    "PR",
-    "PR_P1",
-  ];
+  // const reportOptions = [
+  //   "TR",
+  //   "TR_J1",
+  //   "TR_J2",
+  //   "TR_J3",
+  //   "TR_J4",
+  //   "TR_B1",
+  //   "TR_B2",
+  //   "TR_B3",
+  //   "DR",
+  //   "DR_D1",
+  //   "DR_D2",
+  //   "PR",
+  //   "PR_P1",
+  // ];
 
-  const handleFileChange = (event) => {
-    const file = event.target.files[0];
-    setFile(file);
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const csvData = e.target.result;
-        const rows = csvData.split("\n").filter((row) => row.trim() !== "");
-        const headers = rows[0].split(",").map((header) => header.trim());
-        const parsedDetails = rows.slice(1).map((row) => {
-          const values = row.split(",");
-          const details = {};
-          headers.forEach((header, index) => {
-            details[header] = values[index] ? values[index].trim() : "";
-          });
-          return {
-            libraryCode: details["LIB_code"],
-            apiKey: details["api_key"],
-            requestorId: details["Requestor_ID"],
-            customerId: details["Customer_ID"],
-          };
-        });
-        setLibraryDetails(parsedDetails);
-      };
-      reader.readAsText(file);
-    }
-  };
+  // const handleFileChange = (event) => {
+  //   const file = event.target.files[0];
+  //   setFile(file);
+  //   if (file) {
+  //     const reader = new FileReader();
+  //     reader.onload = (e) => {
+  //       const csvData = e.target.result;
+  //       const rows = csvData.split("\n").filter((row) => row.trim() !== "");
+  //       const headers = rows[0].split(",").map((header) => header.trim());
+  //       const parsedDetails = rows.slice(1).map((row) => {
+  //         const values = row.split(",");
+  //         const details = {};
+  //         headers.forEach((header, index) => {
+  //           details[header] = values[index] ? values[index].trim() : "";
+  //         });
+  //         return {
+  //           libraryCode: details["LIB_code"],
+  //           apiKey: details["api_key"],
+  //           requestorId: details["Requestor_ID"],
+  //           customerId: details["Customer_ID"],
+  //         };
+  //       });
+  //       setLibraryDetails(parsedDetails);
+  //     };
+  //     reader.readAsText(file);
+  //   }
+  // };
 
-  const toggleAllReports = () => {
-    if (allReportsSelected) {
-      setSelectedReports([]);
-    } else {
-      setSelectedReports(reportOptions);
-    }
-    setAllReportsSelected(!allReportsSelected);
-  };
+  // const toggleAllReports = () => {
+  //   if (allReportsSelected) {
+  //     setSelectedReports([]);
+  //   } else {
+  //     setSelectedReports(reportOptions);
+  //   }
+  //   setAllReportsSelected(!allReportsSelected);
+  // };
 
-  const toggleReport = (report) => {
-    setSelectedReports((prev) =>
-      prev.includes(report)
-        ? prev.filter((r) => r !== report)
-        : [...prev, report]
-    );
-  };
+  // const toggleReport = (report) => {
+  //   setSelectedReports((prev) =>
+  //     prev.includes(report)
+  //       ? prev.filter((r) => r !== report)
+  //       : [...prev, report]
+  //   );
+  // };
 
-  const toggleLibrary = (customerId) => {
-    setSelectedLibraries((prev) =>
-      prev.includes(customerId)
-        ? prev.filter((id) => id !== customerId)
-        : [...prev, customerId]
-    );
-  };
+  // const toggleLibrary = (customerId) => {
+  //   setSelectedLibraries((prev) =>
+  //     prev.includes(customerId)
+  //       ? prev.filter((id) => id !== customerId)
+  //       : [...prev, customerId]
+  //   );
+  // };
 
-  useEffect(() => {
-    setAllLibrariesSelected(selectedLibraries.length === libraryDetails.length);
-  }, [selectedLibraries, libraryDetails]);
+  // useEffect(() => {
+  //   setAllLibrariesSelected(selectedLibraries.length === libraryDetails.length);
+  // }, [selectedLibraries, libraryDetails]);
 
-  const saveFileWithHandle = async (handle, blob) => {
-    try {
-      const writable = await handle.createWritable();
-      await writable.write(blob);
-      await writable.close();
-    } catch (error) {
-      throw new Error(`Failed to save file: ${error.message}`);
-    }
-  };
+  // const saveFileWithHandle = async (handle, blob) => {
+  //   try {
+  //     const writable = await handle.createWritable();
+  //     await writable.write(blob);
+  //     await writable.close();
+  //   } catch (error) {
+  //     throw new Error(`Failed to save file: ${error.message}`);
+  //   }
+  // };
 
-  const handleDownload = async () => {
-    if (!startDate || !endDate) {
-      toast.error("Please select a valid date range.");
-      return;
-    }
-    if (selectedReports.length === 0) {
-      toast.error("Please select at least one report type.");
-      return;
-    }
-    if (selectedLibraries.length === 0) {
-      toast.error("Please select at least one library.");
-      return;
-    }
+  // const handleDownload = async () => {
+  //   if (!startDate || !endDate) {
+  //     toast.error("Please select a valid date range.");
+  //     return;
+  //   }
+  //   if (selectedReports.length === 0) {
+  //     toast.error("Please select at least one report type.");
+  //     return;
+  //   }
+  //   if (selectedLibraries.length === 0) {
+  //     toast.error("Please select at least one library.");
+  //     return;
+  //   }
 
-    setProgress(0); // Reset progress at the beginning
+  //   setProgress(0); // Reset progress at the beginning
 
-    const formattedStartDate = new Date(startDate).toISOString().split("T")[0];
-    const formattedEndDate = new Date(endDate).toISOString().split("T")[0];
-    const chosenLibraries = libraryDetails.filter((lib) =>
-      selectedLibraries.includes(lib.customerId)
-    );
-    const logs = [];
-    const totalTasks = selectedReports.length * chosenLibraries.length;
-    let completedTasks = 0;
-    toast.info("Preparing your report for download...");
+  //   const formattedStartDate = new Date(startDate).toISOString().split("T")[0];
+  //   const formattedEndDate = new Date(endDate).toISOString().split("T")[0];
+  //   const chosenLibraries = libraryDetails.filter((lib) =>
+  //     selectedLibraries.includes(lib.customerId)
+  //   );
+  //   const logs = [];
+  //   const totalTasks = selectedReports.length * chosenLibraries.length;
+  //   let completedTasks = 0;
+  //   toast.info("Preparing your report for download...");
 
-    const formatDate = (date) => {
-      const d = new Date(date);
-      return selectedPlatform === "RSC"
-        ? d.toISOString().slice(0, 7)
-        : d.toISOString().split("T")[0];
-    };
+  //   const formatDate = (date) => {
+  //     const d = new Date(date);
+  //     return selectedPlatform === "RSC"
+  //       ? d.toISOString().slice(0, 7)
+  //       : d.toISOString().split("T")[0];
+  //   };
 
-    let fileHandle = null;
-    try {
-      fileHandle = await window.showDirectoryPicker();
-    } catch (error) {
-      toast.error("Failed to select directory.");
-      return;
-    }
+  //   let fileHandle = null;
+  //   try {
+  //     fileHandle = await window.showDirectoryPicker();
+  //   } catch (error) {
+  //     toast.error("Failed to select directory.");
+  //     return;
+  //   }
 
-    for (const reportType of selectedReports) {
-      const combinedData = [];
+  //   for (const reportType of selectedReports) {
+  //     const combinedData = [];
 
-      for (const library of chosenLibraries) {
-        const asm = "sitemaster.dl.asminternational.org";
-        const rsc = "sitemaster.books.rsc.org";
-        const selectedSite = selectedPlatform === "ASM" ? asm : rsc;
+  //     for (const library of chosenLibraries) {
+  //       const asm = "sitemaster.dl.asminternational.org";
+  //       const rsc = "sitemaster.books.rsc.org";
+  //       const selectedSite = selectedPlatform === "ASM" ? asm : rsc;
 
-        const start = formatDate(startDate);
-        const end = formatDate(endDate);
+  //       const start = formatDate(startDate);
+  //       const end = formatDate(endDate);
 
-        let attribute = "";
+  //       let attribute = "";
 
-        if (reportType === "TR") {
-          attribute =
-            "&attributes_to_show=Access_Type|YOP|Access_Method|Data_Type|Section_Type";
-        } else if (reportType === "PR" || reportType === "DR") {
-          attribute = "&attributes_to_show=Access_Method|Data_Type";
-        } else {
-          attribute = "";
-        }
+  //       if (reportType === "TR") {
+  //         attribute =
+  //           "&attributes_to_show=Access_Type|YOP|Access_Method|Data_Type|Section_Type";
+  //       } else if (reportType === "PR" || reportType === "DR") {
+  //         attribute = "&attributes_to_show=Access_Method|Data_Type";
+  //       } else {
+  //         attribute = "";
+  //       }
 
-        const url = `https://${selectedSite}/sushi/r51/reports/${reportType}/?api_key=${library.apiKey}&customer_id=${library.customerId}&requestor_id=${library.requestorId}&begin_date=${start}&end_date=${end}${attribute}`;
+  //       const url = `https://${selectedSite}/sushi/r51/reports/${reportType}/?api_key=${library.apiKey}&customer_id=${library.customerId}&requestor_id=${library.requestorId}&begin_date=${start}&end_date=${end}${attribute}`;
 
-        console.log("Fetching URL:", url);
-        try {
-          const res = await fetch(url);
-          if (!res.ok) throw new Error(res.statusText);
-          const data = await res.json();
-          combinedData.push({ libraryCode: library.libraryCode, data });
-          logs.push(`Success: ${library.customerId} / ${library.requestorId}`);
-        } catch (error) {
-          logs.push(
-            `Error: ${library.customerId} / ${library.requestorId} - ${error.message}`
-          );
-        }
+  //       console.log("Fetching URL:", url);
+  //       try {
+  //         const res = await fetch(url);
+  //         if (!res.ok) throw new Error(res.statusText);
+  //         const data = await res.json();
+  //         combinedData.push({ libraryCode: library.libraryCode, data });
+  //         logs.push(`Success: ${library.customerId} / ${library.requestorId}`);
+  //       } catch (error) {
+  //         logs.push(
+  //           `Error: ${library.customerId} / ${library.requestorId} - ${error.message}`
+  //         );
+  //       }
 
-        // ✅ Add 2-second delay between each API hit
-        await new Promise((resolve) => setTimeout(resolve, 2000));
+  //       // ✅ Add 2-second delay between each API hit
+  //       await new Promise((resolve) => setTimeout(resolve, 2000));
 
-        completedTasks++;
-        setProgress(Math.round((completedTasks / totalTasks) * 100));
-      }
+  //       completedTasks++;
+  //       setProgress(Math.round((completedTasks / totalTasks) * 100));
+  //     }
 
-      if (combinedData.length > 0) {
-        generateCSVfromTR(combinedData);
-        const blob = new Blob([JSON.stringify(combinedData, null, 2)], {
-          type: "application/json",
-        });
-        const fileName = `report_${reportType}_${formattedStartDate}_to_${formattedEndDate}.json`;
-        try {
-          const file = await fileHandle.getFileHandle(fileName, {
-            create: true,
-          });
-          await saveFileWithHandle(file, blob);
-        } catch (error) {
-          logs.push(`Failed to save file for ${reportType}: ${error.message}`);
-        }
-      } else {
-        logs.push(`No data for ${reportType}`);
-      }
-    }
+  //     if (combinedData.length > 0) {
+  //       generateCSVfromTR(combinedData);
+  //       const blob = new Blob([JSON.stringify(combinedData, null, 2)], {
+  //         type: "application/json",
+  //       });
+  //       const fileName = `report_${reportType}_${formattedStartDate}_to_${formattedEndDate}.json`;
+  //       try {
+  //         const file = await fileHandle.getFileHandle(fileName, {
+  //       create: true,
+  //         });
+  //         const writable = await file.createWritable();
+  //         await writable.write(blob);
+  //         await writable.close();
+  //       } catch (error) {
+  //         logs.push(`Failed to save file for ${reportType}: ${error.message}`);
+  //       }
+  //     } else {
+  //       logs.push(`No data for ${reportType}`);
+  //     }
+  //   }
 
-    if (logs.length > 0) {
-      const logContent = logs.join("\n") || "No logs generated.";
-      const logBlob = new Blob([logContent], { type: "text/plain" });
-      const logFileName = `logs_${formattedStartDate}_to_${formattedEndDate}.txt`;
-      try {
-        const logFile = await fileHandle.getFileHandle(logFileName, {
-          create: true,
-        });
-        await saveFileWithHandle(logFile, logBlob);
-      } catch (error) {
-        toast.error(`Failed to save log file: ${error.message}`);
-      }
-    }
-  };
+  //   if (logs.length > 0) {
+  //     const logContent = logs.join("\n") || "No logs generated.";
+  //     const logBlob = new Blob([logContent], { type: "text/plain" });
+  //     const logFileName = `logs_${formattedStartDate}_to_${formattedEndDate}.txt`;
+  //     try {
+  //       const logFile = await fileHandle.getFileHandle(logFileName, {
+  //         create: true,
+  //       });
+  //       await saveFileWithHandle(logFile, logBlob);
+  //     } catch (error) {
+  //       toast.error(`Failed to save log file: ${error.message}`);
+  //     }
+  //   }
+  // };
+
+// ---------------------working code---------------------
+
+
 
   return (
     <>
