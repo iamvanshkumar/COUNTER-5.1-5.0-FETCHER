@@ -161,9 +161,6 @@ export default function FetcherReports() {
           const accessMethod = attr.Access_Method || "no data";
           const yop = attr.YOP || "no data";
 
-          console.log("attr", attr);
-          console.log("YOP", yop);
-
           const performance = attr.Performance;
 
           for (const [metric, valuesByMonth] of Object.entries(
@@ -426,7 +423,7 @@ export default function FetcherReports() {
 
         const url = `https://${selectedSite}/sushi/r51/reports/${reportType}/?api_key=${library.apiKey}&customer_id=${library.customerId}&requestor_id=${library.requestorId}&begin_date=${start}&end_date=${end}${attribute}`;
 
-        console.log("Fetching URL:", url);
+        toast.info(`Fetching data for : sss_S_${library.customerId}`);
         try {
           const res = await fetch(url);
           if (!res.ok) throw new Error(res.statusText);
