@@ -26,7 +26,7 @@ export default function FetcherReports() {
   const [endDate, setEndDate] = useState("");
   const [allReportsSelected, setAllReportsSelected] = useState(false);
   const [allLibrariesSelected, setAllLibrariesSelected] = useState(false);
-  function generateCSVfromTR(allReports) {
+  function generateCSVfromTR(allReports, logs = []) {
     const rowsMap = {};
     const monthCountsTemplate = {
       Jan: 0,
@@ -181,6 +181,9 @@ export default function FetcherReports() {
             hideProgressBar: true,
             pauseOnHover: true,
           });
+          logs.push(
+            `Data successfully inserted into table: ${result.tableName}`
+          );
         } else {
           toast.error("No data found to insert.");
         }
@@ -351,7 +354,7 @@ export default function FetcherReports() {
           if (!res.ok) throw new Error(res.statusText);
           const data = await res.json();
           combinedData.push({ libraryCode: library.libraryCode, data });
-          logs.push(`Success: ${library.customerId} / ${library.requestorId}`);
+          logs.push(`Success: sss_S_${library.customerId} / ${library.requestorId}`);
 
           // Save each response to a file
           const responseBlob = new Blob([JSON.stringify(data, null, 2)], {
@@ -385,7 +388,7 @@ export default function FetcherReports() {
       }
 
       if (combinedData.length > 0) {
-        generateCSVfromTR(combinedData);
+        generateCSVfromTR(combinedData, logs);
         const blob = new Blob([JSON.stringify(combinedData, null, 2)], {
           type: "application/json",
         });
