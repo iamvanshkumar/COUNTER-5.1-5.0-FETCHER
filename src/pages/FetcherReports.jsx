@@ -353,8 +353,22 @@ export default function FetcherReports() {
           const res = await fetch(url);
           if (!res.ok) throw new Error(res.statusText);
           const data = await res.json();
-          combinedData.push({ libraryCode: library.libraryCode, data });
-          logs.push(`Success: sss_S_${library.customerId} / ${library.requestorId}`);
+
+          // Check if Report_Items is empty
+          if (
+            data &&
+            Array.isArray(data.Report_Items) &&
+            data.Report_Items.length === 0
+          ) {
+            logs.push(
+              `No data: sss_S_${library.customerId} / ${library.requestorId} - No Data Found`
+            );
+          } else {
+            combinedData.push({ libraryCode: library.libraryCode, data });
+            logs.push(
+              `Success: sss_S_${library.customerId} / ${library.requestorId}`
+            );
+          }
 
           // Save each response to a file
           const responseBlob = new Blob([JSON.stringify(data, null, 2)], {
@@ -365,7 +379,7 @@ export default function FetcherReports() {
             const responseFile = await fileHandle.getFileHandle(
               responseFileName,
               {
-                create: true,
+          create: true,
               }
             );
             await saveFileWithHandle(responseFile, responseBlob);
