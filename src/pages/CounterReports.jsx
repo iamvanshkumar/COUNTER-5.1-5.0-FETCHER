@@ -189,7 +189,7 @@ export default function CounterReports() {
                   Select your report types
                 </h4>
               </div>
-              <div className="flex flex-col gap-2 grid grid-cols-2">
+              <div className="gap-2 grid grid-cols-2">
                 {CounterReportOptions.map((report) => (
                   <div
                     key={report}
@@ -219,7 +219,7 @@ export default function CounterReports() {
                   Select your report types
                 </h4>
               </div>
-              <div className="flex flex-col gap-2 grid grid-cols-2">
+              <div className="gap-2 grid grid-cols-2">
                 {reportOptions.map((report) => (
                   <div
                     key={report}
