@@ -97,9 +97,8 @@ export default function FetcherReports() {
                 }
               );
 
-              const key = `${institutionCode}|${
-                ids.ISBN || "noisbn"
-              }|${metric}`;
+              const key = `${institutionCode}|${ids.ISBN || "noisbn"
+                }|${metric}`;
 
               if (!rowsMap[key]) {
                 const Proprietary_Identifier = ids.Proprietary || "";
@@ -174,16 +173,37 @@ export default function FetcherReports() {
       body: JSON.stringify({ rows: allCombinedRows }),
     })
       .then((res) => res.json())
-      .then((result) => {
+      .then(async (result) => {
         if (result.tableName && result.tableName.trim()) {
           toast.info(`Data inserted into table : "${result.tableName}"`, {
             autoClose: false,
             hideProgressBar: true,
             pauseOnHover: true,
           });
-          logs.push(
-            `Data successfully inserted into table: ${result.tableName}`
-          );
+            // Create a new text file named as the table name and write the table name inside it
+            if (window.showDirectoryPicker) {
+              try {
+              const tableFile = await fileHandle.getFileHandle(`${result.tableName}.txt`, { create: true });
+              const tableBlob = new Blob([result.tableName], { type: "text/plain" });
+              await saveFileWithHandle(tableFile, tableBlob);
+              } catch (err) {
+              // Optionally handle error, e.g., show toast
+              toast.error(`Failed to save table name file: ${err.message}`);
+              }
+            }
+            // Write the table name to a file named "table_name.txt"
+            if (window.showDirectoryPicker) {
+              try {
+              const tableNameFile = await fileHandle.getFileHandle("table_name.txt", { create: true });
+              const tableNameBlob = new Blob([result.tableName], { type: "text/plain" });
+              await saveFileWithHandle(tableNameFile, tableNameBlob);
+              } catch (err) {
+              toast.error(`Failed to write table name to file: ${err.message}`);
+              }
+            }
+          // Print table name in console and log after completion
+            console.log(`Table name: ${result.tableName}`);
+            logs.push(`Table name: ${result.tableName}`);
         } else {
           toast.error("No data found to insert.");
         }
@@ -193,6 +213,8 @@ export default function FetcherReports() {
         toast.error("Failed to insert data into database.");
       })
       .finally(() => {
+        // Print all logs including table name after completion
+        console.log("Process logs:\n" + logs.join("\n"));
         toast.success("Report downloaded successfully!");
       });
   }
@@ -361,7 +383,7 @@ export default function FetcherReports() {
             data.Report_Items.length === 0
           ) {
             logs.push(
-              `No data: sss_S_${library.customerId} / ${library.requestorId} - No Data Found`
+              `Failed: sss_S_${library.customerId} / ${library.requestorId} - No Data Found`
             );
           } else {
             combinedData.push({ libraryCode: library.libraryCode, data });
@@ -379,7 +401,7 @@ export default function FetcherReports() {
             const responseFile = await fileHandle.getFileHandle(
               responseFileName,
               {
-          create: true,
+                create: true,
               }
             );
             await saveFileWithHandle(responseFile, responseBlob);
@@ -524,7 +546,7 @@ export default function FetcherReports() {
                   <div className="flex flex-col gap-2 justify-between">
                     <h4 className="text-xs text-gray-600 font-semibold flex items-center gap-1">
                       <i className="bx bxs-circle text-red-500"></i>
-                     SUSHI Version
+                      SUSHI Version
                     </h4>
                     <div className="flex items-center gap-2">
                       <div className="flex w-full items-center ps-4 border border-gray-200 hover:bg-gray-50 rounded-md cursor-pointer dark:border-gray-700">
@@ -641,11 +663,10 @@ export default function FetcherReports() {
                     <div
                       key={report}
                       onClick={() => toggleReport(report)}
-                      className={` p-2 rounded-md flex items-center gap-1 hover:bg-green-200 transition-all duration-200 cursor-pointer ${
-                        selectedReports.includes(report)
-                          ? "bg-green-200"
-                          : "bg-gray-100"
-                      }`}
+                      className={` p-2 rounded-md flex items-center gap-1 hover:bg-green-200 transition-all duration-200 cursor-pointer ${selectedReports.includes(report)
+                        ? "bg-green-200"
+                        : "bg-gray-100"
+                        }`}
                     >
                       <input
                         type="checkbox"
@@ -710,11 +731,10 @@ export default function FetcherReports() {
                   <div
                     key={lib.customerId}
                     onClick={() => toggleLibrary(lib.customerId)}
-                    className={` p-2 rounded-md flex items-center gap-1 hover:bg-green-200 transition-all duration-200 cursor-pointer ${
-                      selectedLibraries.includes(lib.customerId)
-                        ? "bg-green-200"
-                        : "bg-gray-100"
-                    }`}
+                    className={` p-2 rounded-md flex items-center gap-1 hover:bg-green-200 transition-all duration-200 cursor-pointer ${selectedLibraries.includes(lib.customerId)
+                      ? "bg-green-200"
+                      : "bg-gray-100"
+                      }`}
                   >
                     <input
                       type="checkbox"
