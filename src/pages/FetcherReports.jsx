@@ -26,7 +26,8 @@ export default function FetcherReports() {
   const [endDate, setEndDate] = useState("");
   const [allReportsSelected, setAllReportsSelected] = useState(false);
   const [allLibrariesSelected, setAllLibrariesSelected] = useState(false);
-  function generateCSVfromTR(allReports, logs = []) {
+
+  async function generateCSVfromTR(allReports, logs = []) {
     const rowsMap = {};
     const monthCountsTemplate = {
       Jan: 0,
@@ -43,7 +44,7 @@ export default function FetcherReports() {
       Dec: 0,
     };
 
-    const reportTypes = new Set(); // Collect report types
+    const reportTypes = new Set();
 
     allReports.forEach(({ data, libraryCode }) => {
       const reportHeader = data.Report_Header || {};
@@ -143,13 +144,11 @@ export default function FetcherReports() {
       });
     });
 
-    ///old data
-
     const allCombinedRows = Object.values(rowsMap);
 
     if (allCombinedRows.length === 0) {
       toast.error("No data available to generate the CSV file.");
-      return;
+      return logs;
     }
 
     const csv = Papa.unparse(allCombinedRows);
@@ -165,58 +164,38 @@ export default function FetcherReports() {
     a.click();
     URL.revokeObjectURL(url);
 
-    fetch("http://localhost:3001/api/insertReport", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ rows: allCombinedRows }),
-    })
-      .then((res) => res.json())
-      .then(async (result) => {
-        if (result.tableName && result.tableName.trim()) {
-          toast.info(`Data inserted into table : "${result.tableName}"`, {
-            autoClose: false,
-            hideProgressBar: true,
-            pauseOnHover: true,
-          });
-            // Create a new text file named as the table name and write the table name inside it
-            if (window.showDirectoryPicker) {
-              try {
-              const tableFile = await fileHandle.getFileHandle(`${result.tableName}.txt`, { create: true });
-              const tableBlob = new Blob([result.tableName], { type: "text/plain" });
-              await saveFileWithHandle(tableFile, tableBlob);
-              } catch (err) {
-              // Optionally handle error, e.g., show toast
-              toast.error(`Failed to save table name file: ${err.message}`);
-              }
-            }
-            // Write the table name to a file named "table_name.txt"
-            if (window.showDirectoryPicker) {
-              try {
-              const tableNameFile = await fileHandle.getFileHandle("table_name.txt", { create: true });
-              const tableNameBlob = new Blob([result.tableName], { type: "text/plain" });
-              await saveFileWithHandle(tableNameFile, tableNameBlob);
-              } catch (err) {
-              toast.error(`Failed to write table name to file: ${err.message}`);
-              }
-            }
-          // Print table name in console and log after completion
-            console.log(`Table name: ${result.tableName}`);
-            logs.push(`Table name: ${result.tableName}`);
-        } else {
-          toast.error("No data found to insert.");
-        }
-      })
-      .catch((err) => {
-        console.error("Error sending data to backend:", err);
-        toast.error("Failed to insert data into database.");
-      })
-      .finally(() => {
-        // Print all logs including table name after completion
-        console.log("Process logs:\n" + logs.join("\n"));
-        toast.success("Report downloaded successfully!");
+    try {
+      const res = await fetch("http://localhost:3001/api/insertReport", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ rows: allCombinedRows }),
       });
+      
+      const result = await res.json();
+      
+      if (result.tableName && result.tableName.trim()) {
+        const tableLog = `Table name: ${result.tableName}`;
+        logs.push(tableLog);
+        console.log(tableLog);
+        toast.info(`Data inserted into table: "${result.tableName}"`, {
+          autoClose: false,
+          hideProgressBar: true,
+          pauseOnHover: true,
+        });
+      } else {
+        toast.error("No table name received from server.");
+        logs.push("No table name received from server");
+      }
+    } catch (err) {
+      console.error("Error sending data to backend:", err);
+      toast.error("Failed to insert data into database.");
+      logs.push(`Database insertion error: ${err.message}`);
+      throw err;
+    }
+
+    return logs;
   }
 
   const reportOptions = [
@@ -316,14 +295,14 @@ export default function FetcherReports() {
       return;
     }
 
-    setProgress(0); // Reset progress at the beginning
-
+    setProgress(0);
     const formattedStartDate = new Date(startDate).toISOString().split("T")[0];
     const formattedEndDate = new Date(endDate).toISOString().split("T")[0];
     const chosenLibraries = libraryDetails.filter((lib) =>
       selectedLibraries.includes(lib.customerId)
     );
-    const logs = [];
+    
+    let allLogs = [];
     const totalTasks = selectedReports.length * chosenLibraries.length;
     let completedTasks = 0;
     toast.info("Preparing your report for download...");
@@ -345,6 +324,7 @@ export default function FetcherReports() {
 
     for (const reportType of selectedReports) {
       const combinedData = [];
+      const logs = [];
 
       for (const library of chosenLibraries) {
         const asm = "sitemaster.dl.asminternational.org";
@@ -370,18 +350,13 @@ export default function FetcherReports() {
 
         const url = `https://${selectedSite}/sushi/${Version}reports/${reportType}/?api_key=${library.apiKey}&customer_id=${library.customerId}&requestor_id=${library.requestorId}&begin_date=${start}&end_date=${end}${attribute}`;
 
-        toast.info(`Fetching data for : sss_S_${library.customerId}`);
+        toast.info(`Fetching data for: sss_S_${library.customerId}`);
         try {
           const res = await fetch(url);
           if (!res.ok) throw new Error(res.statusText);
           const data = await res.json();
 
-          // Check if Report_Items is empty
-          if (
-            data &&
-            Array.isArray(data.Report_Items) &&
-            data.Report_Items.length === 0
-          ) {
+          if (data && Array.isArray(data.Report_Items) && data.Report_Items.length === 0) {
             logs.push(
               `Failed: sss_S_${library.customerId} / ${library.requestorId} - No Data Found`
             );
@@ -416,34 +391,39 @@ export default function FetcherReports() {
           );
         }
 
-        // ✅ Add 2-second delay between each API hit
         await new Promise((resolve) => setTimeout(resolve, 2000));
-
         completedTasks++;
         setProgress(Math.round((completedTasks / totalTasks) * 100));
       }
 
       if (combinedData.length > 0) {
-        generateCSVfromTR(combinedData, logs);
-        const blob = new Blob([JSON.stringify(combinedData, null, 2)], {
-          type: "application/json",
-        });
-        const fileName = `report_${reportType}_${formattedStartDate}_to_${formattedEndDate}.json`;
         try {
-          const file = await fileHandle.getFileHandle(fileName, {
-            create: true,
+          const newLogs = await generateCSVfromTR(combinedData, logs);
+          allLogs = [...allLogs, ...newLogs];
+          
+          const blob = new Blob([JSON.stringify(combinedData, null, 2)], {
+            type: "application/json",
           });
-          await saveFileWithHandle(file, blob);
+          const fileName = `report_${reportType}_${formattedStartDate}_to_${formattedEndDate}.json`;
+          try {
+            const file = await fileHandle.getFileHandle(fileName, {
+              create: true,
+            });
+            await saveFileWithHandle(file, blob);
+          } catch (error) {
+            allLogs.push(`Failed to save file for ${reportType}: ${error.message}`);
+          }
         } catch (error) {
-          logs.push(`Failed to save file for ${reportType}: ${error.message}`);
+          allLogs.push(`Error processing ${reportType}: ${error.message}`);
         }
       } else {
-        logs.push(`No data for ${reportType}`);
+        allLogs.push(`No data for ${reportType}`);
       }
     }
 
-    if (logs.length > 0) {
-      const logContent = logs.join("\n") || "No logs generated.";
+    // Save all logs to a file
+    if (allLogs.length > 0) {
+      const logContent = allLogs.join("\n") || "No logs generated.";
       const logBlob = new Blob([logContent], { type: "text/plain" });
       const logFileName = `logs_${formattedStartDate}_to_${formattedEndDate}.txt`;
       try {
@@ -455,8 +435,12 @@ export default function FetcherReports() {
         toast.error(`Failed to save log file: ${error.message}`);
       }
     }
+
+    toast.success("Report processing completed!");
+    console.log("Process logs:\n" + allLogs.join("\n"));
   };
 
+  // ... rest of the component code (render method) remains the same ...
   return (
     <>
       <SideNav activeTab="insight-fetcher" />
@@ -631,7 +615,6 @@ export default function FetcherReports() {
                     </div>
                   </div>
                 </div>
-
               </div>
 
               {/* Report Types */}
@@ -663,10 +646,11 @@ export default function FetcherReports() {
                     <div
                       key={report}
                       onClick={() => toggleReport(report)}
-                      className={` p-2 rounded-md flex items-center gap-1 hover:bg-green-200 transition-all duration-200 cursor-pointer ${selectedReports.includes(report)
-                        ? "bg-green-200"
-                        : "bg-gray-100"
-                        }`}
+                      className={` p-2 rounded-md flex items-center gap-1 hover:bg-green-200 transition-all duration-200 cursor-pointer ${
+                        selectedReports.includes(report)
+                          ? "bg-green-200"
+                          : "bg-gray-100"
+                      }`}
                     >
                       <input
                         type="checkbox"
@@ -731,10 +715,11 @@ export default function FetcherReports() {
                   <div
                     key={lib.customerId}
                     onClick={() => toggleLibrary(lib.customerId)}
-                    className={` p-2 rounded-md flex items-center gap-1 hover:bg-green-200 transition-all duration-200 cursor-pointer ${selectedLibraries.includes(lib.customerId)
-                      ? "bg-green-200"
-                      : "bg-gray-100"
-                      }`}
+                    className={` p-2 rounded-md flex items-center gap-1 hover:bg-green-200 transition-all duration-200 cursor-pointer ${
+                      selectedLibraries.includes(lib.customerId)
+                        ? "bg-green-200"
+                        : "bg-gray-100"
+                    }`}
                   >
                     <input
                       type="checkbox"
