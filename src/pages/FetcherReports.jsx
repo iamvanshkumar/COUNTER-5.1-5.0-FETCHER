@@ -26,7 +26,8 @@ export default function FetcherReports() {
   const [endDate, setEndDate] = useState("");
   const [allReportsSelected, setAllReportsSelected] = useState(false);
   const [allLibrariesSelected, setAllLibrariesSelected] = useState(false);
-  function generateCSVfromTR(allReports) {
+
+  async function generateCSVfromTR(allReports, logs = []) {
     const rowsMap = {};
     const monthCountsTemplate = {
       Jan: 0,
@@ -43,7 +44,7 @@ export default function FetcherReports() {
       Dec: 0,
     };
 
-    const reportTypes = new Set(); // Collect report types
+    const reportTypes = new Set();
 
     allReports.forEach(({ data, libraryCode }) => {
       const reportHeader = data.Report_Header || {};
@@ -97,9 +98,8 @@ export default function FetcherReports() {
                 }
               );
 
-              const key = `${institutionCode}|${
-                ids.ISBN || "noisbn"
-              }|${metric}`;
+              const key = `${institutionCode}|${ids.ISBN || "noisbn"
+                }|${metric}`;
 
               if (!rowsMap[key]) {
                 const Proprietary_Identifier = ids.Proprietary || "";
@@ -144,13 +144,11 @@ export default function FetcherReports() {
       });
     });
 
-    ///old data
-
     const allCombinedRows = Object.values(rowsMap);
 
     if (allCombinedRows.length === 0) {
       toast.error("No data available to generate the CSV file.");
-      return;
+      return logs;
     }
 
     const csv = Papa.unparse(allCombinedRows);
@@ -166,32 +164,38 @@ export default function FetcherReports() {
     a.click();
     URL.revokeObjectURL(url);
 
-    fetch("http://localhost:3001/api/insertReport", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ rows: allCombinedRows }),
-    })
-      .then((res) => res.json())
-      .then((result) => {
-        if (result.tableName && result.tableName.trim()) {
-          toast.info(`Data inserted into table : "${result.tableName}"`, {
-            autoClose: false,
-            hideProgressBar: true,
-            pauseOnHover: true,
-          });
-        } else {
-          toast.error("No data found to insert.");
-        }
-      })
-      .catch((err) => {
-        console.error("Error sending data to backend:", err);
-        toast.error("Failed to insert data into database.");
-      })
-      .finally(() => {
-        toast.success("Report downloaded successfully!");
+    try {
+      const res = await fetch("http://localhost:3001/api/insertReport", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ rows: allCombinedRows }),
       });
+      
+      const result = await res.json();
+      
+      if (result.tableName && result.tableName.trim()) {
+        const tableLog = `Table name: ${result.tableName}`;
+        logs.push(tableLog);
+        console.log(tableLog);
+        toast.info(`Data inserted into table: "${result.tableName}"`, {
+          autoClose: false,
+          hideProgressBar: true,
+          pauseOnHover: true,
+        });
+      } else {
+        toast.error("No table name received from server.");
+        logs.push("No table name received from server");
+      }
+    } catch (err) {
+      console.error("Error sending data to backend:", err);
+      toast.error("Failed to insert data into database.");
+      logs.push(`Database insertion error: ${err.message}`);
+      throw err;
+    }
+
+    return logs;
   }
 
   const reportOptions = [
@@ -291,14 +295,14 @@ export default function FetcherReports() {
       return;
     }
 
-    setProgress(0); // Reset progress at the beginning
-
+    setProgress(0);
     const formattedStartDate = new Date(startDate).toISOString().split("T")[0];
     const formattedEndDate = new Date(endDate).toISOString().split("T")[0];
     const chosenLibraries = libraryDetails.filter((lib) =>
       selectedLibraries.includes(lib.customerId)
     );
-    const logs = [];
+    
+    let allLogs = [];
     const totalTasks = selectedReports.length * chosenLibraries.length;
     let completedTasks = 0;
     toast.info("Preparing your report for download...");
@@ -320,6 +324,7 @@ export default function FetcherReports() {
 
     for (const reportType of selectedReports) {
       const combinedData = [];
+      const logs = [];
 
       for (const library of chosenLibraries) {
         // const asm = "sitemaster.dl.asminternational.org";
@@ -346,13 +351,22 @@ export default function FetcherReports() {
 
         const url = `https://${selectedSite}/counter/${Version}reports/${reportType}/?api_key=${library.apiKey}&customer_id=${library.customerId}&requestor_id=${library.requestorId}&begin_date=${start}&end_date=${end}${attribute}`;
 
-        toast.info(`Fetching data for : sss_S_${library.customerId}`);
+        toast.info(`Fetching data for: sss_S_${library.customerId}`);
         try {
           const res = await fetch(url);
           if (!res.ok) throw new Error(res.statusText);
           const data = await res.json();
-          combinedData.push({ libraryCode: library.libraryCode, data });
-          logs.push(`Success: ${library.customerId} / ${library.requestorId}`);
+
+          if (data && Array.isArray(data.Report_Items) && data.Report_Items.length === 0) {
+            logs.push(
+              `Failed: sss_S_${library.customerId} / ${library.requestorId} - No Data Found`
+            );
+          } else {
+            combinedData.push({ libraryCode: library.libraryCode, data });
+            logs.push(
+              `Success: sss_S_${library.customerId} / ${library.requestorId}`
+            );
+          }
 
           // Save each response to a file
           const responseBlob = new Blob([JSON.stringify(data, null, 2)], {
@@ -378,34 +392,39 @@ export default function FetcherReports() {
           );
         }
 
-        // ✅ Add 2-second delay between each API hit
         await new Promise((resolve) => setTimeout(resolve, 2000));
-
         completedTasks++;
         setProgress(Math.round((completedTasks / totalTasks) * 100));
       }
 
       if (combinedData.length > 0) {
-        generateCSVfromTR(combinedData);
-        const blob = new Blob([JSON.stringify(combinedData, null, 2)], {
-          type: "application/json",
-        });
-        const fileName = `report_${reportType}_${formattedStartDate}_to_${formattedEndDate}.json`;
         try {
-          const file = await fileHandle.getFileHandle(fileName, {
-            create: true,
+          const newLogs = await generateCSVfromTR(combinedData, logs);
+          allLogs = [...allLogs, ...newLogs];
+          
+          const blob = new Blob([JSON.stringify(combinedData, null, 2)], {
+            type: "application/json",
           });
-          await saveFileWithHandle(file, blob);
+          const fileName = `report_${reportType}_${formattedStartDate}_to_${formattedEndDate}.json`;
+          try {
+            const file = await fileHandle.getFileHandle(fileName, {
+              create: true,
+            });
+            await saveFileWithHandle(file, blob);
+          } catch (error) {
+            allLogs.push(`Failed to save file for ${reportType}: ${error.message}`);
+          }
         } catch (error) {
-          logs.push(`Failed to save file for ${reportType}: ${error.message}`);
+          allLogs.push(`Error processing ${reportType}: ${error.message}`);
         }
       } else {
-        logs.push(`No data for ${reportType}`);
+        allLogs.push(`No data for ${reportType}`);
       }
     }
 
-    if (logs.length > 0) {
-      const logContent = logs.join("\n") || "No logs generated.";
+    // Save all logs to a file
+    if (allLogs.length > 0) {
+      const logContent = allLogs.join("\n") || "No logs generated.";
       const logBlob = new Blob([logContent], { type: "text/plain" });
       const logFileName = `logs_${formattedStartDate}_to_${formattedEndDate}.txt`;
       try {
@@ -417,8 +436,12 @@ export default function FetcherReports() {
         toast.error(`Failed to save log file: ${error.message}`);
       }
     }
+
+    toast.success("Report processing completed!");
+    console.log("Process logs:\n" + allLogs.join("\n"));
   };
 
+  // ... rest of the component code (render method) remains the same ...
   return (
     <>
       <SideNav activeTab="insight-fetcher" />
@@ -508,7 +531,7 @@ export default function FetcherReports() {
                   <div className="flex flex-col gap-2 justify-between">
                     <h4 className="text-xs text-gray-600 font-semibold flex items-center gap-1">
                       <i className="bx bxs-circle text-red-500"></i>
-                     SUSHI Version
+                      SUSHI Version
                     </h4>
                     <div className="flex items-center gap-2">
                       <div className="flex w-full items-center ps-4 border border-gray-200 hover:bg-gray-50 rounded-md cursor-pointer dark:border-gray-700">
@@ -593,7 +616,6 @@ export default function FetcherReports() {
                     </div>
                   </div>
                 </div>
-
               </div>
 
               {/* Report Types */}
