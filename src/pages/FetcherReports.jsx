@@ -322,7 +322,8 @@ export default function FetcherReports() {
       const combinedData = [];
 
       for (const library of chosenLibraries) {
-        const asm = "sitemaster.dl.asminternational.org";
+        // const asm = "sitemaster.dl.asminternational.org";
+        const asm = "sushi5.scholarlyiq.com";
         const rsc = "sitemaster.books.rsc.org";
         const r51 = "r51/";
 
@@ -343,7 +344,7 @@ export default function FetcherReports() {
           attribute = "";
         }
 
-        const url = `https://${selectedSite}/sushi/${Version}reports/${reportType}/?api_key=${library.apiKey}&customer_id=${library.customerId}&requestor_id=${library.requestorId}&begin_date=${start}&end_date=${end}${attribute}`;
+        const url = `https://${selectedSite}/counter/${Version}reports/${reportType}/?api_key=${library.apiKey}&customer_id=${library.customerId}&requestor_id=${library.requestorId}&begin_date=${start}&end_date=${end}${attribute}`;
 
         toast.info(`Fetching data for : sss_S_${library.customerId}`);
         try {
