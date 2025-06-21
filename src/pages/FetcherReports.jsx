@@ -535,7 +535,7 @@ export default function FetcherReports() {
                     <div className="flex items-center gap-2">
                       <div className="flex w-full items-center ps-4 border border-gray-200 hover:bg-gray-50 rounded-md cursor-pointer dark:border-gray-700">
                         <input
-                          id="bordered-radio-1"
+                          id="bordered-radio-version-1"
                           type="radio"
                           value="5.0"
                           name="version"
@@ -544,7 +544,7 @@ export default function FetcherReports() {
                           className="w-4 h-4 text-red-500 bg-gray-100 border-gray-300 focus:ring-blue-500 cursor-pointer"
                         />
                         <label
-                          htmlFor="bordered-radio-1"
+                          htmlFor="bordered-radio-version-1"
                           className="w-full py-2 ms-2 text-sm font-medium text-gray-900"
                         >
                           5.0
@@ -552,7 +552,7 @@ export default function FetcherReports() {
                       </div>
                       <div className="flex w-full items-center ps-4 border border-gray-200 hover:bg-gray-50 rounded-md cursor-pointer">
                         <input
-                          id="bordered-radio-2"
+                          id="bordered-radio-version-2"
                           type="radio"
                           value="5.1"
                           name="version"
@@ -561,7 +561,7 @@ export default function FetcherReports() {
                           className="w-4 h-4 text-red-500 bg-gray-100 border-gray-300 focus:ring-blue-500  cursor-pointer"
                         />
                         <label
-                          htmlFor="bordered-radio-2"
+                          htmlFor="bordered-radio-version-2"
                           className="w-full py-2 ms-2 text-sm font-medium text-gray-900"
                         >
                           5.1
