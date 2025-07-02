@@ -207,7 +207,7 @@ export default function CounterReports() {
     const monthsWithData = new Set();
     let headerInfo = {};
 
-    allReports.forEach(({ data, libraryCode }) => {
+    allReports.forEach(({ data }) => {
       const reportHeader = data.Report_Header || {};
       // Extract Institution_ID and Customer_ID
       const institutionId = (reportHeader.Institution_ID || [])
@@ -245,17 +245,9 @@ export default function CounterReports() {
         const getPublisherId = (type) =>
           (item.Publisher_ID || []).find((id) => id.Type === type)?.Value || "";
 
-        const DOI = getId("DOI");
-        const Proprietary_ID = getId("Proprietary");
-        const ISBN = getId("ISBN");
-        const Print_ISSN = getId("Print_ISSN");
-        const Online_ISSN = getId("Online_ISSN");
-        const Publisher_Id = getPublisherId("Proprietary");
-
         (item.Performance || []).forEach((perf) => {
           const period = perf.Period || {};
           const begin = period.Begin_Date || "";
-          const end = period.End_Date || "";
 
           // Month-Year key for column
           let monthYearKey = "";
