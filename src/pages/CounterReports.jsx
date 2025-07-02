@@ -171,7 +171,6 @@ export default function CounterReports() {
     a.href = url;
     a.click();
     URL.revokeObjectURL(url);
-
     return logs;
   }
 
@@ -316,13 +315,10 @@ export default function CounterReports() {
         }
 
         const url = `${library.sushiUrl}${Version}reports/${reportType}/?api_key=${library.apiKey}&customer_id=${library.customerId}&requestor_id=${library.requestorId}&begin_date=${start}&end_date=${end}${attribute}`;
-
-        console.log(`Fetching URL: ${url}`);
-        allLogs.push(`Fetching URL: ${url}`);
-
-        // const url = `https://sitemaster.karger.com//sushi/r51/reports/TR?client_id=47&customer_id=971&begin_date=${start}&end_date=${end}&granularity=Monthly&requestor_id=47528&api_key=f443d19c-54f6-4863-97bd-50895065b1ff${attribute}`;
-
-        toast.info(`Fetching data for: sss_S_${library.customerId}`);
+        allLogs.push(
+          `\n==========\n[FETCH]\nLibrary: ${library.libraryCode} (${library.customerId})\nReport: ${reportType}\nURL: ${url}\n==========`
+        );
+        toast.info(`Fetching data for: ${library.libraryCode}`);
         try {
           const res = await fetch(url);
           if (!res.ok) throw new Error(res.statusText);
@@ -333,12 +329,12 @@ export default function CounterReports() {
             Array.isArray(data.Report_Items) &&
             data.Report_Items.length === 0
           ) {
-            logs.push(
-              `Failed: sss_S_${library.customerId} / ${library.requestorId} - No Data Found`
+            allLogs.push(
+              `[RESULT] Library: ${library.libraryCode} (${library.customerId}) | Report: ${reportType} | Status: NO DATA FOUND`
             );
           } else {
-            logs.push(
-              `Success: sss_S_${library.customerId} / ${library.requestorId}`
+            allLogs.push(
+              `[RESULT] Library: ${library.libraryCode} (${library.customerId}) | Report: ${reportType} | Status: SUCCESS`
             );
 
             // --- Generate and download CSV for this library/report ---
@@ -358,18 +354,18 @@ export default function CounterReports() {
                 { create: true }
               );
               await saveFileWithHandle(responseFile, responseBlob);
+              allLogs.push(
+                `[SAVE] JSON saved: ${responseFileName}`
+              );
             } catch (error) {
-              logs.push(
-                `Failed to save response file for ${library.customerId}: ${error.message}`
+              allLogs.push(
+                `[ERROR] Failed to save JSON for ${library.customerId} (${library.libraryCode}): ${error.message}`
               );
             }
           }
-
-          // (Optional) Save each response to a file as before...
-          // ...existing code...
         } catch (error) {
-          logs.push(
-            `Error: ${library.customerId} / ${library.requestorId} - ${error.message}`
+          allLogs.push(
+            `[ERROR] Library: ${library.libraryCode} (${library.customerId}) | Report: ${reportType} | ${error.message}`
           );
         }
 
