@@ -25,7 +25,7 @@ export default function CounterReports() {
   const [allReportsSelected, setAllReportsSelected] = useState(false);
   const [allLibrariesSelected, setAllLibrariesSelected] = useState(false);
 
-  async function generateCSVfromTR(allReports, logs = []) {
+  async function generateCSVr51(allReports, logs = []) {
     const allRows = [];
     const monthsWithData = new Set();
     let headerInfo = {};
@@ -37,19 +37,28 @@ export default function CounterReports() {
         Report_ID: reportHeader.Report_ID || "",
         Release: reportHeader.Release || "",
         Institution_Name: reportHeader.Institution_Name || "",
-        Institution_ID: reportHeader.Institution_ID?.Proprietary?.join(", ") || "",
+        Institution_ID:
+          reportHeader.Institution_ID?.Proprietary?.join(", ") || "",
         Metric_Types: reportHeader.Metric_Types?.join(", ") || "",
         Report_Filters: reportHeader.Report_Filters
-          ? `Begin_Date=${reportHeader.Report_Filters.Begin_Date || ""}; End_Date=${reportHeader.Report_Filters.End_Date || ""}`
+          ? `Begin_Date=${
+              reportHeader.Report_Filters.Begin_Date || ""
+            }; End_Date=${reportHeader.Report_Filters.End_Date || ""}`
           : "",
         Report_Attributes: reportHeader.Report_Attributes
-          ? `Attributes_To_Show=${reportHeader.Report_Attributes.Attributes_To_Show?.join("|") || ""}`
+          ? `Attributes_To_Show=${
+              reportHeader.Report_Attributes.Attributes_To_Show?.join("|") || ""
+            }`
           : "",
         Exceptions: reportHeader.Exceptions
-          ? reportHeader.Exceptions.map((e) => `${e.Code}: ${e.Message}`).join("; ")
+          ? reportHeader.Exceptions.map((e) => `${e.Code}: ${e.Message}`).join(
+              "; "
+            )
           : "",
         Reporting_Period: reportHeader.Report_Filters
-          ? `Begin_Date=${reportHeader.Report_Filters.Begin_Date || ""}; End_Date=${reportHeader.Report_Filters.End_Date || ""}`
+          ? `Begin_Date=${
+              reportHeader.Report_Filters.Begin_Date || ""
+            }; End_Date=${reportHeader.Report_Filters.End_Date || ""}`
           : "",
         Created: reportHeader.Created || "",
         Created_By: reportHeader.Created_By || "",
@@ -72,8 +81,12 @@ export default function CounterReports() {
           const yop = attr.YOP || "";
           const performance = attr.Performance;
 
-          for (const [metric, valuesByMonth] of Object.entries(performance || {})) {
-            for (const [dateStr, count] of Object.entries(valuesByMonth || {})) {
+          for (const [metric, valuesByMonth] of Object.entries(
+            performance || {}
+          )) {
+            for (const [dateStr, count] of Object.entries(
+              valuesByMonth || {}
+            )) {
               const year = dateStr.slice(0, 4);
               const month = dateStr.slice(5, 7);
               const monthStr = new Date(`${year}-${month}-01`)
@@ -118,13 +131,28 @@ export default function CounterReports() {
     const sortedMonthYearKeys = Array.from(monthsWithData).sort((a, b) => {
       const [monthA, yearA] = a.split("-");
       const [monthB, yearB] = b.split("-");
-      return new Date(`${monthA}-01-${yearA}`) - new Date(`${monthB}-01-${yearB}`);
+      return (
+        new Date(`${monthA}-01-${yearA}`) - new Date(`${monthB}-01-${yearB}`)
+      );
     });
 
     const fixedColumns = [
-      "Title", "Publisher", "Publisher_Id", "Platform", "DOI", "Proprietary_ID",
-      "ISBN", "Print_ISSN", "Online_ISSN", "URI", "Data_Type", "YOP",
-      "Access_Type", "Access_Method", "Metric_Type", "Reporting_Period_Total"
+      "Title",
+      "Publisher",
+      "Publisher_Id",
+      "Platform",
+      "DOI",
+      "Proprietary_ID",
+      "ISBN",
+      "Print_ISSN",
+      "Online_ISSN",
+      "URI",
+      "Data_Type",
+      "YOP",
+      "Access_Type",
+      "Access_Method",
+      "Metric_Type",
+      "Reporting_Period_Total",
     ];
 
     const metadataLines = [
@@ -144,7 +172,182 @@ export default function CounterReports() {
     ];
 
     // Fill missing months with empty or 0
-    const rowsForCsv = allRows.map(row => {
+    const rowsForCsv = allRows.map((row) => {
+      const filled = { ...row };
+      for (const month of sortedMonthYearKeys) {
+        if (!(month in filled)) filled[month] = "";
+      }
+      return filled;
+    });
+
+    const csvBody = Papa.unparse(rowsForCsv, {
+      columns: [...fixedColumns, ...sortedMonthYearKeys],
+      skipEmptyLines: true,
+    });
+
+    const fullCsv = [...metadataLines, "", csvBody].join("\n");
+
+    // Download logic (same as before)
+    const blob = new Blob([fullCsv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const formattedStartDate = new Date(startDate).toISOString().split("T")[0];
+    const formattedEndDate = new Date(endDate).toISOString().split("T")[0];
+    const reportTypeString = headerInfo.Report_ID || "Report";
+
+    const a = document.createElement("a");
+    a.download = `${headerInfo.Institution_ID}_${reportTypeString}_Report_${formattedStartDate}_to_${formattedEndDate}.csv`;
+    a.href = url;
+    a.click();
+    URL.revokeObjectURL(url);
+    return logs;
+  }
+
+  async function generateCSVr5(allReports, logs = []) {
+    const allRows = [];
+    const monthsWithData = new Set();
+    let headerInfo = {};
+
+    allReports.forEach(({ data, libraryCode }) => {
+      const reportHeader = data.Report_Header || {};
+      // Extract Institution_ID and Customer_ID
+      const institutionId = (reportHeader.Institution_ID || [])
+        .filter((id) => id.Type === "Proprietary")
+        .map((id) => id.Value)
+        .join(", ");
+      const customerId = reportHeader.Customer_ID || "";
+
+      // Extract Report_Filters
+      let beginDate = "";
+      let endDate = "";
+      if (Array.isArray(reportHeader.Report_Filters)) {
+        for (const filter of reportHeader.Report_Filters) {
+          if (filter.Name === "Begin_Date") beginDate = filter.Value;
+          if (filter.Name === "End_Date") endDate = filter.Value;
+        }
+      }
+
+      headerInfo = {
+        Report_Name: reportHeader.Report_Name || "",
+        Report_ID: reportHeader.Report_ID || "",
+        Release: reportHeader.Release || "",
+        Institution_Name: reportHeader.Institution_Name || "",
+        Institution_ID: institutionId,
+        Customer_ID: customerId,
+        Report_Filters: `Begin_Date=${beginDate}; End_Date=${endDate}`,
+        Created: reportHeader.Created || "",
+        Created_By: reportHeader.Created_By || "",
+      };
+
+      (data.Report_Items || []).forEach((item) => {
+        // Extract IDs by type
+        const getId = (type) =>
+          (item.Item_ID || []).find((id) => id.Type === type)?.Value || "";
+        const getPublisherId = (type) =>
+          (item.Publisher_ID || []).find((id) => id.Type === type)?.Value || "";
+
+        const DOI = getId("DOI");
+        const Proprietary_ID = getId("Proprietary");
+        const ISBN = getId("ISBN");
+        const Print_ISSN = getId("Print_ISSN");
+        const Online_ISSN = getId("Online_ISSN");
+        const Publisher_Id = getPublisherId("Proprietary");
+
+        (item.Performance || []).forEach((perf) => {
+          const period = perf.Period || {};
+          const begin = period.Begin_Date || "";
+          const end = period.End_Date || "";
+
+          // Month-Year key for column
+          let monthYearKey = "";
+          if (begin) {
+            const year = begin.slice(0, 4);
+            const month = begin.slice(5, 7);
+            const monthStr = new Date(`${year}-${month}-01`)
+              .toLocaleString("en-US", { month: "short" })
+              .toUpperCase();
+            monthYearKey = `${monthStr}-${year}`;
+            monthsWithData.add(monthYearKey);
+          }
+
+          (perf.Instance || []).forEach((inst) => {
+            const metric = inst.Metric_Type || "";
+            const count = inst.Count || 0;
+
+            allRows.push({
+              ...headerInfo,
+              Title: item.Title || "",
+              Publisher: item.Publisher || "",
+              Publisher_ID:
+                (item.Publisher_ID || []).find(
+                  (id) => id.Type === "Proprietary"
+                )?.Value || "",
+              Platform: item.Platform || "",
+              DOI: getId("DOI"),
+              Proprietary_ID: getId("Proprietary"),
+              ISBN: getId("ISBN"),
+              Print_ISSN: getId("Print_ISSN"),
+              Online_ISSN: getId("Online_ISSN"),
+              Data_Type: item.Data_Type || "",
+              YOP: item.YOP || "",
+              Access_Type: item.Access_Type || "",
+              Access_Method: item.Access_Method || "",
+              Section_Type: item.Section_Type || "",
+              Metric_Type: metric,
+              Reporting_Period_Total: count,
+              [monthYearKey]: count,
+            });
+          });
+        });
+      });
+    });
+
+    if (allRows.length === 0) {
+      toast.error("No data available to generate the CSV file.");
+      return logs;
+    }
+
+    // Get all unique month columns
+    const sortedMonthYearKeys = Array.from(monthsWithData).sort((a, b) => {
+      const [monthA, yearA] = a.split("-");
+      const [monthB, yearB] = b.split("-");
+      return (
+        new Date(`${monthA}-01-${yearA}`) - new Date(`${monthB}-01-${yearB}`)
+      );
+    });
+
+    const fixedColumns = [
+      "Title",
+      "Publisher",
+      "Publisher_Id",
+      "Platform",
+      "DOI",
+      "Proprietary_ID",
+      "ISBN",
+      "Print_ISSN",
+      "Online_ISSN",
+      "URI",
+      "Data_Type",
+      "YOP",
+      "Access_Type",
+      "Access_Method",
+      "Metric_Type",
+      "Reporting_Period_Total",
+    ];
+
+    const metadataLines = [
+      `Report_Name,${headerInfo.Report_Name}`,
+      `Report_ID,${headerInfo.Report_ID}`,
+      `Release,${headerInfo.Release}`,
+      `Institution_Name,${headerInfo.Institution_Name}`,
+      `Institution_ID,${headerInfo.Institution_ID}`,
+      `Customer_ID,${headerInfo.Customer_ID}`,
+      `Report_Filters,${headerInfo.Report_Filters}`,
+      `Created,${headerInfo.Created}`,
+      `Created_By,${headerInfo.Created_By}`,
+    ];
+
+    // Fill missing months with empty or 0
+    const rowsForCsv = allRows.map((row) => {
       const filled = { ...row };
       for (const month of sortedMonthYearKeys) {
         if (!(month in filled)) filled[month] = "";
@@ -338,11 +541,18 @@ export default function CounterReports() {
             );
 
             // --- Generate and download CSV for this library/report ---
-            await generateCSVfromTR(
-              [{ data, libraryCode: library.libraryCode }],
-              logs
-            );
 
+            if (Version === r51) {
+              await generateCSVr51(
+                [{ data, libraryCode: library.libraryCode }],
+                logs
+              );
+            } else {
+              await generateCSVr5(
+                [{ data, libraryCode: library.libraryCode }],
+                logs
+              );
+            }
             // --- Save JSON for this library/report ---
             const responseBlob = new Blob([JSON.stringify(data, null, 2)], {
               type: "application/json",
@@ -354,9 +564,7 @@ export default function CounterReports() {
                 { create: true }
               );
               await saveFileWithHandle(responseFile, responseBlob);
-              allLogs.push(
-                `[SAVE] JSON saved: ${responseFileName}`
-              );
+              allLogs.push(`[SAVE] JSON saved: ${responseFileName}`);
             } catch (error) {
               allLogs.push(
                 `[ERROR] Failed to save JSON for ${library.customerId} (${library.libraryCode}): ${error.message}`
