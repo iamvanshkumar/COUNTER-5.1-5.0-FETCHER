@@ -371,18 +371,21 @@ export default function CounterReports() {
 
   const reportOptions = [
     "TR",
+    "PR",
+    "DR",
+    "IR",
+    "TR_B1",
+    "TR_B2",
+    "TR_B3",
     "TR_J1",
     "TR_J2",
     "TR_J3",
     "TR_J4",
-    "TR_B1",
-    "TR_B2",
-    "TR_B3",
-    "DR",
+    "PR_P1",
     "DR_D1",
     "DR_D2",
-    "PR",
-    "PR_P1",
+    "IR_A1",
+    "IR_M1",
   ];
 
   const handleFileChange = (event) => {
