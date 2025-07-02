@@ -1,370 +1,3 @@
-// import { React, useState, useEffect } from "react";
-// import SideBar from "../components/SideBar";
-// import SideNav from "../components/SideNav";
-// import { useNavigate } from "react-router-dom";
-// import { toast } from "react-toastify";
-
-// export default function CounterReports() {
-//   const [allReportsSelected, setAllReportsSelected] = useState(false);
-//   const [selectedReports, setSelectedReports] = useState([]);
-//   const history = useNavigate();
-
-//   useEffect(() => {
-//     const userToken = sessionStorage.getItem("userToken");
-//     if (!userToken) {
-//       // Redirect user to the login page if not authenticated
-//       history("/login");
-//     }
-//   }, [history]);
-
-//   const toggleDrawer = () => {
-//     const drawer = document.getElementById("drawer-example");
-//     if (drawer) {
-//       drawer.classList.toggle("translate-x-full");
-//     }
-//   };
-
-//   const [startDate, setStartDate] = useState("");
-//   const [endDate, setEndDate] = useState("");
-
-//   const validateDates = () => {
-//     if (!startDate || !endDate) {
-//       alert("Please select both start and end dates.");
-//       return false;
-//     }
-//     if (new Date(startDate) > new Date(endDate)) {
-//       alert("Start date cannot be after end date.");
-//       return false;
-//     }
-//     return true;
-//   };
-
-//   const reportOptions = ["TR", "DR", "PR", "IR"];
-//   const CounterReportOptions = ["5.1", "5.0"];
-//   const reportStandardOptions = [
-//     "PR_P1",
-//     "DR_D1",
-//     "DR_D2",
-//     "TR_B1",
-//     "TR_B2",
-//     "TR_B3",
-//     "TR_J1",
-//     "TR_J2",
-//     "TR_J3",
-//     "TR_J4",
-//     "IR_A1",
-//     "IR_M1",
-//   ];
-
-//   const toggleReport = (report) => {
-//     setSelectedReports((prev) =>
-//       prev.includes(report)
-//         ? prev.filter((r) => r !== report)
-//         : [...prev, report]
-//     );
-//   };
-
-//   const toggleCounterReport = (report) => {
-//     // For counter reports, we want single selection (radio button behavior)
-//     setSelectedReports([report]);
-//   };
-
-//   const toggleAllReports = () => {
-//     if (allReportsSelected) {
-//       setSelectedReports([]);
-//     } else {
-//       setSelectedReports([...reportStandardOptions]);
-//     }
-//     setAllReportsSelected(!allReportsSelected);
-//   };
-
-//   // ---Fetch vendors from API---
-//   const [vendors, setVendors] = useState([]);
-//   const [loading, setLoading] = useState(true);
-
-//   // Fetch vendors from backend
-//   useEffect(() => {
-//     const fetchVendors = async () => {
-//       try {
-//         const response = await fetch("http://localhost:3001/api/get-vendors");
-//         if (!response.ok) {
-//           throw new Error("Failed to fetch vendors");
-//         }
-//         const data = await response.json();
-//         setVendors(data.vendors);
-//       } catch (error) {
-//         console.error("Error fetching vendors:", error);
-//       } finally {
-//         setLoading(false);
-//       }
-//     };
-
-//     fetchVendors();
-//   }, []);
-
-//   const handleEdit = (vendorId) => {
-//     // Implement edit functionality
-//     console.log("Edit vendor:", vendorId);
-//   };
-
-//   const handleDelete = async (vendorId) => {
-//     try {
-//       const confirmDelete = window.confirm(
-//         "Are you sure you want to delete this vendor?"
-//       );
-//       if (!confirmDelete) return;
-
-//       const encodedId = encodeURIComponent(vendorId);
-//       const response = await fetch(
-//         `http://localhost:3001/api/vendors/${encodedId}`,
-//         {
-//           method: "DELETE",
-//         }
-//       );
-
-//       if (!response.ok) {
-//         const errorData = await response.json();
-//         throw new Error(errorData.message || "Failed to delete vendor");
-//       }
-
-//       setVendors((prev) => prev.filter((v) => v.id !== vendorId));
-//       toast.success("Vendor deleted successfully!");
-//     } catch (error) {
-//       console.error("Error deleting vendor:", error);
-//       toast.error(error.message || "Failed to delete vendor");
-//     }
-//   };
-
-//   if (loading) {
-//     return <div>Loading vendors...</div>;
-//   }
-
-//   return (
-//     <>
-//       <SideNav activeTab="counter-fetcher" />
-//       <main className="col-span-4 h-full overflow-y-scroll flex flex-col gap-y-2 p-2">
-//         <section className="grid grid-cols-4 gap-2">
-//           {/* Dates & Filters Grid */}
-//           <div className="bg-white p-3 flex flex-col gap-4 rounded-md shadow-md border border-gray-100">
-//             <h4 className="text-xs text-gray-600 font-semibold flex items-center gap-1">
-//               <i className="bx bx-calendar text-red-500"></i>
-//               Select dates
-//             </h4>
-//             <div className="flex flex-col gap-2">
-//               <label className="text-xs font-medium text-gray-600">
-//                 Start Date
-//                 <input
-//                   type="date"
-//                   value={startDate}
-//                   onChange={(e) => setStartDate(e.target.value)}
-//                   className="mt-1 p-2 border rounded w-full bg-gray-50"
-//                 />
-//               </label>
-//               <label className="text-xs font-medium text-gray-600">
-//                 End Date
-//                 <input
-//                   type="date"
-//                   value={endDate}
-//                   onChange={(e) => setEndDate(e.target.value)}
-//                   className="mt-1 p-2 border rounded w-full bg-gray-50"
-//                 />
-//               </label>
-//               <button
-//                 className="bg-red-500 p-2 rounded-md text-white font-semibold text-sm hover:bg-red-600 transition-all duration-200 cursor-pointer"
-//                 onClick={() =>
-//                   validateDates() && console.log("Downloading reports...")
-//                 }
-//               >
-//                 Download Reports
-//               </button>
-//             </div>
-//           </div>
-
-//           <div className="flex flex-col gap-2">
-//             {/* Report Types Section */}
-//             <div className="bg-white p-3 flex flex-col gap-4 rounded-md shadow-md border border-gray-100">
-//               <div className="flex items-center justify-between">
-//                 <h4 className="text-xs text-gray-600 font-semibold flex items-center gap-1">
-//                   <i className="bx bxs-report text-red-500"></i>
-//                   Select your report types
-//                 </h4>
-//               </div>
-//               <div className="gap-2 grid grid-cols-2">
-//                 {CounterReportOptions.map((report) => (
-//                   <div
-//                     key={report}
-//                     onClick={() => setSelectedReports([report])}
-//                     className={` p-2 rounded-md flex items-center gap-1 hover:bg-green-200 transition-all duration-200 cursor-pointer ${
-//                       selectedReports.includes(report)
-//                         ? "bg-green-200"
-//                         : "bg-gray-100"
-//                     }`}
-//                   >
-//                     <input
-//                       type="radio"
-//                       className="mr-1"
-//                       checked={selectedReports.includes(report)}
-//                       onChange={() => setSelectedReports([report])}
-//                     />
-//                     <label className="text-sm font-semibold">{report}</label>
-//                   </div>
-//                 ))}
-//               </div>
-//             </div>
-//             {/* Report Types Section */}
-//             <div className="bg-white p-3 flex flex-col gap-4 rounded-md shadow-md border border-gray-100">
-//               <div className="flex items-center justify-between">
-//                 <h4 className="text-xs text-gray-600 font-semibold flex items-center gap-1">
-//                   <i className="bx bxs-report text-red-500"></i>
-//                   Select your report types
-//                 </h4>
-//               </div>
-//               <div className="gap-2 grid grid-cols-2">
-//                 {reportOptions.map((report) => (
-//                   <div
-//                     key={report}
-//                     onClick={() => toggleReport(report)}
-//                     className={` p-2 rounded-md flex items-center gap-1 hover:bg-green-200 transition-all duration-200 cursor-pointer ${
-//                       selectedReports.includes(report)
-//                         ? "bg-green-200"
-//                         : "bg-gray-100"
-//                     }`}
-//                   >
-//                     <input
-//                       type="checkbox"
-//                       className="mr-1"
-//                       checked={selectedReports.includes(report)}
-//                       readOnly
-//                     />
-//                     <label className="text-sm font-semibold">{report}</label>
-//                   </div>
-//                 ))}
-//               </div>
-//             </div>
-//           </div>
-
-//           {/* Standard Views Section */}
-//           <div className="col-span-2 bg-white p-3 flex flex-col gap-4 rounded-md shadow-md border border-gray-100">
-//             <div className="flex items-center justify-between">
-//               <h4 className="text-xs text-gray-600 font-semibold flex items-center gap-1">
-//                 <i className="bx bx-filter text-red-500"></i>
-//                 Select your standard views
-//               </h4>
-//               <div className="flex items-center gap-2">
-//                 <input
-//                   type="checkbox"
-//                   checked={allReportsSelected}
-//                   onChange={toggleAllReports}
-//                   id="selectAllCheckboxReport"
-//                   className="bg-gray-100 cursor-pointer"
-//                 />
-//                 <label
-//                   htmlFor="selectAllCheckboxReport"
-//                   className="text-xs font-medium cursor-pointer"
-//                 >
-//                   Select All
-//                 </label>
-//               </div>
-//             </div>
-//             <div className="grid grid-cols-3 gap-2">
-//               {reportStandardOptions.map((report) => (
-//                 <div
-//                   key={report}
-//                   onClick={() => toggleReport(report)}
-//                   className={`p-2 rounded-md flex items-center gap-1 hover:bg-green-200 transition-all duration-200 cursor-pointer ${
-//                     selectedReports.includes(report)
-//                       ? "bg-green-200"
-//                       : "bg-gray-100"
-//                   }`}
-//                 >
-//                   <input
-//                     type="checkbox"
-//                     className="mr-1"
-//                     checked={selectedReports.includes(report)}
-//                     onChange={() => toggleReport(report)}
-//                   />
-//                   <label className="text-sm font-semibold">{report}</label>
-//                 </div>
-//               ))}
-//             </div>
-//           </div>
-//         </section>
-
-//         {/* Vendors Section */}
-//         <section className="bg-white p-3 flex flex-col gap-4 rounded-md shadow-md border border-gray-100">
-//           <div className="flex items-start justify-between">
-//             <h4 className="text-xs text-gray-600 font-semibold flex items-center gap-1">
-//               <i className="bx bxs-buildings text-red-500"></i>
-//               Select vendors
-//             </h4>
-//             <div className="flex items-center">
-//               <input
-//                 type="text"
-//                 placeholder="Search vendors..."
-//                 className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-l-md focus:ring-gray-300 focus:ring-1 block w-full p-1.5"
-//               />
-//               <button
-//                 className="bg-red-500 py-2 px-2.5 text-nowrap text-sm font-medium text-white rounded-r-md hover:bg-red-600 transition-all duration-300"
-//                 type="button"
-//               >
-//                 <i className="bx bx-search-alt"></i>
-//               </button>
-//               <button
-//                 className="bg-blue-500 p-1.5 ml-2 text-nowrap text-sm font-medium text-white rounded hover:bg-blue-600 transition-all duration-300"
-//                 type="button"
-//                 onClick={toggleDrawer}
-//               >
-//                 Add Vendor
-//               </button>
-//               <SideBar />
-//             </div>
-//           </div>
-
-//           <div className="grid grid-cols-3 gap-2">
-//             {vendors.map((vendor) => (
-//               <div
-//                 key={vendor.id || vendor.name}
-//                 className="flex justify-between items-center bg-gray-100 p-2 rounded-md"
-//               >
-//                 <div className="flex items-center gap-2 whitespace-nowrap">
-//                   <input
-//                     type="checkbox"
-//                     id={`vendorCheckbox-${vendor.id || vendor.name}`}
-//                   />
-//                   <label
-//                     htmlFor={`vendorCheckbox-${vendor.id || vendor.name}`}
-//                     className="text-gray-800 text-sm font-medium"
-//                   >
-//                     {vendor.name}
-//                   </label>
-//                 </div>
-//                 <div className="flex">
-//                   <button
-//                     onClick={() => handleEdit(vendor.id || vendor.name)}
-//                     type="button"
-//                     className="flex justify-center items-center px-2 py-1 text-sm font-medium text-green-500 bg-white border border-gray-200 rounded-l-lg hover:bg-gray-100"
-//                     aria-label={`Edit ${vendor.name}`}
-//                   >
-//                     <i className="bx bxs-edit"></i>
-//                   </button>
-//                   <button
-//                     onClick={() => handleDelete(vendor.id)}
-//                     type="button"
-//                     className="flex justify-center items-center px-2 py-1 text-sm font-medium text-red-600 bg-white border border-gray-200 rounded-r-lg hover:bg-gray-100"
-//                     aria-label={`Delete ${vendor.name}`}
-//                   >
-//                     <i className="bx bxs-x-circle"></i>
-//                   </button>
-//                 </div>
-//               </div>
-//             ))}
-//           </div>
-//         </section>
-//       </main>
-//     </>
-//   );
-// }
-
 import React, { useState, useEffect } from "react";
 import Papa from "papaparse";
 import { useNavigate } from "react-router-dom";
@@ -382,7 +15,6 @@ export default function CounterReports() {
       history("/login");
     }
   }, [history]);
-
   const [selectedVersion, setSelectedVersion] = useState("5.1");
   const [file, setFile] = useState(null);
   const [libraryDetails, setLibraryDetails] = useState([]);
@@ -394,43 +26,35 @@ export default function CounterReports() {
   const [allLibrariesSelected, setAllLibrariesSelected] = useState(false);
 
   async function generateCSVfromTR(allReports, logs = []) {
-    const rowsMap = {};
-    const monthCountsTemplate = {
-      Jan: 0,
-      Feb: 0,
-      Mar: 0,
-      Apr: 0,
-      May: 0,
-      Jun: 0,
-      Jul: 0,
-      Aug: 0,
-      Sep: 0,
-      Oct: 0,
-      Nov: 0,
-      Dec: 0,
-    };
-
-    const reportTypes = new Set();
+    const allRows = [];
+    const monthsWithData = new Set();
+    let headerInfo = {};
 
     allReports.forEach(({ data, libraryCode }) => {
       const reportHeader = data.Report_Header || {};
-      let reportType = reportHeader.Report_ID || "Unknown";
-
-      if (!reportType && data.Report_Header?.Report_Name) {
-        const name = data.Report_Header.Report_Name;
-        if (name.startsWith("Journal")) reportType = "TR_J1";
-        else if (name.startsWith("Book")) reportType = "TR_B1";
-        else if (name.startsWith("Platform")) reportType = "PR_P1";
-        else if (name.startsWith("Database")) reportType = "DR_D1";
-        else reportType = "TR";
-      }
-
-      reportTypes.add(reportType);
-
-      const institutionCode =
-        libraryCode ||
-        reportHeader.Institution_ID?.Proprietary?.[0]?.split(":")[1] ||
-        "";
+      headerInfo = {
+        Report_Name: reportHeader.Report_Name || "",
+        Report_ID: reportHeader.Report_ID || "",
+        Release: reportHeader.Release || "",
+        Institution_Name: reportHeader.Institution_Name || "",
+        Institution_ID: reportHeader.Institution_ID?.Proprietary?.join(", ") || "",
+        Metric_Types: reportHeader.Metric_Types?.join(", ") || "",
+        Report_Filters: reportHeader.Report_Filters
+          ? `Begin_Date=${reportHeader.Report_Filters.Begin_Date || ""}; End_Date=${reportHeader.Report_Filters.End_Date || ""}`
+          : "",
+        Report_Attributes: reportHeader.Report_Attributes
+          ? `Attributes_To_Show=${reportHeader.Report_Attributes.Attributes_To_Show?.join("|") || ""}`
+          : "",
+        Exceptions: reportHeader.Exceptions
+          ? reportHeader.Exceptions.map((e) => `${e.Code}: ${e.Message}`).join("; ")
+          : "",
+        Reporting_Period: reportHeader.Report_Filters
+          ? `Begin_Date=${reportHeader.Report_Filters.Begin_Date || ""}; End_Date=${reportHeader.Report_Filters.End_Date || ""}`
+          : "",
+        Created: reportHeader.Created || "",
+        Created_By: reportHeader.Created_By || "",
+        Registry_Record: reportHeader.Registry_Record || "",
+      };
 
       data.Report_Items?.forEach((item) => {
         const ids = {
@@ -442,147 +66,129 @@ export default function CounterReports() {
         };
 
         item.Attribute_Performance?.forEach((attr) => {
-          const dataType = attr.Data_Type || "no data";
-          const accessType = attr.Access_Type || "no data";
-          const accessMethod = attr.Access_Method || "no data";
-          const yop = attr.YOP || "no data";
-
+          const dataType = attr.Data_Type || "";
+          const accessType = attr.Access_Type || "";
+          const accessMethod = attr.Access_Method || "";
+          const yop = attr.YOP || "";
           const performance = attr.Performance;
 
-          
-          for (const [metric, valuesByMonth] of Object.entries(
-            performance || {}
-          )) {
-            for (const [dateStr, count] of Object.entries(
-              valuesByMonth || {}
-            )) {
+          for (const [metric, valuesByMonth] of Object.entries(performance || {})) {
+            for (const [dateStr, count] of Object.entries(valuesByMonth || {})) {
               const year = dateStr.slice(0, 4);
               const month = dateStr.slice(5, 7);
-              const monthStr = new Date(`${year}-${month}-01`).toLocaleString(
-                "en-US",
-                {
-                  month: "short",
-                }
-              );
+              const monthStr = new Date(`${year}-${month}-01`)
+                .toLocaleString("en-US", { month: "short" })
+                .toUpperCase();
+              const monthYearKey = `${monthStr}-${year}`;
+              monthsWithData.add(monthYearKey);
 
-              const key = `${institutionCode}|${
-                ids.ISBN || "noisbn"
-              }|${metric}`;
-
-              if (!rowsMap[key]) {
-                const Proprietary_Identifier = ids.Proprietary || "";
-                const pubCode = Proprietary_Identifier
-                  ? Proprietary_Identifier.split(":")[0]
-                  : "";
-
-                rowsMap[key] = {
-                  Institution_Code: institutionCode,
-                  pub_code: pubCode || "no data",
-                  Title: item.Title || "no data",
-                  Publisher: item.Publisher || "no data",
-                  Publisher_Id: "no data",
-                  Platform: item.Platform || "no data",
-                  Collection_Platform: item.Platform || "no data",
-                  Report_Type: reportType || "no data",
-                  DOI: ids.DOI || "no data",
-                  Proprietary_Identifier: Proprietary_Identifier || "no data",
-                  ISBN: ids.ISBN || "no data",
-                  Print_ISSN: ids.Print_ISSN || "no data",
-                  Online_ISSN: ids.Online_ISSN || "no data",
-                  URI: "no data",
-                  Metric_Type: metric,
-                  Counter_Complaint: "no data",
-                  Year: year,
-                  Month: "",
-                  YTD: 0,
-                  ...structuredClone(monthCountsTemplate),
-                  YOP: yop,
-                  Data_Type: dataType,
-                  Access_Type: accessType,
-                  Access_Method: accessMethod,
-                  Section_Type: item.Section_Type || "no data",
-                };
-              }
-
-              rowsMap[key].YTD += count;
-              rowsMap[key][monthStr] += count;
+              // Each metric occurrence is a separate row
+              allRows.push({
+                ...headerInfo,
+                Title: item.Title || "",
+                Publisher: item.Publisher || "",
+                Publisher_Id: "",
+                Platform: item.Platform || "",
+                DOI: ids.DOI || "",
+                Proprietary_ID: ids.Proprietary || "",
+                ISBN: ids.ISBN || "",
+                Print_ISSN: ids.Print_ISSN || "",
+                Online_ISSN: ids.Online_ISSN || "",
+                URI: "",
+                Data_Type: dataType,
+                YOP: yop,
+                Access_Type: accessType,
+                Access_Method: accessMethod,
+                Metric_Type: metric,
+                Reporting_Period_Total: count,
+                [monthYearKey]: count,
+              });
             }
           }
         });
       });
     });
 
-    const allCombinedRows = Object.values(rowsMap);
-
-    if (allCombinedRows.length === 0) {
+    if (allRows.length === 0) {
       toast.error("No data available to generate the CSV file.");
       return logs;
     }
 
-    const csv = Papa.unparse(allCombinedRows);
-    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    // Get all unique month columns
+    const sortedMonthYearKeys = Array.from(monthsWithData).sort((a, b) => {
+      const [monthA, yearA] = a.split("-");
+      const [monthB, yearB] = b.split("-");
+      return new Date(`${monthA}-01-${yearA}`) - new Date(`${monthB}-01-${yearB}`);
+    });
+
+    const fixedColumns = [
+      "Title", "Publisher", "Publisher_Id", "Platform", "DOI", "Proprietary_ID",
+      "ISBN", "Print_ISSN", "Online_ISSN", "URI", "Data_Type", "YOP",
+      "Access_Type", "Access_Method", "Metric_Type", "Reporting_Period_Total"
+    ];
+
+    const metadataLines = [
+      `Report_Name,Title Report`,
+      `Report_ID,${headerInfo.Report_ID}`,
+      `Release,${headerInfo.Release}`,
+      `Institution_Name,${headerInfo.Institution_Name}`,
+      `Institution_ID,${headerInfo.Institution_ID}`,
+      `Metric_Types,${headerInfo.Metric_Types}`,
+      `Report_Filters,${headerInfo.Report_Filters}`,
+      `Report_Attributes,${headerInfo.Report_Attributes}`,
+      `Exceptions,${headerInfo.Exceptions}`,
+      `Reporting_Period,${headerInfo.Reporting_Period}`,
+      `Created,${headerInfo.Created}`,
+      `Created_By,${headerInfo.Created_By}`,
+      `Registry_Record,${headerInfo.Registry_Record}`,
+    ];
+
+    // Fill missing months with empty or 0
+    const rowsForCsv = allRows.map(row => {
+      const filled = { ...row };
+      for (const month of sortedMonthYearKeys) {
+        if (!(month in filled)) filled[month] = "";
+      }
+      return filled;
+    });
+
+    const csvBody = Papa.unparse(rowsForCsv, {
+      columns: [...fixedColumns, ...sortedMonthYearKeys],
+      skipEmptyLines: true,
+    });
+
+    const fullCsv = [...metadataLines, "", csvBody].join("\n");
+
+    // Download logic (same as before)
+    const blob = new Blob([fullCsv], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
     const formattedStartDate = new Date(startDate).toISOString().split("T")[0];
     const formattedEndDate = new Date(endDate).toISOString().split("T")[0];
+    const reportTypeString = headerInfo.Report_ID || "Report";
 
-    const reportTypeString = Array.from(reportTypes).join("_");
-    a.download = `${reportTypeString}_Combined_Report_${formattedStartDate}_to_${formattedEndDate}.csv`;
+    const a = document.createElement("a");
+    a.download = `${headerInfo.Institution_ID}_${reportTypeString}_Report_${formattedStartDate}_to_${formattedEndDate}.csv`;
     a.href = url;
     a.click();
     URL.revokeObjectURL(url);
-
-    try {
-      const res = await fetch("http://localhost:3001/api/insertReport", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ rows: allCombinedRows }),
-      });
-
-      const result = await res.json();
-
-      if (result.tableName && result.tableName.trim()) {
-        const tableLog = `Table name: ${result.tableName}`;
-        logs.push(tableLog);
-        console.log(tableLog);
-        toast.info(`Data inserted into table: "${result.tableName}"`, {
-          autoClose: false,
-          hideProgressBar: true,
-          pauseOnHover: true,
-        });
-      } else {
-        toast.error("No table name received from server.");
-        logs.push("No table name received from server");
-      }
-    } catch (err) {
-      console.error("Error sending data to backend:", err);
-      toast.error("Failed to insert data into database.");
-      logs.push(`Database insertion error: ${err.message}`);
-      throw err;
-    }
 
     return logs;
   }
 
   const reportOptions = [
     "TR",
-    "DR",
-    "PR",
-    "IR",
-    "PR_P1",
-    "DR_D1",
-    "DR_D2",
-    "TR_B1",
-    "TR_B2",
-    "TR_B3",
     "TR_J1",
     "TR_J2",
     "TR_J3",
     "TR_J4",
-    "IR_A1",
-    "IR_M1",
+    "TR_B1",
+    "TR_B2",
+    "TR_B3",
+    "DR",
+    "DR_D1",
+    "DR_D2",
+    "PR",
+    "PR_P1",
   ];
 
   const handleFileChange = (event) => {
@@ -601,6 +207,7 @@ export default function CounterReports() {
             details[header] = values[index] ? values[index].trim() : "";
           });
           return {
+            sushiUrl: details["SUSHI_URL"],
             libraryCode: details["LIB_code"],
             apiKey: details["api_key"],
             requestorId: details["Requestor_ID"],
@@ -678,13 +285,6 @@ export default function CounterReports() {
     let completedTasks = 0;
     toast.info("Preparing your report for download...");
 
-    const formatDate = (date) => {
-      const d = new Date(date);
-      return selectedPlatform === "RSC"
-        ? d.toISOString().slice(0, 7)
-        : d.toISOString().split("T")[0];
-    };
-
     let fileHandle = null;
     try {
       fileHandle = await window.showDirectoryPicker();
@@ -694,20 +294,15 @@ export default function CounterReports() {
     }
 
     for (const reportType of selectedReports) {
-      const combinedData = [];
       const logs = [];
 
       for (const library of chosenLibraries) {
-        // const asm = "sitemaster.dl.asminternational.org";
-        const asm = "sushi5.scholarlyiq.com";
-        const rsc = "sitemaster.books.rsc.org";
         const r51 = "r51/";
 
         const Version = selectedVersion === "5.1" ? r51 : "";
-        const selectedSite = selectedPlatform === "ASM" ? asm : rsc;
 
-        const start = formatDate(startDate);
-        const end = formatDate(endDate);
+        const start = startDate;
+        const end = endDate;
 
         let attribute = "";
 
@@ -720,9 +315,14 @@ export default function CounterReports() {
           attribute = "";
         }
 
-        const url = `https://${selectedSite}/counter/${Version}reports/${reportType}/?api_key=${library.apiKey}&customer_id=${library.customerId}&requestor_id=${library.requestorId}&begin_date=${start}&end_date=${end}${attribute}`;
+        const url = `${library.sushiUrl}${Version}reports/${reportType}/?api_key=${library.apiKey}&customer_id=${library.customerId}&requestor_id=${library.requestorId}&begin_date=${start}&end_date=${end}${attribute}`;
 
-        toast.info(`Fetching data for: ${library.customerId}`);
+        console.log(`Fetching URL: ${url}`);
+        allLogs.push(`Fetching URL: ${url}`);
+
+        // const url = `https://sitemaster.karger.com//sushi/r51/reports/TR?client_id=47&customer_id=971&begin_date=${start}&end_date=${end}&granularity=Monthly&requestor_id=47528&api_key=f443d19c-54f6-4863-97bd-50895065b1ff${attribute}`;
+
+        toast.info(`Fetching data for: sss_S_${library.customerId}`);
         try {
           const res = await fetch(url);
           if (!res.ok) throw new Error(res.statusText);
@@ -734,33 +334,39 @@ export default function CounterReports() {
             data.Report_Items.length === 0
           ) {
             logs.push(
-              `Failed: ${library.customerId} / ${library.requestorId} - No Data Found`
+              `Failed: sss_S_${library.customerId} / ${library.requestorId} - No Data Found`
             );
           } else {
-            combinedData.push({ libraryCode: library.libraryCode, data });
             logs.push(
-              `Success: ${library.customerId} / ${library.requestorId}`
+              `Success: sss_S_${library.customerId} / ${library.requestorId}`
             );
+
+            // --- Generate and download CSV for this library/report ---
+            await generateCSVfromTR(
+              [{ data, libraryCode: library.libraryCode }],
+              logs
+            );
+
+            // --- Save JSON for this library/report ---
+            const responseBlob = new Blob([JSON.stringify(data, null, 2)], {
+              type: "application/json",
+            });
+            const responseFileName = `response_${library.customerId}_${reportType}_${start}_to_${end}.json`;
+            try {
+              const responseFile = await fileHandle.getFileHandle(
+                responseFileName,
+                { create: true }
+              );
+              await saveFileWithHandle(responseFile, responseBlob);
+            } catch (error) {
+              logs.push(
+                `Failed to save response file for ${library.customerId}: ${error.message}`
+              );
+            }
           }
 
-          // Save each response to a file
-          const responseBlob = new Blob([JSON.stringify(data, null, 2)], {
-            type: "application/json",
-          });
-          const responseFileName = `response_${library.customerId}_${reportType}_${start}_to_${end}.json`;
-          try {
-            const responseFile = await fileHandle.getFileHandle(
-              responseFileName,
-              {
-                create: true,
-              }
-            );
-            await saveFileWithHandle(responseFile, responseBlob);
-          } catch (error) {
-            logs.push(
-              `Failed to save response file for ${library.customerId}: ${error.message}`
-            );
-          }
+          // (Optional) Save each response to a file as before...
+          // ...existing code...
         } catch (error) {
           logs.push(
             `Error: ${library.customerId} / ${library.requestorId} - ${error.message}`
@@ -770,32 +376,6 @@ export default function CounterReports() {
         await new Promise((resolve) => setTimeout(resolve, 2000));
         completedTasks++;
         setProgress(Math.round((completedTasks / totalTasks) * 100));
-      }
-
-      if (combinedData.length > 0) {
-        try {
-          const newLogs = await generateCSVfromTR(combinedData, logs);
-          allLogs = [...allLogs, ...newLogs];
-
-          const blob = new Blob([JSON.stringify(combinedData, null, 2)], {
-            type: "application/json",
-          });
-          const fileName = `report_${reportType}_${formattedStartDate}_to_${formattedEndDate}.json`;
-          try {
-            const file = await fileHandle.getFileHandle(fileName, {
-              create: true,
-            });
-            await saveFileWithHandle(file, blob);
-          } catch (error) {
-            allLogs.push(
-              `Failed to save file for ${reportType}: ${error.message}`
-            );
-          }
-        } catch (error) {
-          allLogs.push(`Error processing ${reportType}: ${error.message}`);
-        }
-      } else {
-        allLogs.push(`No data for ${reportType}`);
       }
     }
 
@@ -902,49 +482,47 @@ export default function CounterReports() {
               </div>
             </div>
             <section className="flex flex-col gap-2">
-              <div className="grid grid-cols-2 gap-2">
-                {/* report version  */}
-                <div className="bg-white p-3 flex flex-col gap-4 rounded-md shadow-md border border-gray-100">
-                  <div className="flex flex-col gap-2 justify-between">
-                    <h4 className="text-xs text-gray-600 font-semibold flex items-center gap-1">
-                      <i className="bx bxs-circle text-red-500"></i>
-                      SUSHI Version
-                    </h4>
-                    <div className="flex items-center gap-2">
-                      <div className="flex w-full items-center ps-4 border border-gray-200 hover:bg-gray-50 rounded-md cursor-pointer dark:border-gray-700">
-                        <input
-                          id="bordered-radio-1"
-                          type="radio"
-                          value="5.0"
-                          name="version"
-                          checked={selectedVersion === "5.0"}
-                          onChange={() => setSelectedVersion("5.0")}
-                          className="w-4 h-4 text-red-500 bg-gray-100 border-gray-300 focus:ring-blue-500 cursor-pointer"
-                        />
-                        <label
-                          htmlFor="bordered-radio-1"
-                          className="w-full py-2 ms-2 text-sm font-medium text-gray-900"
-                        >
-                          5.0
-                        </label>
-                      </div>
-                      <div className="flex w-full items-center ps-4 border border-gray-200 hover:bg-gray-50 rounded-md cursor-pointer">
-                        <input
-                          id="bordered-radio-2"
-                          type="radio"
-                          value="5.1"
-                          name="version"
-                          checked={selectedVersion === "5.1"}
-                          onChange={() => setSelectedVersion("5.1")}
-                          className="w-4 h-4 text-red-500 bg-gray-100 border-gray-300 focus:ring-blue-500  cursor-pointer"
-                        />
-                        <label
-                          htmlFor="bordered-radio-2"
-                          className="w-full py-2 ms-2 text-sm font-medium text-gray-900"
-                        >
-                          5.1
-                        </label>
-                      </div>
+              {/* report version  */}
+              <div className="bg-white p-3 flex flex-col gap-4 rounded-md shadow-md border border-gray-100">
+                <div className="flex flex-col gap-2 justify-between">
+                  <h4 className="text-xs text-gray-600 font-semibold flex items-center gap-1">
+                    <i className="bx bxs-circle text-red-500"></i>
+                    SUSHI Version
+                  </h4>
+                  <div className="flex items-center gap-2">
+                    <div className="flex w-full items-center ps-4 border border-gray-200 hover:bg-gray-50 rounded-md cursor-pointer dark:border-gray-700">
+                      <input
+                        id="bordered-radio-version-1"
+                        type="radio"
+                        value="5.0"
+                        name="version"
+                        checked={selectedVersion === "5.0"}
+                        onChange={() => setSelectedVersion("5.0")}
+                        className="w-4 h-4 text-red-500 bg-gray-100 border-gray-300 focus:ring-blue-500 cursor-pointer"
+                      />
+                      <label
+                        htmlFor="bordered-radio-version-1"
+                        className="w-full py-2 ms-2 text-sm font-medium text-gray-900"
+                      >
+                        5.0
+                      </label>
+                    </div>
+                    <div className="flex w-full items-center ps-4 border border-gray-200 hover:bg-gray-50 rounded-md cursor-pointer">
+                      <input
+                        id="bordered-radio-version-2"
+                        type="radio"
+                        value="5.1"
+                        name="version"
+                        checked={selectedVersion === "5.1"}
+                        onChange={() => setSelectedVersion("5.1")}
+                        className="w-4 h-4 text-red-500 bg-gray-100 border-gray-300 focus:ring-blue-500  cursor-pointer"
+                      />
+                      <label
+                        htmlFor="bordered-radio-version-2"
+                        className="w-full py-2 ms-2 text-sm font-medium text-gray-900"
+                      >
+                        5.1
+                      </label>
                     </div>
                   </div>
                 </div>
@@ -1044,9 +622,9 @@ export default function CounterReports() {
               </div>
             ) : (
               <div className="grid grid-cols-8 gap-2 overflow-y-scroll">
-                {libraryDetails.map((lib) => (
+                {libraryDetails.map((lib, idx) => (
                   <div
-                    key={lib.customerId}
+                    key={`${lib.customerId}_${lib.libraryCode || ""}_${idx}`}
                     onClick={() => toggleLibrary(lib.customerId)}
                     className={` p-2 rounded-md flex items-center gap-1 hover:bg-green-200 transition-all duration-200 cursor-pointer ${
                       selectedLibraries.includes(lib.customerId)
