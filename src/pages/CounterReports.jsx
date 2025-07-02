@@ -1,60 +1,282 @@
-import { React, useState, useEffect } from "react";
-import SideBar from "../components/SideBar";
-import SideNav from "../components/SideNav";
+import React, { useState, useEffect } from "react";
+import Papa from "papaparse";
 import { useNavigate } from "react-router-dom";
-import { toast } from "react-toastify";
+import SideNav from "../components/SideNav";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 export default function CounterReports() {
-  const [allReportsSelected, setAllReportsSelected] = useState(false);
-  const [selectedReports, setSelectedReports] = useState([]);
   const history = useNavigate();
+  const [progress, setProgress] = useState(0);
 
   useEffect(() => {
     const userToken = sessionStorage.getItem("userToken");
     if (!userToken) {
-      // Redirect user to the login page if not authenticated
       history("/login");
     }
   }, [history]);
-
-  const toggleDrawer = () => {
-    const drawer = document.getElementById("drawer-example");
-    if (drawer) {
-      drawer.classList.toggle("translate-x-full");
-    }
-  };
-
+  const [selectedVersion, setSelectedVersion] = useState("5.1");
+  const [file, setFile] = useState(null);
+  const [libraryDetails, setLibraryDetails] = useState([]);
+  const [selectedLibraries, setSelectedLibraries] = useState([]);
+  const [selectedReports, setSelectedReports] = useState([]);
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
+  const [allReportsSelected, setAllReportsSelected] = useState(false);
+  const [allLibrariesSelected, setAllLibrariesSelected] = useState(false);
 
-  const validateDates = () => {
-    if (!startDate || !endDate) {
-      alert("Please select both start and end dates.");
-      return false;
-    }
-    if (new Date(startDate) > new Date(endDate)) {
-      alert("Start date cannot be after end date.");
-      return false;
-    }
-    return true;
-  };
 
-  const reportOptions = ["TR", "DR", "PR", "IR"];
-  const CounterReportOptions = ["5.1", "5.0"];
-  const reportStandardOptions = [
-    "PR_P1",
-    "DR_D1",
-    "DR_D2",
-    "TR_B1",
-    "TR_B2",
-    "TR_B3",
+async function generateCSVfromTR(allReports, logs = []) {
+  const rowsMap = {};
+  const reportTypes = new Set();
+  const monthsWithData = new Set();
+  let headerInfo = {}; // Move out of loop to access later
+
+  allReports.forEach(({ data, libraryCode }) => {
+    const reportHeader = data.Report_Header || {};
+    let reportType = reportHeader.Report_ID || "Unknown";
+
+    if (!reportType && data.Report_Header?.Report_Name) {
+      const name = data.Report_Header.Report_Name;
+      if (name.startsWith("Journal")) reportType = "TR_J1";
+      else if (name.startsWith("Book")) reportType = "TR_B1";
+      else if (name.startsWith("Platform")) reportType = "PR_P1";
+      else if (name.startsWith("Database")) reportType = "DR_D1";
+      else reportType = "TR";
+    }
+
+    reportTypes.add(reportType);
+
+    const institutionCode =
+      libraryCode ||
+      reportHeader.Institution_ID?.Proprietary?.[0]?.split(":")[1] ||
+      "";
+
+    // Extract header info
+    headerInfo = {
+      Report_Name: reportHeader.Report_Name || "no data",
+      Report_ID: reportHeader.Report_ID || "no data",
+      Release: reportHeader.Release || "no data",
+      Institution_Name: reportHeader.Institution_Name || "no data",
+      Institution_ID: reportHeader.Institution_ID?.Proprietary?.join(", ") || "no data",
+      Metric_Types: reportHeader.Metric_Types?.join(", ") || "no data",
+      Report_Filters: reportHeader.Report_Filters ? 
+        `Begin_Date=${reportHeader.Report_Filters.Begin_Date || "no data"}; End_Date=${reportHeader.Report_Filters.End_Date || "no data"}` : "",
+      Report_Attributes: reportHeader.Report_Attributes ? 
+        `Attributes_To_Show=${reportHeader.Report_Attributes.Attributes_To_Show?.join("|") || "no data"}` : "",
+      Exceptions: reportHeader.Exceptions ? 
+        reportHeader.Exceptions.map(e => `${e.Code}: ${e.Message}`).join("; ") : "",
+      Reporting_Period: reportHeader.Report_Filters ? 
+        `Begin_Date=${reportHeader.Report_Filters.Begin_Date || "no data"}; End_Date=${reportHeader.Report_Filters.End_Date || "no data"}` : "",
+      Created: reportHeader.Created || "no data",
+      Created_By: reportHeader.Created_By || "no data",
+      Registry_Record: reportHeader.Registry_Record || "no data"
+    };
+
+    data.Report_Items?.forEach((item) => {
+      const ids = {
+        Proprietary: item.Item_ID?.Proprietary || "",
+        DOI: item.Item_ID?.DOI || "",
+        ISBN: item.Item_ID?.ISBN || "",
+        Print_ISSN: item.Item_ID?.Print_ISSN || "",
+        Online_ISSN: item.Item_ID?.Online_ISSN || "",
+      };
+
+      item.Attribute_Performance?.forEach((attr) => {
+        const dataType = attr.Data_Type || "no data";
+        const accessType = attr.Access_Type || "no data";
+        const accessMethod = attr.Access_Method || "no data";
+        const yop = attr.YOP || "no data";
+
+        const performance = attr.Performance;
+
+        for (const [metric, valuesByMonth] of Object.entries(performance || {})) {
+          for (const [dateStr, count] of Object.entries(valuesByMonth || {})) {
+            const year = dateStr.slice(0, 4);
+            const month = dateStr.slice(5, 7);
+            const monthStr = new Date(`${year}-${month}-01`).toLocaleString(
+              "en-US",
+              { month: "short" }
+            ).toUpperCase();
+            const monthYearKey = `${monthStr}-${year}`;
+
+            const key = `${institutionCode}|${ids.ISBN || "noisbn"}|${metric}`;
+
+            if (!rowsMap[key]) {
+              const Proprietary_Identifier = ids.Proprietary || "";
+              rowsMap[key] = {
+                ...headerInfo,
+                Title: item.Title || "no data",
+                Publisher: item.Publisher || "no data",
+                Publisher_Id: "no data",
+                Platform: item.Platform || "no data",
+                DOI: ids.DOI || "no data",
+                Proprietary_ID: Proprietary_Identifier || "no data",
+                ISBN: ids.ISBN || "no data",
+                Print_ISSN: ids.Print_ISSN || "no data",
+                Online_ISSN: ids.Online_ISSN || "no data",
+                URI: "",
+                Data_Type: dataType,
+                YOP: yop,
+                Access_Type: accessType,
+                Access_Method: accessMethod,
+                Metric_Type: metric,
+                Reporting_Period_Total: 0,
+              };
+            }
+
+            rowsMap[key].Reporting_Period_Total += count;
+            if (!rowsMap[key][monthYearKey]) rowsMap[key][monthYearKey] = 0;
+            rowsMap[key][monthYearKey] += count;
+            monthsWithData.add(monthYearKey);
+          }
+        }
+      });
+    });
+  });
+
+  const allCombinedRows = Object.values(rowsMap);
+  if (allCombinedRows.length === 0) {
+    toast.error("No data available to generate the CSV file.");
+    return logs;
+  }
+
+  const sortedMonthYearKeys = Array.from(monthsWithData).sort((a, b) => {
+    const [monthA, yearA] = a.split('-');
+    const [monthB, yearB] = b.split('-');
+    return new Date(`${monthA}-01-${yearA}`) - new Date(`${monthB}-01-${yearB}`);
+  });
+
+  const fixedColumns = [
+    'Title', 'Publisher', 'Publisher_Id', 'Platform', 'DOI', 'Proprietary_ID',
+    'ISBN', 'Print_ISSN', 'Online_ISSN', 'URI', 'Data_Type', 'YOP',
+    'Access_Type', 'Access_Method', 'Metric_Type', 'Reporting_Period_Total'
+  ];
+
+  // 1. Metadata section
+  const metadataLines = [
+    `Report_Name,Title Report`,
+    `Report_ID,${headerInfo.Report_ID}`,
+    `Release,${headerInfo.Release}`,
+    `Institution_Name,${headerInfo.Institution_Name}`,
+    `Institution_ID,${headerInfo.Institution_ID}`,
+    `Metric_Types,${headerInfo.Metric_Types}`,
+    `Report_Filters,${headerInfo.Report_Filters}`,
+    `Report_Attributes,${headerInfo.Report_Attributes}`,
+    `Exceptions,${headerInfo.Exceptions}`,
+    `Reporting_Period,${headerInfo.Reporting_Period}`,
+    `Created,${headerInfo.Created}`,
+    `Created_By,${headerInfo.Created_By}`,
+    `Registry_Record,${headerInfo.Registry_Record}`
+  ];
+
+  // 2. Main data section
+  const csvBody = Papa.unparse(allCombinedRows, {
+    columns: [...fixedColumns, ...sortedMonthYearKeys],
+    skipEmptyLines: true
+  });
+
+  const fullCsv = [...metadataLines, "", csvBody].join("\n");
+
+  // 3. Download
+  const blob = new Blob([fullCsv], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const formattedStartDate = new Date(startDate).toISOString().split("T")[0];
+  const formattedEndDate = new Date(endDate).toISOString().split("T")[0];
+  const reportTypeString = Array.from(reportTypes).join("_");
+
+  const a = document.createElement("a");
+  a.download = `${reportTypeString}_Combined_Report_${formattedStartDate}_to_${formattedEndDate}.csv`;
+  a.href = url;
+  a.click();
+  URL.revokeObjectURL(url);
+
+  try {
+    const res = await fetch("http://localhost:3001/api/insertReport", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ rows: allCombinedRows }),
+    });
+
+    const result = await res.json();
+    if (result.tableName?.trim()) {
+      const tableLog = `Table name: ${result.tableName}`;
+      logs.push(tableLog);
+      console.log(tableLog);
+      toast.info(`Data inserted into table: "${result.tableName}"`, {
+        autoClose: false,
+        hideProgressBar: true,
+        pauseOnHover: true,
+      });
+    } else {
+      toast.error("No table name received from server.");
+      logs.push("No table name received from server");
+    }
+  } catch (err) {
+    console.error("Error sending data to backend:", err);
+    toast.error("Failed to insert data into database.");
+    logs.push(`Database insertion error: ${err.message}`);
+    throw err;
+  }
+
+  return logs;
+}
+
+
+
+  const reportOptions = [
+    "TR",
     "TR_J1",
     "TR_J2",
     "TR_J3",
     "TR_J4",
-    "IR_A1",
-    "IR_M1",
+    "TR_B1",
+    "TR_B2",
+    "TR_B3",
+    "DR",
+    "DR_D1",
+    "DR_D2",
+    "PR",
+    "PR_P1",
   ];
+
+  const handleFileChange = (event) => {
+    const file = event.target.files[0];
+    setFile(file);
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const csvData = e.target.result;
+        const rows = csvData.split("\n").filter((row) => row.trim() !== "");
+        const headers = rows[0].split(",").map((header) => header.trim());
+        const parsedDetails = rows.slice(1).map((row) => {
+          const values = row.split(",");
+          const details = {};
+          headers.forEach((header, index) => {
+            details[header] = values[index] ? values[index].trim() : "";
+          });
+          return {
+            sushiUrl: details["SUSHI_URL"],
+            libraryCode: details["LIB_code"],
+            apiKey: details["api_key"],
+            requestorId: details["Requestor_ID"],
+            customerId: details["Customer_ID"],
+          };
+        });
+        setLibraryDetails(parsedDetails);
+      };
+      reader.readAsText(file);
+    }
+  };
+
+  const toggleAllReports = () => {
+    if (allReportsSelected) {
+      setSelectedReports([]);
+    } else {
+      setSelectedReports(reportOptions);
+    }
+    setAllReportsSelected(!allReportsSelected);
+  };
 
   const toggleReport = (report) => {
     setSelectedReports((prev) =>
@@ -64,301 +286,409 @@ export default function CounterReports() {
     );
   };
 
-  const toggleCounterReport = (report) => {
-    // For counter reports, we want single selection (radio button behavior)
-    setSelectedReports([report]);
+  const toggleLibrary = (customerId) => {
+    setSelectedLibraries((prev) =>
+      prev.includes(customerId)
+        ? prev.filter((id) => id !== customerId)
+        : [...prev, customerId]
+    );
   };
 
-  const toggleAllReports = () => {
-    if (allReportsSelected) {
-      setSelectedReports([]);
-    } else {
-      setSelectedReports([...reportStandardOptions]);
-    }
-    setAllReportsSelected(!allReportsSelected);
-  };
-
-  // ---Fetch vendors from API---
-  const [vendors, setVendors] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  // Fetch vendors from backend
   useEffect(() => {
-    const fetchVendors = async () => {
-      try {
-        const response = await fetch("http://localhost:3001/api/get-vendors");
-        if (!response.ok) {
-          throw new Error("Failed to fetch vendors");
-        }
-        const data = await response.json();
-        setVendors(data.vendors);
-      } catch (error) {
-        console.error("Error fetching vendors:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
+    setAllLibrariesSelected(selectedLibraries.length === libraryDetails.length);
+  }, [selectedLibraries, libraryDetails]);
 
-    fetchVendors();
-  }, []);
-
-  const handleEdit = (vendorId) => {
-    // Implement edit functionality
-    console.log("Edit vendor:", vendorId);
-  };
-
-  const handleDelete = async (vendorId) => {
+  const saveFileWithHandle = async (handle, blob) => {
     try {
-      const confirmDelete = window.confirm(
-        "Are you sure you want to delete this vendor?"
-      );
-      if (!confirmDelete) return;
-
-      const encodedId = encodeURIComponent(vendorId);
-      const response = await fetch(
-        `http://localhost:3001/api/vendors/${encodedId}`,
-        {
-          method: "DELETE",
-        }
-      );
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Failed to delete vendor");
-      }
-
-      setVendors((prev) => prev.filter((v) => v.id !== vendorId));
-      toast.success("Vendor deleted successfully!");
+      const writable = await handle.createWritable();
+      await writable.write(blob);
+      await writable.close();
     } catch (error) {
-      console.error("Error deleting vendor:", error);
-      toast.error(error.message || "Failed to delete vendor");
+      throw new Error(`Failed to save file: ${error.message}`);
     }
   };
 
-  if (loading) {
-    return <div>Loading vendors...</div>;
-  }
+  const handleDownload = async () => {
+    if (!startDate || !endDate) {
+      toast.error("Please select a valid date range.");
+      return;
+    }
+    if (selectedReports.length === 0) {
+      toast.error("Please select at least one report type.");
+      return;
+    }
+    if (selectedLibraries.length === 0) {
+      toast.error("Please select at least one library.");
+      return;
+    }
 
+    setProgress(0);
+    const formattedStartDate = new Date(startDate).toISOString().split("T")[0];
+    const formattedEndDate = new Date(endDate).toISOString().split("T")[0];
+    const chosenLibraries = libraryDetails.filter((lib) =>
+      selectedLibraries.includes(lib.customerId)
+    );
+
+    let allLogs = [];
+    const totalTasks = selectedReports.length * chosenLibraries.length;
+    let completedTasks = 0;
+    toast.info("Preparing your report for download...");
+
+    let fileHandle = null;
+    try {
+      fileHandle = await window.showDirectoryPicker();
+    } catch (error) {
+      toast.error("Failed to select directory.");
+      return;
+    }
+
+    for (const reportType of selectedReports) {
+      const logs = [];
+
+      for (const library of chosenLibraries) {
+        const r51 = "r51/";
+
+        const Version = selectedVersion === "5.1" ? r51 : "";
+
+        const start = startDate;
+        const end = endDate;
+
+        let attribute = "";
+
+        if (reportType === "TR") {
+          attribute =
+            "&attributes_to_show=Access_Type|YOP|Access_Method|Data_Type|Section_Type";
+        } else if (reportType === "PR" || reportType === "DR") {
+          attribute = "&attributes_to_show=Access_Method|Data_Type";
+        } else {
+          attribute = "";
+        }
+
+        const url = `${library.sushiUrl}${Version}reports/${reportType}/?api_key=${library.apiKey}&customer_id=${library.customerId}&requestor_id=${library.requestorId}&begin_date=${start}&end_date=${end}${attribute}`;
+
+        // const url = `https://sitemaster.karger.com//sushi/r51/reports/TR?client_id=47&customer_id=971&begin_date=${start}&end_date=${end}&granularity=Monthly&requestor_id=47528&api_key=f443d19c-54f6-4863-97bd-50895065b1ff${attribute}`;
+
+        toast.info(`Fetching data for: sss_S_${library.customerId}`);
+        try {
+          const res = await fetch(url);
+          if (!res.ok) throw new Error(res.statusText);
+          const data = await res.json();
+
+          if (
+            data &&
+            Array.isArray(data.Report_Items) &&
+            data.Report_Items.length === 0
+          ) {
+            logs.push(
+              `Failed: sss_S_${library.customerId} / ${library.requestorId} - No Data Found`
+            );
+          } else {
+            logs.push(
+              `Success: sss_S_${library.customerId} / ${library.requestorId}`
+            );
+
+            // --- Generate and download CSV for this library/report ---
+            const { csv, fileName } = await generateCSVForLibrary(
+              { data, libraryCode: library.libraryCode },
+              reportType,
+              startDate,
+              endDate
+            );
+            if (csv && fileName) {
+              const csvBlob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+              const url = URL.createObjectURL(csvBlob);
+              const a = document.createElement("a");
+              a.href = url;
+              a.download = fileName;
+              document.body.appendChild(a);
+              a.click();
+              document.body.removeChild(a);
+              URL.revokeObjectURL(url);
+            } else {
+              logs.push(`No CSV generated for ${library.customerId}`);
+            }
+          }
+
+          // (Optional) Save each response to a file as before...
+          // ...existing code...
+        } catch (error) {
+          logs.push(
+            `Error: ${library.customerId} / ${library.requestorId} - ${error.message}`
+          );
+        }
+
+        await new Promise((resolve) => setTimeout(resolve, 2000));
+        completedTasks++;
+        setProgress(Math.round((completedTasks / totalTasks) * 100));
+      }
+    }
+
+    // Save all logs to a file
+    if (allLogs.length > 0) {
+      const logContent = allLogs.join("\n") || "No logs generated.";
+      const logBlob = new Blob([logContent], { type: "text/plain" });
+      const logFileName = `logs_${formattedStartDate}_to_${formattedEndDate}.txt`;
+      try {
+        const logFile = await fileHandle.getFileHandle(logFileName, {
+          create: true,
+        });
+        await saveFileWithHandle(logFile, logBlob);
+      } catch (error) {
+        toast.error(`Failed to save log file: ${error.message}`);
+      }
+    }
+
+    toast.success("Report processing completed!");
+    console.log("Process logs:\n" + allLogs.join("\n"));
+  };
+
+  // ... rest of the component code (render method) remains the same ...
   return (
     <>
       <SideNav activeTab="counter-fetcher" />
-      <main className="col-span-4 h-full overflow-y-scroll flex flex-col gap-y-2 p-2">
-        <section className="grid grid-cols-4 gap-2">
-          {/* Dates & Filters Grid */}
-          <div className="bg-white p-3 flex flex-col gap-4 rounded-md shadow-md border border-gray-100">
-            <h4 className="text-xs text-gray-600 font-semibold flex items-center gap-1">
-              <i className="bx bx-calendar text-red-500"></i>
-              Select dates
-            </h4>
-            <div className="flex flex-col gap-2">
-              <label className="text-xs font-medium text-gray-600">
-                Start Date
-                <input
-                  type="date"
-                  value={startDate}
-                  onChange={(e) => setStartDate(e.target.value)}
-                  className="mt-1 p-2 border rounded w-full bg-gray-50"
-                />
-              </label>
-              <label className="text-xs font-medium text-gray-600">
-                End Date
-                <input
-                  type="date"
-                  value={endDate}
-                  onChange={(e) => setEndDate(e.target.value)}
-                  className="mt-1 p-2 border rounded w-full bg-gray-50"
-                />
-              </label>
-              <button
-                className="bg-red-500 p-2 rounded-md text-white font-semibold text-sm hover:bg-red-600 transition-all duration-200 cursor-pointer"
-                onClick={() =>
-                  validateDates() && console.log("Downloading reports...")
-                }
-              >
-                Download Reports
-              </button>
+      <main className="col-span-4 h-full overflow-y-scroll p-2">
+        <ToastContainer />
+        <section className="w-full flex flex-col gap-2 h-full">
+          <nav className="bg-white p-3 flex flex-col gap-1 rounded-md shadow-md border border-gray-100">
+            <span className="flex items-center justify-between">
+              <span className="text-xs font-medium text-gray-600">
+                Progress Count
+              </span>
+              <span className="text-xs font-medium text-gray-600">
+                {progress}%
+              </span>
+            </span>
+            <div className="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700">
+              <div
+                className="bg-green-400 h-2.5 rounded-full transition-all duration-300"
+                style={{ width: `${progress}%` }}
+              ></div>
             </div>
-          </div>
+          </nav>
 
-          <div className="flex flex-col gap-2">
-            {/* Report Types Section */}
+          <section className="grid grid-cols-2 gap-2">
             <div className="bg-white p-3 flex flex-col gap-4 rounded-md shadow-md border border-gray-100">
-              <div className="flex items-center justify-between">
-                <h4 className="text-xs text-gray-600 font-semibold flex items-center gap-1">
-                  <i className="bx bxs-report text-red-500"></i>
-                  Select your report types
-                </h4>
-              </div>
-              <div className="gap-2 grid grid-cols-2">
-                {CounterReportOptions.map((report) => (
-                  <div
-                    key={report}
-                    onClick={() => setSelectedReports([report])}
-                    className={` p-2 rounded-md flex items-center gap-1 hover:bg-green-200 transition-all duration-200 cursor-pointer ${
-                      selectedReports.includes(report)
-                        ? "bg-green-200"
-                        : "bg-gray-100"
-                    }`}
-                  >
+              <h4 className="text-xs text-gray-600 font-semibold flex items-center gap-1">
+                <i className="bx bx-cog text-red-500"></i>
+                Input Settings
+              </h4>
+
+              <div className="flex flex-col gap-4">
+                <div>
+                  <label className="block mb-2 text-xs text-gray-600 font-semibold">
+                    Select date range
+                  </label>
+                  <div className="flex items-center gap-2">
                     <input
-                      type="radio"
-                      className="mr-1"
-                      checked={selectedReports.includes(report)}
-                      onChange={() => setSelectedReports([report])}
+                      type="date"
+                      value={startDate}
+                      onChange={(e) => setStartDate(e.target.value)}
+                      className="bg-gray-50 border border-gray-300 text-gray-900 placeholder:text-xs text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
                     />
-                    <label className="text-sm font-semibold">{report}</label>
+                    <span className="text-sm text-gray-500 font-medium">
+                      to
+                    </span>
+                    <input
+                      type="date"
+                      value={endDate}
+                      onChange={(e) => setEndDate(e.target.value)}
+                      className="bg-gray-50 border border-gray-300 text-gray-900 placeholder:text-xs text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+                    />
                   </div>
-                ))}
+                </div>
+                <div className="flex flex-col gap-2">
+                  <div className="flex items-center justify-between gap-2">
+                    <label className="text-xs text-gray-600 font-semibold flex items-center gap-1">
+                      Upload CSV file
+                    </label>
+                    <a
+                      className="text-xs text-blue-500 font-medium hover:underline transition-all duration-300"
+                      href="../assets/csv_template.csv"
+                      download="csv_template.csv"
+                    >
+                      Download CSV template
+                    </a>
+                  </div>
+                  <input
+                    type="file"
+                    accept=".csv"
+                    onChange={handleFileChange}
+                    className="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50"
+                  />
+                </div>
+
+                <button
+                  onClick={handleDownload}
+                  className="bg-red-500 p-2 rounded-md text-white font-semibold text-sm hover:bg-red-600 transition-all duration-200 cursor-pointer"
+                >
+                  Download Reports
+                </button>
               </div>
             </div>
-            {/* Report Types Section */}
-            <div className="bg-white p-3 flex flex-col gap-4 rounded-md shadow-md border border-gray-100">
-              <div className="flex items-center justify-between">
-                <h4 className="text-xs text-gray-600 font-semibold flex items-center gap-1">
-                  <i className="bx bxs-report text-red-500"></i>
-                  Select your report types
-                </h4>
-              </div>
-              <div className="gap-2 grid grid-cols-2">
-                {reportOptions.map((report) => (
-                  <div
-                    key={report}
-                    onClick={() => toggleReport(report)}
-                    className={` p-2 rounded-md flex items-center gap-1 hover:bg-green-200 transition-all duration-200 cursor-pointer ${
-                      selectedReports.includes(report)
-                        ? "bg-green-200"
-                        : "bg-gray-100"
-                    }`}
-                  >
+            <section className="flex flex-col gap-2">
+              {/* report version  */}
+              {/* <div className="bg-white p-3 flex flex-col gap-4 rounded-md shadow-md border border-gray-100">
+                <div className="flex flex-col gap-2 justify-between">
+                  <h4 className="text-xs text-gray-600 font-semibold flex items-center gap-1">
+                    <i className="bx bxs-circle text-red-500"></i>
+                    SUSHI Version
+                  </h4>
+                  <div className="flex items-center gap-2">
+                    <div className="flex w-full items-center ps-4 border border-gray-200 hover:bg-gray-50 rounded-md cursor-pointer dark:border-gray-700">
+                      <input
+                        id="bordered-radio-version-1"
+                        type="radio"
+                        value="5.0"
+                        name="version"
+                        checked={selectedVersion === "5.0"}
+                        onChange={() => setSelectedVersion("5.0")}
+                        className="w-4 h-4 text-red-500 bg-gray-100 border-gray-300 focus:ring-blue-500 cursor-pointer"
+                      />
+                      <label
+                        htmlFor="bordered-radio-version-1"
+                        className="w-full py-2 ms-2 text-sm font-medium text-gray-900"
+                      >
+                        5.0
+                      </label>
+                    </div>
+                    <div className="flex w-full items-center ps-4 border border-gray-200 hover:bg-gray-50 rounded-md cursor-pointer">
+                      <input
+                        id="bordered-radio-version-2"
+                        type="radio"
+                        value="5.1"
+                        name="version"
+                        checked={selectedVersion === "5.1"}
+                        onChange={() => setSelectedVersion("5.1")}
+                        className="w-4 h-4 text-red-500 bg-gray-100 border-gray-300 focus:ring-blue-500  cursor-pointer"
+                      />
+                      <label
+                        htmlFor="bordered-radio-version-2"
+                        className="w-full py-2 ms-2 text-sm font-medium text-gray-900"
+                      >
+                        5.1
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              </div> */}
+
+              {/* Report Types */}
+              <div className="bg-white p-3 flex flex-col gap-4 rounded-md shadow-md border border-gray-100">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-xs text-gray-600 font-semibold flex items-center gap-1">
+                    <i className="bx bxs-report text-red-500"></i>
+                    Report Type
+                  </h4>
+                  <div className="flex items-center gap-2">
                     <input
                       type="checkbox"
-                      className="mr-1"
-                      checked={selectedReports.includes(report)}
-                      readOnly
+                      checked={allReportsSelected}
+                      onChange={toggleAllReports}
+                      id="selectAllCheckboxReport"
+                      className="bg-gray-100 cursor-pointer"
                     />
-                    <label className="text-sm font-semibold">{report}</label>
+                    <label
+                      htmlFor="selectAllCheckboxReport"
+                      className="text-xs font-medium cursor-pointer"
+                    >
+                      Select All
+                    </label>
                   </div>
-                ))}
-              </div>
-            </div>
-          </div>
+                </div>
 
-          {/* Standard Views Section */}
-          <div className="col-span-2 bg-white p-3 flex flex-col gap-4 rounded-md shadow-md border border-gray-100">
+                <div className="grid grid-cols-6 gap-2">
+                  {reportOptions.map((report) => (
+                    <div
+                      key={report}
+                      onClick={() => toggleReport(report)}
+                      className={` p-2 rounded-md flex items-center gap-1 hover:bg-green-200 transition-all duration-200 cursor-pointer ${
+                        selectedReports.includes(report)
+                          ? "bg-green-200"
+                          : "bg-gray-100"
+                      }`}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={selectedReports.includes(report)}
+                        readOnly
+                      />
+                      <label className="text-sm font-semibold">{report}</label>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </section>
+          </section>
+
+          {/* Libraries */}
+          <section className="h-screen bg-white p-3 flex flex-col col-span-2 gap-4 rounded-md shadow-md border border-gray-200">
             <div className="flex items-center justify-between">
               <h4 className="text-xs text-gray-600 font-semibold flex items-center gap-1">
-                <i className="bx bx-filter text-red-500"></i>
-                Select your standard views
+                <i className="bx bx-library text-red-500"></i>
+                Libraries
               </h4>
               <div className="flex items-center gap-2">
                 <input
                   type="checkbox"
-                  checked={allReportsSelected}
-                  onChange={toggleAllReports}
-                  id="selectAllCheckboxReport"
+                  checked={allLibrariesSelected}
+                  id="selectAllCheckboxLibrary"
                   className="bg-gray-100 cursor-pointer"
+                  onChange={() => {
+                    if (allLibrariesSelected) {
+                      setSelectedLibraries([]);
+                    } else {
+                      setSelectedLibraries(
+                        libraryDetails.map((lib) => lib.customerId)
+                      );
+                    }
+                  }}
                 />
                 <label
-                  htmlFor="selectAllCheckboxReport"
+                  htmlFor="selectAllCheckboxLibrary"
                   className="text-xs font-medium cursor-pointer"
                 >
                   Select All
                 </label>
               </div>
             </div>
-            <div className="grid grid-cols-3 gap-2">
-              {reportStandardOptions.map((report) => (
-                <div
-                  key={report}
-                  onClick={() => toggleReport(report)}
-                  className={`p-2 rounded-md flex items-center gap-1 hover:bg-green-200 transition-all duration-200 cursor-pointer ${
-                    selectedReports.includes(report)
-                      ? "bg-green-200"
-                      : "bg-gray-100"
-                  }`}
-                >
-                  <input
-                    type="checkbox"
-                    className="mr-1"
-                    checked={selectedReports.includes(report)}
-                    onChange={() => toggleReport(report)}
-                  />
-                  <label className="text-sm font-semibold">{report}</label>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
 
-        {/* Vendors Section */}
-        <section className="bg-white p-3 flex flex-col gap-4 rounded-md shadow-md border border-gray-100">
-          <div className="flex items-start justify-between">
-            <h4 className="text-xs text-gray-600 font-semibold flex items-center gap-1">
-              <i className="bx bxs-buildings text-red-500"></i>
-              Select vendors
-            </h4>
-            <div className="flex items-center">
-              <input
-                type="text"
-                placeholder="Search vendors..."
-                className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-l-md focus:ring-gray-300 focus:ring-1 block w-full p-1.5"
-              />
-              <button
-                className="bg-red-500 py-2 px-2.5 text-nowrap text-sm font-medium text-white rounded-r-md hover:bg-red-600 transition-all duration-300"
-                type="button"
-              >
-                <i className="bx bx-search-alt"></i>
-              </button>
-              <button
-                className="bg-blue-500 p-1.5 ml-2 text-nowrap text-sm font-medium text-white rounded hover:bg-blue-600 transition-all duration-300"
-                type="button"
-                onClick={toggleDrawer}
-              >
-                Add Vendor
-              </button>
-              <SideBar />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-3 gap-2">
-            {vendors.map((vendor) => (
-              <div
-                key={vendor.id || vendor.name}
-                className="flex justify-between items-center bg-gray-100 p-2 rounded-md"
-              >
-                <div className="flex items-center gap-2 whitespace-nowrap">
-                  <input
-                    type="checkbox"
-                    id={`vendorCheckbox-${vendor.id || vendor.name}`}
-                  />
-                  <label
-                    htmlFor={`vendorCheckbox-${vendor.id || vendor.name}`}
-                    className="text-gray-800 text-sm font-medium"
-                  >
-                    {vendor.name}
-                  </label>
-                </div>
-                <div className="flex">
-                  <button
-                    onClick={() => handleEdit(vendor.id || vendor.name)}
-                    type="button"
-                    className="flex justify-center items-center px-2 py-1 text-sm font-medium text-green-500 bg-white border border-gray-200 rounded-l-lg hover:bg-gray-100"
-                    aria-label={`Edit ${vendor.name}`}
-                  >
-                    <i className="bx bxs-edit"></i>
-                  </button>
-                  <button
-                    onClick={() => handleDelete(vendor.id)}
-                    type="button"
-                    className="flex justify-center items-center px-2 py-1 text-sm font-medium text-red-600 bg-white border border-gray-200 rounded-r-lg hover:bg-gray-100"
-                    aria-label={`Delete ${vendor.name}`}
-                  >
-                    <i className="bx bxs-x-circle"></i>
-                  </button>
-                </div>
+            {!file ? (
+              <div className="w-full h-full flex flex-col items-center justify-center gap-2">
+                <img
+                  src="https://cdn-icons-png.flaticon.com/512/8242/8242984.png"
+                  className="w-36"
+                  draggable="false"
+                  alt="icon"
+                />
+                <h4 className="text-gray-400 text-4xl font-bold">
+                  No File Uploaded
+                </h4>
               </div>
-            ))}
-          </div>
+            ) : (
+              <div className="grid grid-cols-8 gap-2 overflow-y-scroll">
+                {libraryDetails.map((lib, idx) => (
+                  <div
+                    key={`${lib.customerId}_${lib.libraryCode || ""}_${idx}`}
+                    onClick={() => toggleLibrary(lib.customerId)}
+                    className={` p-2 rounded-md flex items-center gap-1 hover:bg-green-200 transition-all duration-200 cursor-pointer ${
+                      selectedLibraries.includes(lib.customerId)
+                        ? "bg-green-200"
+                        : "bg-gray-100"
+                    }`}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={selectedLibraries.includes(lib.customerId)}
+                      onChange={() => toggleLibrary(lib.customerId)}
+                    />
+                    <label className="text-sm font-semibold">
+                      {lib.libraryCode || lib.customerId}
+                    </label>
+                  </div>
+                ))}
+              </div>
+            )}
+          </section>
         </section>
       </main>
     </>
