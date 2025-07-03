@@ -4,7 +4,7 @@
  * This tool allows users to fetch COUNTER 5.1/5.0 compliant usage reports from multiple libraries using SUSHI APIs.
  * Users can upload a CSV of library credentials, select report types, date ranges, and download the resulting reports in CSV and JSON formats.
  * 
- * Copyright (c) 2024 MPS Limited. All rights reserved.
+ * Copyright (c) 2025 MPS Limited. All rights reserved.
  * Developed by Devanshu Bisht and Vansh Kumar.
  * Licensed under the MIT License.
  */
