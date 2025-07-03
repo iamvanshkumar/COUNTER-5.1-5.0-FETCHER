@@ -9,23 +9,20 @@ function createWindow() {
       nodeIntegration: true,
       contextIsolation: false,
     },
+    icon: path.join(__dirname, "icon.ico"), // icon for app window
   });
 
-  win.loadFile(path.join(__dirname, "dist/index.html")); // Load the built React app
+  win.loadFile(path.join(__dirname, "dist", "index.html"));
 }
 
 app.whenReady().then(() => {
   createWindow();
 
   app.on("activate", () => {
-    if (BrowserWindow.getAllWindows().length === 0) {
-      createWindow();
-    }
+    if (BrowserWindow.getAllWindows().length === 0) createWindow();
   });
 });
 
 app.on("window-all-closed", () => {
-  if (process.platform !== "darwin") {
-    app.quit();
-  }
+  if (process.platform !== "darwin") app.quit();
 });
