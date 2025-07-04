@@ -1,9 +1,9 @@
 /**
  * COUNTER 5.1/5.0 Report Fetcher Tool
- * 
+ *
  * This tool allows users to fetch COUNTER 5.1/5.0 compliant usage reports from multiple libraries using SUSHI APIs.
  * Users can upload a CSV of library credentials, select report types, date ranges, and download the resulting reports in CSV and JSON formats.
- * 
+ *
  * Copyright (c) 2025 MPS Limited. All rights reserved.
  * Developed by Devanshu Bisht and Vansh Kumar.
  * Licensed under the MIT License.
@@ -27,7 +27,13 @@ export default function App() {
   const [allReportsSelected, setAllReportsSelected] = useState(false);
   const [allLibrariesSelected, setAllLibrariesSelected] = useState(false);
 
-  async function generateCSVr51(allReports, logs = []) {
+  // Helper function to sanitize file names
+  function sanitizeFilename(name) {
+    return name.replace(/[:\/\\?*"<>|]/g, "_");
+  }
+
+  // Function to generate CSV for COUNTER 5.1 reports
+  async function generateCSVr51(allReports, logs = [], fileHandle) {
     const allRows = [];
     const monthsWithData = new Set();
     let headerInfo = {};
@@ -158,7 +164,7 @@ export default function App() {
     ];
 
     const metadataLines = [
-      `Report_Name,Title Report`,
+      `Report_Name,${headerInfo.Report_Name}`,
       `Report_ID,${headerInfo.Report_ID}`,
       `Release,${headerInfo.Release}`,
       `Institution_Name,${headerInfo.Institution_Name}`,
@@ -176,8 +182,17 @@ export default function App() {
     // Fill missing months with empty or 0
     const rowsForCsv = allRows.map((row) => {
       const filled = { ...row };
+      // Fill missing months with 0
       for (const month of sortedMonthYearKeys) {
-        if (!(month in filled)) filled[month] = "";
+        if (!(month in filled)) filled[month] = 0;
+      }
+      // Ensure Reporting_Period_Total is 0 if missing or blank
+      if (
+        filled.Reporting_Period_Total === undefined ||
+        filled.Reporting_Period_Total === "" ||
+        filled.Reporting_Period_Total === null
+      ) {
+        filled.Reporting_Period_Total = 0;
       }
       return filled;
     });
@@ -191,20 +206,30 @@ export default function App() {
 
     // Download logic (same as before)
     const blob = new Blob([fullCsv], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
     const formattedStartDate = new Date(startDate).toISOString().split("T")[0];
     const formattedEndDate = new Date(endDate).toISOString().split("T")[0];
     const reportTypeString = headerInfo.Report_ID || "Report";
+    const rawFileName = `${headerInfo.Institution_ID}_${reportTypeString}_Report_${formattedStartDate}_to_${formattedEndDate}.csv`;
+    const csvFileName = sanitizeFilename(rawFileName);
 
-    const a = document.createElement("a");
-    a.download = `${headerInfo.Institution_ID}_${reportTypeString}_Report_${formattedStartDate}_to_${formattedEndDate}.csv`;
-    a.href = url;
-    a.click();
-    URL.revokeObjectURL(url);
+    if (fileHandle) {
+      try {
+        const csvFile = await fileHandle.getFileHandle(csvFileName, { create: true });
+        const writable = await csvFile.createWritable();
+        await writable.write(blob);
+        await writable.close();
+        logs.push(`[SAVE] CSV saved: ${csvFileName}`);
+        toast.success(`CSV saved: ${csvFileName}`, { autoClose: 2000 });
+      } catch (error) {
+        logs.push(`[ERROR] Failed to save CSV: ${csvFileName} | ${error.message}`);
+        toast.error(`Failed to save CSV: ${csvFileName}`, { autoClose: 4000 });
+      }
+    }
     return logs;
   }
 
-  async function generateCSVr5(allReports, logs = []) {
+  // Function to generate CSV for COUNTER 5 reports
+  async function generateCSVr5(allReports, logs = [], fileHandle) {
     const allRows = [];
     const monthsWithData = new Set();
     let headerInfo = {};
@@ -271,10 +296,7 @@ export default function App() {
               ...headerInfo,
               Title: item.Title || "",
               Publisher: item.Publisher || "",
-              Publisher_ID:
-                (item.Publisher_ID || []).find(
-                  (id) => id.Type === "Proprietary"
-                )?.Value || "",
+              Publisher_ID: getPublisherId("Proprietary"),
               Platform: item.Platform || "",
               DOI: getId("DOI"),
               Proprietary_ID: getId("Proprietary"),
@@ -343,8 +365,17 @@ export default function App() {
     // Fill missing months with empty or 0
     const rowsForCsv = allRows.map((row) => {
       const filled = { ...row };
+      // Fill missing months with 0
       for (const month of sortedMonthYearKeys) {
-        if (!(month in filled)) filled[month] = "";
+        if (!(month in filled)) filled[month] = 0;
+      }
+      // Ensure Reporting_Period_Total is 0 if missing or blank
+      if (
+        filled.Reporting_Period_Total === undefined ||
+        filled.Reporting_Period_Total === "" ||
+        filled.Reporting_Period_Total === null
+      ) {
+        filled.Reporting_Period_Total = 0;
       }
       return filled;
     });
@@ -358,16 +389,25 @@ export default function App() {
 
     // Download logic (same as before)
     const blob = new Blob([fullCsv], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
     const formattedStartDate = new Date(startDate).toISOString().split("T")[0];
     const formattedEndDate = new Date(endDate).toISOString().split("T")[0];
     const reportTypeString = headerInfo.Report_ID || "Report";
+    const rawFileName = `${headerInfo.Institution_ID}_${reportTypeString}_Report_${formattedStartDate}_to_${formattedEndDate}.csv`;
+    const csvFileName = sanitizeFilename(rawFileName);
 
-    const a = document.createElement("a");
-    a.download = `${headerInfo.Institution_ID}_${reportTypeString}_Report_${formattedStartDate}_to_${formattedEndDate}.csv`;
-    a.href = url;
-    a.click();
-    URL.revokeObjectURL(url);
+    if (fileHandle) {
+      try {
+        const csvFile = await fileHandle.getFileHandle(csvFileName, { create: true });
+        const writable = await csvFile.createWritable();
+        await writable.write(blob);
+        await writable.close();
+        logs.push(`[SAVE] CSV saved: ${csvFileName}`);
+        toast.success(`CSV saved: ${csvFileName}`, { autoClose: 2000 });
+      } catch (error) {
+        logs.push(`[ERROR] Failed to save CSV: ${csvFileName} | ${error.message}`);
+        toast.error(`Failed to save CSV: ${csvFileName}`, { autoClose: 4000 });
+      }
+    }
     return logs;
   }
 
@@ -436,11 +476,9 @@ export default function App() {
     );
   };
 
-  const toggleLibrary = (customerId) => {
+  const toggleLibrary = (idx) => {
     setSelectedLibraries((prev) =>
-      prev.includes(customerId)
-        ? prev.filter((id) => id !== customerId)
-        : [...prev, customerId]
+      prev.includes(idx) ? prev.filter((id) => id !== idx) : [...prev, idx]
     );
   };
 
@@ -460,35 +498,53 @@ export default function App() {
 
   const handleDownload = async () => {
     if (!startDate || !endDate) {
-      toast.error("Please select a valid date range.");
+      toast.error("Please select a valid date range.", {
+        position: "top-right",
+        autoClose: 4000,
+        hideProgressBar: false,
+      });
       return;
     }
     if (selectedReports.length === 0) {
-      toast.error("Please select at least one report type.");
+      toast.warn("Select at least one report type.", {
+        position: "top-right",
+        autoClose: 4000,
+        hideProgressBar: false,
+      });
       return;
     }
     if (selectedLibraries.length === 0) {
-      toast.error("Please select at least one library.");
+      toast.warn("Select at least one library.", {
+        position: "top-right",
+        autoClose: 4000,
+        hideProgressBar: false,
+      });
       return;
     }
 
     setProgress(0);
     const formattedStartDate = new Date(startDate).toISOString().split("T")[0];
     const formattedEndDate = new Date(endDate).toISOString().split("T")[0];
-    const chosenLibraries = libraryDetails.filter((lib) =>
-      selectedLibraries.includes(lib.customerId)
-    );
+    const chosenLibraries = selectedLibraries.map(idx => libraryDetails[idx]);
 
     let allLogs = [];
     const totalTasks = selectedReports.length * chosenLibraries.length;
     let completedTasks = 0;
-    toast.info("Preparing your report for download...");
+    toast.info("Preparing your report for download...", {
+      position: "bottom-right",
+      autoClose: 2500,
+      hideProgressBar: false,
+    });
 
     let fileHandle = null;
     try {
       fileHandle = await window.showDirectoryPicker();
     } catch (error) {
-      toast.error("Failed to select directory.");
+      toast.error("Failed to select directory.", {
+        position: "top-right",
+        autoClose: 4000,
+        hideProgressBar: false,
+      });
       return;
     }
 
@@ -542,12 +598,14 @@ export default function App() {
             if (Version === r51) {
               await generateCSVr51(
                 [{ data, libraryCode: library.libraryCode }],
-                logs
+                logs,
+                fileHandle
               );
             } else {
               await generateCSVr5(
                 [{ data, libraryCode: library.libraryCode }],
-                logs
+                logs,
+                fileHandle
               );
             }
             // --- Save JSON for this library/report ---
@@ -595,13 +653,13 @@ export default function App() {
       }
     }
 
-    toast.success("Report processing completed!");
+    toast.success("Report processing completed!", {
+      position: "top-right",
+      autoClose: 4000,
+      hideProgressBar: false,
+    });
     console.log("Process logs:\n" + allLogs.join("\n"));
   };
-  // MPS COUNTER 5.1/5.0 Report Fetcher Tool
-  // Copyright (c) 2024 MPS Limited. All rights reserved.
-  // Licensed under the MIT License.
-
   return (
     <>
       <main className="h-full overflow-y-scroll p-2">
@@ -620,7 +678,8 @@ export default function App() {
               </h1>
             </div>
             <p className="text-xs text-gray-500">
-              Fetch reports from COUNTER 5.1/5.0 compliant sources - Copyright (c) 2025 MPST . All rights reserved.
+              Fetch reports from COUNTER 5.1/5.0 compliant sources - Copyright
+              (c) 2025 MPST . All rights reserved.
             </p>
           </div>
           <div className="bg-white p-3 flex flex-col gap-3 rounded-md shadow-md border border-gray-100">
@@ -811,9 +870,7 @@ export default function App() {
                     if (allLibrariesSelected) {
                       setSelectedLibraries([]);
                     } else {
-                      setSelectedLibraries(
-                        libraryDetails.map((lib) => lib.customerId)
-                      );
+                      setSelectedLibraries(libraryDetails.map((_, idx) => idx));
                     }
                   }}
                 />
@@ -842,18 +899,18 @@ export default function App() {
               <div className="grid grid-cols-8 gap-2 overflow-y-scroll">
                 {libraryDetails.map((lib, idx) => (
                   <div
-                    key={`${lib.customerId}_${lib.libraryCode || ""}_${idx}`}
-                    onClick={() => toggleLibrary(lib.customerId)}
+                    key={idx}
+                    onClick={() => toggleLibrary(idx)}
                     className={` p-2 rounded-md flex items-center gap-1 hover:bg-green-200 transition-all duration-200 cursor-pointer ${
-                      selectedLibraries.includes(lib.customerId)
+                      selectedLibraries.includes(idx)
                         ? "bg-green-200"
                         : "bg-gray-100"
                     }`}
                   >
                     <input
                       type="checkbox"
-                      checked={selectedLibraries.includes(lib.customerId)}
-                      onChange={() => toggleLibrary(lib.customerId)}
+                      checked={selectedLibraries.includes(idx)}
+                      onChange={() => toggleLibrary(idx)}
                     />
                     <label className="text-sm font-semibold">
                       {lib.libraryCode || lib.customerId}
