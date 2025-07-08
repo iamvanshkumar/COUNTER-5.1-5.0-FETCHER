@@ -16,6 +16,7 @@ import "react-toastify/dist/ReactToastify.css";
 
 export default function App() {
   const [progress, setProgress] = useState(0);
+  const [processing, setProcessing] = useState(false);
 
   const [selectedVersion, setSelectedVersion] = useState("5.1");
   const [file, setFile] = useState(null);
@@ -570,6 +571,7 @@ export default function App() {
       return;
     }
 
+    setProcessing(true); // <-- Set processing to true
     setProgress(0);
     const formattedStartDate = new Date(startDate).toISOString().split("T")[0];
     const formattedEndDate = new Date(endDate).toISOString().split("T")[0];
@@ -701,6 +703,7 @@ export default function App() {
       }
     }
 
+    setProcessing(false); // <-- Set processing to false
     toast.success("Report processing completed!", {
       position: "top-right",
       autoClose: false,
@@ -710,6 +713,18 @@ export default function App() {
   };
   return (
     <>
+      {/* Overlay when processing */}
+      {processing && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-40 z-50 flex items-center justify-center"
+          style={{ pointerEvents: "auto" }}
+        >
+          <div className="text-white text-xl font-bold animate-pulse bg-black bg-opacity-60 px-8 py-6 rounded-lg shadow-lg">
+            Processing... Please wait
+          </div>
+        </div>
+      )}
+
       <main className="h-full overflow-y-scroll p-2">
         <ToastContainer />
 
@@ -800,7 +815,10 @@ export default function App() {
 
                 <button
                   onClick={handleDownload}
-                  className="bg-red-500 p-2 rounded-md text-white font-semibold text-sm hover:bg-red-600 transition-all duration-200 cursor-pointer"
+                  className={`bg-red-500 p-2 rounded-md text-white font-semibold text-sm hover:bg-red-600 transition-all duration-200 cursor-pointer ${
+                    processing ? "opacity-60 cursor-not-allowed" : ""
+                  }`}
+                  disabled={processing}
                 >
                   Download Reports
                 </button>
