@@ -197,8 +197,26 @@ export default function App() {
       return filled;
     });
 
+    // 1. Find columns where all values are empty/zero/blank
+    function getNonEmptyColumns(rows, columns) {
+      return columns.filter((col) =>
+        rows.some(
+          (row) =>
+            row[col] !== undefined &&
+            row[col] !== null &&
+            row[col] !== "" &&
+            // For numeric columns, also check not zero
+            !(typeof row[col] === "number" && row[col] === 0)
+        )
+      );
+    }
+
+    // Example usage in your CSV generation:
+    const allColumns = [...fixedColumns, ...sortedMonthYearKeys];
+    const nonEmptyColumns = getNonEmptyColumns(rowsForCsv, allColumns);
+
     const csvBody = Papa.unparse(rowsForCsv, {
-      columns: [...fixedColumns, ...sortedMonthYearKeys],
+      columns: nonEmptyColumns,
       skipEmptyLines: true,
     });
 
@@ -214,14 +232,18 @@ export default function App() {
 
     if (fileHandle) {
       try {
-        const csvFile = await fileHandle.getFileHandle(csvFileName, { create: true });
+        const csvFile = await fileHandle.getFileHandle(csvFileName, {
+          create: true,
+        });
         const writable = await csvFile.createWritable();
         await writable.write(blob);
         await writable.close();
         logs.push(`[SAVE] CSV saved: ${csvFileName}`);
         toast.success(`CSV saved: ${csvFileName}`, { autoClose: 2000 });
       } catch (error) {
-        logs.push(`[ERROR] Failed to save CSV: ${csvFileName} | ${error.message}`);
+        logs.push(
+          `[ERROR] Failed to save CSV: ${csvFileName} | ${error.message}`
+        );
         toast.error(`Failed to save CSV: ${csvFileName}`, { autoClose: 4000 });
       }
     }
@@ -380,8 +402,26 @@ export default function App() {
       return filled;
     });
 
+    // 1. Find columns where all values are empty/zero/blank
+    function getNonEmptyColumns(rows, columns) {
+      return columns.filter((col) =>
+        rows.some(
+          (row) =>
+            row[col] !== undefined &&
+            row[col] !== null &&
+            row[col] !== "" &&
+            // For numeric columns, also check not zero
+            !(typeof row[col] === "number" && row[col] === 0)
+        )
+      );
+    }
+
+    // Example usage in your CSV generation:
+    const allColumns = [...fixedColumns, ...sortedMonthYearKeys];
+    const nonEmptyColumns = getNonEmptyColumns(rowsForCsv, allColumns);
+
     const csvBody = Papa.unparse(rowsForCsv, {
-      columns: [...fixedColumns, ...sortedMonthYearKeys],
+      columns: nonEmptyColumns,
       skipEmptyLines: true,
     });
 
@@ -397,14 +437,22 @@ export default function App() {
 
     if (fileHandle) {
       try {
-        const csvFile = await fileHandle.getFileHandle(csvFileName, { create: true });
+        const csvFile = await fileHandle.getFileHandle(csvFileName, {
+          create: true,
+        });
         const writable = await csvFile.createWritable();
         await writable.write(blob);
         await writable.close();
         logs.push(`[SAVE] CSV saved: ${csvFileName}`);
-        toast.success(`CSV saved: ${csvFileName}`, { autoClose: 2000 });
+        toast.success(`CSV saved: ${csvFileName}`, {
+          position: "top-right",
+          autoClose: false,
+          hideProgressBar: false,
+        });
       } catch (error) {
-        logs.push(`[ERROR] Failed to save CSV: ${csvFileName} | ${error.message}`);
+        logs.push(
+          `[ERROR] Failed to save CSV: ${csvFileName} | ${error.message}`
+        );
         toast.error(`Failed to save CSV: ${csvFileName}`, { autoClose: 4000 });
       }
     }
@@ -525,7 +573,7 @@ export default function App() {
     setProgress(0);
     const formattedStartDate = new Date(startDate).toISOString().split("T")[0];
     const formattedEndDate = new Date(endDate).toISOString().split("T")[0];
-    const chosenLibraries = selectedLibraries.map(idx => libraryDetails[idx]);
+    const chosenLibraries = selectedLibraries.map((idx) => libraryDetails[idx]);
 
     let allLogs = [];
     const totalTasks = selectedReports.length * chosenLibraries.length;
@@ -655,7 +703,7 @@ export default function App() {
 
     toast.success("Report processing completed!", {
       position: "top-right",
-      autoClose: 4000,
+      autoClose: false,
       hideProgressBar: false,
     });
     console.log("Process logs:\n" + allLogs.join("\n"));
