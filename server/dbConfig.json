@@ -3,7 +3,7 @@
     "host": "localhost",
     "port": "3306",
     "database": "fetcher_reports",
-    "username": "fetcher_user",
-    "password": "mps@1234"
+    "username": "root",
+    "password": "Devans@99978"
   }
 }
