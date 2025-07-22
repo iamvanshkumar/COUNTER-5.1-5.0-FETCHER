@@ -5,12 +5,5 @@
     "database": "fetcher_reports",
     "username": "fetcher_user",
     "password": "mps@1234"
-  },
-  "counterFetcher": {
-    "host": "localhost",
-    "port": "3306",
-    "database": "counter",
-    "username": "counter_user",
-    "password": "cnt@567811"
   }
 }

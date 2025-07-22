@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from "react";
 import Papa from "papaparse";
-import { Link } from "react-router-dom";
+import axios from "axios";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 export default function FetcherReports() {
   const [progress, setProgress] = useState(0);
+  const [showInsightsModal, setShowInsightsModal] = useState(false);
 
   const [selectedPlatform, setSelectedPlatform] = useState("ASM");
   const [selectedVersion, setSelectedVersion] = useState("5.1");
@@ -17,6 +18,41 @@ export default function FetcherReports() {
   const [endDate, setEndDate] = useState("");
   const [allReportsSelected, setAllReportsSelected] = useState(false);
   const [allLibrariesSelected, setAllLibrariesSelected] = useState(false);
+
+  // afasfasfsaf
+
+  const [config, setConfig] = useState({
+    insightsFetcher: {
+      host: "",
+      port: "",
+      database: "",
+      username: "",
+      password: "",
+    },
+  });
+
+  useEffect(() => {
+    fetch("http://localhost:3001/api/config")
+      .then((res) => res.json())
+      .then((data) => setConfig((prev) => ({ ...prev, ...data })))
+      .catch((err) => console.error("Failed to load config:", err));
+  }, []);
+
+  const handleSave = async (tool) => {
+    const data = {
+      tool,
+      config: config[tool],
+    };
+    const res = await fetch("http://localhost:3001/api/config", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    });
+    const result = await res.json();
+    toast.success(result.message);
+  };
+
+  // asfasfsafafafas
 
   async function generateCSVfromTR(allReports, logs = []) {
     const rowsMap = {};
@@ -442,6 +478,99 @@ export default function FetcherReports() {
   return (
     <>
       <ToastContainer />
+      {showInsightsModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+          <div className="bg-white w-full max-w-xl p-5 rounded-md shadow-md border border-gray-200 relative">
+            <div className="flex justify-between items-center border-b mb-3 pb-2">
+              <h4 className="text-sm font-semibold text-gray-700 flex items-center gap-1">
+                <i className="bx bxl-postgresql text-red-500"></i>
+                SQL Setup -{" "}
+                <span className="text-red-500">Insights Fetcher</span>
+              </h4>
+              <button
+                className="text-gray-500 hover:text-red-500 text-xl"
+                onClick={() => setShowInsightsModal(false)}
+              >
+                &times;
+              </button>
+            </div>
+
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                handleSave("insightsFetcher");
+                setShowInsightsModal(false);
+              }}
+              className="space-y-4"
+            >
+              <div className="grid grid-cols-3 gap-2">
+                {["host", "port", "database"].map((field) => (
+                  <div key={field}>
+                    <label className="block mb-1 text-xs text-gray-600 font-semibold">
+                      {field.charAt(0).toUpperCase() + field.slice(1)}*
+                    </label>
+                    <input
+                      type="text"
+                      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-red-500 focus:ring-1 focus:border-red-500 block w-full p-1.5"
+                      value={config.insightsFetcher[field]}
+                      onChange={(e) =>
+                        setConfig((prev) => ({
+                          ...prev,
+                          insightsFetcher: {
+                            ...prev.insightsFetcher,
+                            [field]: e.target.value,
+                          },
+                        }))
+                      }
+                    />
+                  </div>
+                ))}
+              </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                {["username", "password"].map((field) => (
+                  <div key={field}>
+                    <label className="block mb-1 text-xs text-gray-600 font-semibold">
+                      {field.charAt(0).toUpperCase() + field.slice(1)}*
+                    </label>
+                    <input
+                      type={field === "password" ? "password" : "text"}
+                      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-red-500 focus:ring-1 focus:border-red-500 block w-full p-1.5"
+                      value={config.insightsFetcher[field]}
+                      onChange={(e) =>
+                        setConfig((prev) => ({
+                          ...prev,
+                          insightsFetcher: {
+                            ...prev.insightsFetcher,
+                            [field]: e.target.value,
+                          },
+                        }))
+                      }
+                    />
+                  </div>
+                ))}
+              </div>
+
+              <div className="flex gap-2 pt-2">
+                <button
+                  type="submit"
+                  className="bg-green-500 hover:bg-green-600 w-full text-white font-semibold p-2 rounded-md text-sm transition"
+                >
+                  SAVE
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowInsightsModal(false)}
+                  className="bg-gray-200 hover:bg-gray-300 w-full text-gray-700 font-semibold p-2 rounded-md text-sm transition"
+                >
+                  CANCEL
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
       <main className="h-full overflow-y-scroll p-2">
         <section className="w-full flex flex-col gap-2 h-full">
           <div className="bg-white p-3 flex justify-between items-center gap-3 rounded-md shadow-md border border-gray-100">
@@ -459,11 +588,14 @@ export default function FetcherReports() {
               Fetch reports from COUNTER 5.1/5.0 compliant sources - Copyright
               (c) 2025 MPST . All rights reserved.
             </p>
-            <Link to="/settings">
-              <button className="flex items-center justify-center p-2 gap-2 w-10 h-10 hover:bg-red-500 hover:text-white text-gray-600 bg-gray-100 rounded-md transition-all duration-200">
-                <i className="bx bxs-cog text-xl"></i>
-              </button>
-            </Link>
+
+            <button
+              onClick={() => setShowInsightsModal(true)}
+              className="flex items-center justify-center gap-1 bg-red-500 hover:bg-red-600 text-white text-sm font-semibold px-4 py-2 rounded-md shadow transition"
+            >
+              <i className="bx bxs-cog "></i>
+              Configure SQL
+            </button>
           </div>
 
           <nav className="bg-white p-3 flex flex-col gap-1 rounded-md shadow-md border border-gray-100">
