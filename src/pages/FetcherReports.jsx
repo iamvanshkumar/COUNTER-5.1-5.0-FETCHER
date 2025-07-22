@@ -31,6 +31,7 @@ export default function FetcherReports() {
     },
   });
 
+
   useEffect(() => {
     fetch("http://localhost:3001/api/config")
       .then((res) => res.json())
