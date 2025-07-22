@@ -1,20 +1,11 @@
 import React, { useState, useEffect } from "react";
 import Papa from "papaparse";
-import { useNavigate } from "react-router-dom";
-import SideNav from "../components/SideNav";
+import { Link } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 export default function FetcherReports() {
-  const history = useNavigate();
   const [progress, setProgress] = useState(0);
-
-  useEffect(() => {
-    const userToken = sessionStorage.getItem("userToken");
-    if (!userToken) {
-      history("/login");
-    }
-  }, [history]);
 
   const [selectedPlatform, setSelectedPlatform] = useState("ASM");
   const [selectedVersion, setSelectedVersion] = useState("5.1");
@@ -98,8 +89,9 @@ export default function FetcherReports() {
                 }
               );
 
-              const key = `${institutionCode}|${ids.ISBN || "noisbn"
-                }|${metric}`;
+              const key = `${institutionCode}|${
+                ids.ISBN || "noisbn"
+              }|${metric}`;
 
               if (!rowsMap[key]) {
                 const Proprietary_Identifier = ids.Proprietary || "";
@@ -172,9 +164,9 @@ export default function FetcherReports() {
         },
         body: JSON.stringify({ rows: allCombinedRows }),
       });
-      
+
       const result = await res.json();
-      
+
       if (result.tableName && result.tableName.trim()) {
         const tableLog = `Table name: ${result.tableName}`;
         logs.push(tableLog);
@@ -301,7 +293,7 @@ export default function FetcherReports() {
     const chosenLibraries = libraryDetails.filter((lib) =>
       selectedLibraries.includes(lib.customerId)
     );
-    
+
     let allLogs = [];
     const totalTasks = selectedReports.length * chosenLibraries.length;
     let completedTasks = 0;
@@ -356,7 +348,11 @@ export default function FetcherReports() {
           if (!res.ok) throw new Error(res.statusText);
           const data = await res.json();
 
-          if (data && Array.isArray(data.Report_Items) && data.Report_Items.length === 0) {
+          if (
+            data &&
+            Array.isArray(data.Report_Items) &&
+            data.Report_Items.length === 0
+          ) {
             logs.push(
               `Failed: sss_S_${library.customerId} / ${library.requestorId} - No Data Found`
             );
@@ -400,7 +396,7 @@ export default function FetcherReports() {
         try {
           const newLogs = await generateCSVfromTR(combinedData, logs);
           allLogs = [...allLogs, ...newLogs];
-          
+
           const blob = new Blob([JSON.stringify(combinedData, null, 2)], {
             type: "application/json",
           });
@@ -411,7 +407,9 @@ export default function FetcherReports() {
             });
             await saveFileWithHandle(file, blob);
           } catch (error) {
-            allLogs.push(`Failed to save file for ${reportType}: ${error.message}`);
+            allLogs.push(
+              `Failed to save file for ${reportType}: ${error.message}`
+            );
           }
         } catch (error) {
           allLogs.push(`Error processing ${reportType}: ${error.message}`);
@@ -443,10 +441,31 @@ export default function FetcherReports() {
   // ... rest of the component code (render method) remains the same ...
   return (
     <>
-      <SideNav activeTab="insight-fetcher" />
-      <main className="col-span-4 h-full overflow-y-scroll p-2">
-        <ToastContainer />
+      <ToastContainer />
+      <main className="h-full overflow-y-scroll p-2">
         <section className="w-full flex flex-col gap-2 h-full">
+          <div className="bg-white p-3 flex justify-between items-center gap-3 rounded-md shadow-md border border-gray-100">
+            <div className="flex items-center gap-2">
+              <img
+                src="https://d12ux7ql5zx5ks.cloudfront.net/wp-content/uploads/MPS_LOGO_37df55fb0f6fe049cc780587d3693251-11.png"
+                alt="logo"
+                className="h-4"
+              />
+              <h1 className="text-sm font-medium text-gray-700">
+                COUNTER 5.1/5.0 Report Fetcher Tool
+              </h1>
+            </div>
+            <p className="text-xs text-gray-500">
+              Fetch reports from COUNTER 5.1/5.0 compliant sources - Copyright
+              (c) 2025 MPST . All rights reserved.
+            </p>
+            <Link to="/settings">
+              <button className="flex items-center justify-center p-2 gap-2 w-10 h-10 hover:bg-red-500 hover:text-white text-gray-600 bg-gray-100 rounded-md transition-all duration-200">
+                <i className="bx bxs-cog text-xl"></i>
+              </button>
+            </Link>
+          </div>
+
           <nav className="bg-white p-3 flex flex-col gap-1 rounded-md shadow-md border border-gray-100">
             <span className="flex items-center justify-between">
               <span className="text-xs font-medium text-gray-600">
@@ -458,7 +477,7 @@ export default function FetcherReports() {
             </span>
             <div className="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700">
               <div
-                className="bg-green-400 h-2.5 rounded-full transition-all duration-300"
+                className="bg-blue-500 h-2.5 rounded-full transition-all duration-300"
                 style={{ width: `${progress}%` }}
               ></div>
             </div>
