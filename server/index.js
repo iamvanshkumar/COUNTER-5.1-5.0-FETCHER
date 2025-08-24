@@ -5,6 +5,7 @@ import fs from 'fs';
 import path from 'path';
 import dotenv from 'dotenv';
 import counterFetcherRoute from './routes/insightsRoutes.js';
+import winston from 'winston'; // Import winston for logging
 
 
 dotenv.config(); // Load environment variables
@@ -17,6 +18,14 @@ app.use(express.urlencoded({ extended: true, limit: '100mb' }));
 app.use(cors());
 
 const CONFIG_PATH = path.join(process.cwd(), './dbConfig.json');
+
+// Configure winston logger
+const logger = winston.createLogger({
+  transports: [
+    new winston.transports.File({ filename: 'server.log' }),
+    new winston.transports.Console()
+  ]
+});
 
 // GET config
 app.use(counterFetcherRoute);
@@ -198,4 +207,5 @@ app.delete('/api/vendors/:id', (req, res) => {
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
+  logger.info(`Server started on http://localhost:${PORT}`); // Log server start
 });
