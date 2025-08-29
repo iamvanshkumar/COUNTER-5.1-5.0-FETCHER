@@ -9,7 +9,7 @@
  * Licensed under the MIT License.
  **/
 
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import Papa from "papaparse";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -39,7 +39,7 @@ export default function App() {
     const monthsWithData = new Set();
     let headerInfo = {};
 
-    allReports.forEach(({ data, libraryCode }) => {
+    allReports.forEach(({ data }) => {
       const reportHeader = data.Report_Header || {};
       headerInfo = {
         Report_Name: reportHeader.Report_Name || "",
