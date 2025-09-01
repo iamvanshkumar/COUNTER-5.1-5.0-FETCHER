@@ -33,6 +33,20 @@ export default function App() {
     return name.replace(/[:\/\\?*"<>|]/g, "_");
   }
 
+  // Helper to trigger browser download
+  function downloadBlob(blob, filename) {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(() => {
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }, 100);
+  }
+
   // Function to generate CSV for COUNTER 5.1 reports
   async function generateCSVr51(allReports, logs = [], fileHandle) {
     const allRows = [];
@@ -231,23 +245,11 @@ export default function App() {
     const rawFileName = `${headerInfo.Institution_ID}_${reportTypeString}_Report_${formattedStartDate}_to_${formattedEndDate}.csv`;
     const csvFileName = sanitizeFilename(rawFileName);
 
-    if (fileHandle) {
-      try {
-        const csvFile = await fileHandle.getFileHandle(csvFileName, {
-          create: true,
-        });
-        const writable = await csvFile.createWritable();
-        await writable.write(blob);
-        await writable.close();
-        logs.push(`[SAVE] CSV saved: ${csvFileName}`);
-        toast.success(`CSV saved: ${csvFileName}`, { autoClose: 2000 });
-      } catch (error) {
-        logs.push(
-          `[ERROR] Failed to save CSV: ${csvFileName} | ${error.message}`
-        );
-        toast.error(`Failed to save CSV: ${csvFileName}`, { autoClose: 4000 });
-      }
-    }
+    // Download CSV directly
+    downloadBlob(blob, csvFileName);
+    logs.push(`[DOWNLOAD] CSV downloaded: ${csvFileName}`);
+    toast.success(`CSV downloaded: ${csvFileName}`, { autoClose: 2000 });
+
     return logs;
   }
 
@@ -436,27 +438,11 @@ export default function App() {
     const rawFileName = `${headerInfo.Institution_ID}_${reportTypeString}_Report_${formattedStartDate}_to_${formattedEndDate}.csv`;
     const csvFileName = sanitizeFilename(rawFileName);
 
-    if (fileHandle) {
-      try {
-        const csvFile = await fileHandle.getFileHandle(csvFileName, {
-          create: true,
-        });
-        const writable = await csvFile.createWritable();
-        await writable.write(blob);
-        await writable.close();
-        logs.push(`[SAVE] CSV saved: ${csvFileName}`);
-        toast.success(`CSV saved: ${csvFileName}`, {
-          position: "top-right",
-          autoClose: false,
-          hideProgressBar: false,
-        });
-      } catch (error) {
-        logs.push(
-          `[ERROR] Failed to save CSV: ${csvFileName} | ${error.message}`
-        );
-        toast.error(`Failed to save CSV: ${csvFileName}`, { autoClose: 4000 });
-      }
-    }
+    // Download CSV directly
+    downloadBlob(blob, csvFileName);
+    logs.push(`[DOWNLOAD] CSV downloaded: ${csvFileName}`);
+    toast.success(`CSV downloaded: ${csvFileName}`, { autoClose: 2000 });
+
     return logs;
   }
 
@@ -663,18 +649,8 @@ export default function App() {
               type: "application/json",
             });
             const responseFileName = `response_${library.customerId}_${reportType}_${start}_to_${end}.json`;
-            try {
-              const responseFile = await fileHandle.getFileHandle(
-                responseFileName,
-                { create: true }
-              );
-              await saveFileWithHandle(responseFile, responseBlob);
-              allLogs.push(`[SAVE] JSON saved: ${responseFileName}`);
-            } catch (error) {
-              allLogs.push(
-                `[ERROR] Failed to save JSON for ${library.customerId} (${library.libraryCode}): ${error.message}`
-              );
-            }
+            downloadBlob(responseBlob, responseFileName);
+            allLogs.push(`[DOWNLOAD] JSON downloaded: ${responseFileName}`);
           }
         } catch (error) {
           allLogs.push(
@@ -693,14 +669,7 @@ export default function App() {
       const logContent = allLogs.join("\n") || "No logs generated.";
       const logBlob = new Blob([logContent], { type: "text/plain" });
       const logFileName = `logs_${formattedStartDate}_to_${formattedEndDate}.txt`;
-      try {
-        const logFile = await fileHandle.getFileHandle(logFileName, {
-          create: true,
-        });
-        await saveFileWithHandle(logFile, logBlob);
-      } catch (error) {
-        toast.error(`Failed to save log file: ${error.message}`);
-      }
+      downloadBlob(logBlob, logFileName);
     }
 
     setProcessing(false); // <-- Set processing to false
